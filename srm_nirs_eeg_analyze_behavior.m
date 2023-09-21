@@ -1,0 +1,160 @@
+%% srm_nirs_eeg_analyze_behavior.m
+
+% Benjamin Richardson
+% Created: August 31st, 2023
+
+% Script to analyze behavioral sensitivity (d-prime) for SRM NIRS EEG 1
+
+BehaviorTable = readtable('C:\Users\benri\Nextcloud\Python\data\srm-nirs-eeg-1.xlsx','Format','auto');
+
+subject_ID = char('NDARYZ656HJ9','NDARCD778KPR','NDARMY829TKN','NDARLU426TBZ','NDARHM932KNX','NDARHN971WJ5');
+num_conditions = 12;
+
+all_hits = zeros(size(subject_ID,1),num_conditions);
+all_FAs = zeros(size(subject_ID,1),num_conditions);
+all_num_target_color_words = zeros(size(subject_ID,1),num_conditions);
+all_num_masker_color_words = zeros(size(subject_ID,1),num_conditions);
+
+all_maskers = {'m_noise__ild_0__itd_500__targ_l';...
+'m_noise__ild_0__itd_500__targ_r';...
+'m_noise__ild_0__itd_50__targ_l';...
+'m_noise__ild_0__itd_50__targ_r';...
+'m_noise__ild_10__itd_0__targ_l';...
+'m_noise__ild_10__itd_0__targ_r';...
+'m_speech__ild_0__itd_500__targ_l';...
+'m_speech__ild_0__itd_500__targ_r';...
+'m_speech__ild_0__itd_50__targ_l';...
+'m_speech__ild_0__itd_50__targ_r';...
+'m_speech__ild_10__itd_0__targ_l';...
+'m_speech__ild_10__itd_0__targ_r'}; % we will maintain this order throughout
+
+for isubject = 1:size(subject_ID,1) % For each subject...
+
+    % Load the word times for this subject
+    WordTimesTable = readtable("C:\Users\benri\Nextcloud\Python\data\srm-nirs-eeg-1__s_" + string(subject_ID(isubject,:)) + "__Word_Times.csv");
+
+    run_count_per_condition = zeros(1,num_conditions); % array to keep track of which run in each condition we are on
+
+    % Find the rows associated with this subject
+    rows_this_subject = find(BehaviorTable.S == string(subject_ID(isubject,:)));
+
+    % define color and object words
+    color_words = ["red","white","green","blue"];
+    object_words = [];
+
+    % For each trial....
+    for itrial = 1:length(rows_this_subject)
+        this_trial_condition = BehaviorTable.Condition(rows_this_subject(itrial)); % find the condition for this trial
+        this_trial_masker = BehaviorTable.masker(rows_this_subject(itrial)); % find the masker type for this trial
+        this_trial_run = run_count_per_condition(string(all_maskers) == string(this_trial_masker)); % find how many runs of this condition have happened already
+        this_trial_click_times = table2array(BehaviorTable(rows_this_subject(itrial),9:end)); % find the click times for this trial
+        this_trial_click_times(isnan(this_trial_click_times)) = []; % remove NaN from these click times
+
+        this_trial_target_all = WordTimesTable(string(WordTimesTable.Condition) == this_trial_masker & WordTimesTable.Run == this_trial_run & string(WordTimesTable.Type) == 'Target',4:end);
+        this_trial_target_words = table2array(this_trial_target_all(:,1:2:end));
+        this_trial_target_times = table2array(this_trial_target_all(:,2:2:end));
+
+        this_trial_masker_all = WordTimesTable(string(WordTimesTable.Condition) == this_trial_masker & WordTimesTable.Run == this_trial_run & string(WordTimesTable.Type) == 'Masker',4:end);
+        this_trial_masker_words = table2array(this_trial_masker_all(:,1:2:end));
+        this_trial_masker_times = table2array(this_trial_masker_all(:,2:2:end));
+
+        % Store number of color words in the target and masker
+        all_num_target_color_words(isubject,string(all_maskers) == string(this_trial_masker)) = all_num_target_color_words(isubject,string(all_maskers) == string(this_trial_masker)) + sum(ismember(this_trial_target_words,color_words));
+        all_num_masker_color_words(isubject,string(all_maskers) == string(this_trial_masker)) = all_num_masker_color_words(isubject,string(all_maskers) == string(this_trial_masker)) + sum(ismember(this_trial_masker_words,color_words));
+
+        % Find just color times in target and masker
+        this_trial_target_color_times = this_trial_target_times(ismember(this_trial_target_words,color_words));
+        this_trial_masker_color_times = this_trial_masker_times(ismember(this_trial_masker_words,color_words));
+
+%         disp(["this_trial_condition = ", num2str(this_trial_condition)])
+%         disp(["this_trial_masker = ", this_trial_masker])
+%         disp(["this trial num masker color words = ", num2str(sum(ismember(this_trial_masker_words,color_words)))])
+%         
+        % ...Calculate the hit rate, FA rate in this trial
+        for iclick = 1:length(this_trial_click_times)
+            threshold_window_start = 0.2;
+            threshold_window_end = 1;
+            distance_to_target_color_words = this_trial_click_times(iclick) - this_trial_target_color_times;
+            distance_to_masker_color_words = this_trial_click_times(iclick) - this_trial_masker_color_times;
+
+            if any((threshold_window_start < distance_to_target_color_words) & (distance_to_target_color_words < threshold_window_end))
+                all_hits(isubject,string(all_maskers) == string(this_trial_masker)) = all_hits(isubject,string(all_maskers) == string(this_trial_masker)) + 1;
+                this_trial_target_color_times((threshold_window_start < distance_to_target_color_words) & (distance_to_target_color_words < threshold_window_end)) = [];
+            elseif any((threshold_window_start < distance_to_masker_color_words) & (distance_to_masker_color_words < threshold_window_end))
+                all_FAs(isubject,string(all_maskers) == string(this_trial_masker)) = all_FAs(isubject,string(all_maskers) == string(this_trial_masker)) + 1;
+                this_trial_masker_color_times((threshold_window_start < distance_to_masker_color_words) & (distance_to_masker_color_words < threshold_window_end)) = [];
+            end
+
+        end
+
+        % associate it with the correct condition
+
+        run_count_per_condition(string(all_maskers) == string(this_trial_masker)) = run_count_per_condition(string(all_maskers) == string(this_trial_masker)) + 1;
+    end
+
+
+end
+
+%% NEW ORDER = itd50 noise, itd500 noise, ILD10 noise, itd50 speech, itd500 speech, ild10 speech
+all_hits_collapsed_left_and_right = [];
+all_hits_collapsed_left_and_right(1,:) = sum(all_hits(:,[1,2]),2); % itd50 noise
+all_hits_collapsed_left_and_right(2,:) = sum(all_hits(:,[3,4]),2); % itd500 noise
+all_hits_collapsed_left_and_right(3,:) = sum(all_hits(:,[5,6]),2); % ild10 noise
+all_hits_collapsed_left_and_right(4,:) = sum(all_hits(:,[7,8]),2); % itd50 speech
+all_hits_collapsed_left_and_right(5,:) = sum(all_hits(:,[9,10]),2); % itd500 speech
+all_hits_collapsed_left_and_right(6,:) = sum(all_hits(:,[11,12]),2); % ild10 speech
+
+all_FAs_collapsed_left_and_right = [];
+all_FAs_collapsed_left_and_right(1,:) = sum(all_FAs(:,[1,2]),2);
+all_FAs_collapsed_left_and_right(2,:) = sum(all_FAs(:,[3,4]),2);
+all_FAs_collapsed_left_and_right(3,:) = sum(all_FAs(:,[5,6]),2);
+all_FAs_collapsed_left_and_right(4,:) = sum(all_FAs(:,[7,8]),2);
+all_FAs_collapsed_left_and_right(5,:) = sum(all_FAs(:,[9,10]),2);
+all_FAs_collapsed_left_and_right(6,:) = sum(all_FAs(:,[11,12]),2);
+
+all_num_target_color_words_collapsed_left_and_right = [];
+all_num_target_color_words_collapsed_left_and_right(1,:) = sum(all_num_target_color_words(:,[1,2]),2);
+all_num_target_color_words_collapsed_left_and_right(2,:) = sum(all_num_target_color_words(:,[3,4]),2);
+all_num_target_color_words_collapsed_left_and_right(3,:) = sum(all_num_target_color_words(:,[5,6]),2);
+all_num_target_color_words_collapsed_left_and_right(4,:) = sum(all_num_target_color_words(:,[7,8]),2);
+all_num_target_color_words_collapsed_left_and_right(5,:) = sum(all_num_target_color_words(:,[9,10]),2);
+all_num_target_color_words_collapsed_left_and_right(6,:) = sum(all_num_target_color_words(:,[11,12]),2);
+
+all_num_masker_color_words_collapsed_left_and_right = [];
+all_num_masker_color_words_collapsed_left_and_right(1,:) = sum(all_num_masker_color_words(:,[1,2]),2);
+all_num_masker_color_words_collapsed_left_and_right(2,:) = sum(all_num_masker_color_words(:,[3,4]),2);
+all_num_masker_color_words_collapsed_left_and_right(3,:) = sum(all_num_masker_color_words(:,[5,6]),2);
+all_num_masker_color_words_collapsed_left_and_right(4,:) = sum(all_num_masker_color_words(:,[7,8]),2);
+all_num_masker_color_words_collapsed_left_and_right(5,:) = sum(all_num_masker_color_words(:,[9,10]),2);
+all_num_masker_color_words_collapsed_left_and_right(6,:) = sum(all_num_masker_color_words(:,[11,12]),2);
+
+all_hit_rates = all_hits./all_num_target_color_words;
+all_hit_rates_collapsed = all_hits_collapsed_left_and_right./all_num_target_color_words_collapsed_left_and_right;
+
+all_FA_rates = all_FAs./all_num_masker_color_words;
+all_FA_rates_collapsed = all_FAs_collapsed_left_and_right./all_num_masker_color_words_collapsed_left_and_right;
+
+%% Hit Rate Figure
+figure;boxplot(all_hit_rates_collapsed')
+xticks([1:6])
+xticklabels({'ITD 500 Noise','ITD 50 Noise','ILD 10 Noise','ITD 500 Speech','ITD 50 Speech','ILD 10 Speech'})
+ylabel('Hit Rate','FontSize',18)
+xlabel('Condition','FontSize',18)
+
+%% D-Prime Figure (Just Speech)
+d_primes_speech_masker = norminv(all_hit_rates_collapsed(4:end,:)) - norminv(all_FA_rates_collapsed(4:end,:));
+figure;
+hold on
+plot(d_primes_speech_masker,'k')
+e = errorbar([1:3],mean(d_primes_speech_masker,2),std(d_primes_speech_masker,[],2)./(sqrt(size(subject_ID,1))-1));
+e.Marker = 'o';
+e.MarkerSize = 10;
+e.MarkerFaceColor = 'red';
+e.Color = 'red';
+e.CapSize = 15;
+
+xticks([1:3])
+xlim([0.75 3.25])
+xticklabels({'ITD 500 Speech','ITD 50 Speech','ILD 10 Speech'})
+ylabel('d-prime','FontSize',18)
+xlabel('Condition','FontSize',18)

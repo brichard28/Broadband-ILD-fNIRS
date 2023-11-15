@@ -1,0 +1,415 @@
+%% srm_nirs_eeg_multsubject
+
+% Benjamin Richardson, Maanasa Guru Adimurthy
+% script to analyze group averages for SRM-NIRS-EEG-1
+
+addpath("C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\errorbar_files\errorbar_files");
+
+all_maskers = {'m_speech__ild_0__itd_500__targ_r__control_0',...
+'m_noise__ild_0__itd_50__targ_l__control_0',...
+'m_noise__ild_0__itd_50__targ_r__control_0',...
+'m_speech__ild_70n__itd_0__targ_r__control_0',...
+'m_speech__ild_0__itd_50__targ_l__control_0',...
+'m_speech__ild_10__itd_0__targ_l__control_0',...
+'m_speech__ild_0__itd_500__targ_l__control_0',...
+'m_speech__ild_0__itd_500__targ_l__control_1',...
+'m_noise__ild_0__itd_500__targ_r__control_1',...
+'m_noise__ild_0__itd_500__targ_r__control_0',...
+'m_noise__ild_70n__itd_0__targ_l__control_0',...
+'m_noise__ild_10__itd_0__targ_l__control_0',...
+'m_speech__ild_10__itd_0__targ_r__control_0',...
+'m_noise__ild_10__itd_0__targ_r__control_0',...
+'m_speech__ild_0__itd_50__targ_r__control_0',...
+'m_speech__ild_0__itd_500__targ_r__control_1',...
+'m_noise__ild_70n__itd_0__targ_r__control_0',...
+'m_noise__ild_0__itd_500__targ_l__control_1',...
+'m_noise__ild_0__itd_500__targ_l__control_0',...
+'m_speech__ild_70n__itd_0__targ_l__control_0'}; % we will maintain this order throughout
+
+subjID={'NDARZD647HJ1','NDARHN971WJ5','NDARHM932KNX','NDARGF569BF3','NDARBL382XK5'};
+%all_extracted_alpha= cell(length(subjID),1);
+
+BehaviorTable = readtable('C:\Users\benri\Nextcloud\Python\data\srm-nirs-eeg-1.xlsx','Format','auto');
+
+for subind= 1:length(subjID)
+    subID=subjID{subind};
+    all_eeg_epoch = load(['C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\prepro_epoched_data\' subID 'all_epochs.mat']);
+    all_eeg_epoch_data=all_eeg_epoch.EEG.data;
+    all_eeg_epoch_time=all_eeg_epoch.EEG.times;
+
+    %p_o_channels=[11:20];
+
+    all_eeg_paritealoccipitalchan = all_eeg_epoch_data;%(p_o_channels,:,:);
+    numchannels=size(all_eeg_paritealoccipitalchan,1);
+    numtrials= size(all_eeg_paritealoccipitalchan,3);
+
+    fs= all_eeg_epoch.EEG.srate;
+
+
+
+
+    %% Analysis of peak alpha power
+
+    epoch_duration=1;
+
+    alpha_band=[7 14];
+    %min_peak_width=0.6;
+    % Time vector for power spectrum for each epoch
+    samples= epoch_duration*fs;
+    [~,index_time0] = min(abs(all_eeg_epoch.EEG.times - (1000)));
+    [~,index_time1]=min(abs(all_eeg_epoch.EEG.times - (2000)));
+    %Variable to store Peak alpha and power spectra
+    %peakfreqs=zeros(size(all_eeg_paritealoccipitalchan,3),1); % one row per trial,column for electrode group
+    avgpowerspectra=zeros(size(all_eeg_paritealoccipitalchan,3),1); 
+    powerspectra=zeros(size(all_eeg_paritealoccipitalchan,1),1);
+
+
+
+    %FFT
+    data_segment=squeeze(mean(all_eeg_paritealoccipitalchan(:,index_time0:index_time1,:),[1,3]));
+    zero_padding= zeros(1,10*fs);
+    data_segment=[zero_padding data_segment zero_padding];
+    %power_spectrum=abs(fft(data_segment));
+    %avgpowerspectra(j)= mean(power_spectrum)
+    L=1024;
+    y= fft(data_segment);
+    p2=abs(y/L);
+    p1= p2(1:L/2+1);
+    p1(2:end-1)=2*p1(2:end-1);
+    f= fs*(0:(L/2))/L;
+    [~,low_end_f_index] = min(abs(f - 7)); % index of 7 Hz
+    [~,high_end_f_index] = min(abs(f - 14)); % index of 14 Hz
+    f_alpha = f(low_end_f_index:high_end_f_index);
+    p_alpha = p1(low_end_f_index:high_end_f_index);   
+    [~,ipaf_index] = findpeaks(p_alpha);
+    if length(ipaf_index) > 1
+        ipaf_index = ipaf_index(1);
+    end
+    if ~isempty(ipaf_index)
+        ipaf = f_alpha(ipaf_index);
+    elseif isempty(ipaf_index)
+        ipaf = 10.25;
+    end
+    disp("ipaf =")
+    disp(ipaf)
+        
+%% Extracting alpha
+%% YUQI DENG METHOD
+%     extracted_alpha=[]; % num of channels,num of trials
+% 
+%     for ichannel= 1:numchannels
+%         for itrial=1:numtrials
+%         
+%         %pullout data for this channel and trial
+%             this_current= double(squeeze(all_eeg_paritealoccipitalchan(ichannel,:,itrial)));
+%         % Filter this data in 2 Hz window (+/- 1 Hz) around IPAF with FIR
+%             lowpass_cutoff = ((ipaf -1)/all_eeg_epoch.EEG.srate)*2; % normalize frequency
+%              highpass_cutoff = ((ipaf + 1)/all_eeg_epoch.EEG.srate)*2;
+%             b = fir1(256,[lowpass_cutoff highpass_cutoff]);
+%             this_current_alpha = filtfilt(b,1,this_current);
+%             % pull out alpha envelope
+%             this_current_alpha_envelope = abs(hilbert(this_current_alpha));
+%             %hold on;plot(this_current_alpha_envelope)
+%                 % save into larger array
+%             extracted_alpha(ichannel,itrial,:)=this_current_alpha_envelope;
+%             extracted_alpha_data{subind}=extracted_alpha;
+% 
+%         end
+% 
+%         % BASELINE
+%         %% Baseline correction
+%         baseline_duration=1.0;
+%         baseline_samples=round(baseline_duration*fs);
+%         [~,index_time0] = min(abs(all_eeg_epoch.EEG.times - 0));
+%         baseline_data= extracted_alpha(ichannel,:,(index_time0-baseline_samples):index_time0);
+%         baseline_mean=mean(baseline_data,[2,3]);
+%         baseline_std = std(baseline_data,[],[2,3]);
+%         extracted_alpha(ichannel,:,:)=(extracted_alpha(ichannel,:,:)-(baseline_mean))./baseline_std;
+%     end
+
+%% BEN METHOD FROM JASMINE EEG PROJECT
+epoch_time_limits = [-3 12];
+    for ichannel= 1:numchannels
+        for itrial=1:numtrials
+    
+            %pullout data for this channel and trial
+            this_EEG = double(squeeze(all_eeg_paritealoccipitalchan(ichannel,:,itrial)));
+            % Subtract ERP
+            %this_EEG = this_EEG - mean(all_eeg_paritealoccipitalchan(ichannel,:,:),3);
+
+            % Take Power spectrogram
+            n_padsamples = 256*2; % 2 seconds
+            eeg_zeropadded = [zeros(1,n_padsamples),this_EEG,zeros(1,n_padsamples)]; % zero padding
+
+            fs = 256;
+            nseg = 128;
+            overlap = 127;
+            nfft = 256;
+            [P,f,~] = spectrogram(eeg_zeropadded,nseg,overlap,0:0.25:50,fs); % spectrogram(eeg_zeropadded,[],[],0:0.25:50,fs); % 
+            t = linspace((epoch_time_limits(1)-(n_padsamples/fs))*1000,(epoch_time_limits(2)+(n_padsamples/fs))*1000,size(P,2));
+            P = 20*log10(abs(P));
+
+            %[~,timeindex1] = min(abs(t + 3000)); % where to start baselining (weird bc of zero padding)
+            %[~,timeindex2] = min(abs(t + 2000));
+
+            %resting_ersp_mean(itrial,ichannel,:) = mean(P(:,timeindex1:timeindex2),2); % mean during pre-cue period
+            %resting_ersp_std(itrial,ichannel,:) = std(P(:,timeindex1:timeindex2),[],2); % std during pre-cue period
+
+            [~,trim_time_1] = min(abs(t - (epoch_time_limits(1)*1000)));
+            [~,trim_time_2] = min(abs(t - (epoch_time_limits(2)*1000)));
+            
+            P = P(:,trim_time_1:trim_time_2);
+            t = t(trim_time_1:trim_time_2);
+
+            power(itrial,ichannel,:,:) = P; % (P - squeeze(resting_ersp_mean(itrial,ichannel,:)))./squeeze(resting_ersp_std(itrial,ichannel,:));
+            %                             itc(itrial,ichannel,:,:) = R;
+            %                             powbase(itrial,ichannel,:,:) = PB;
+            %                             times(itrial,ichannel,:) = t;
+            %                             freqs(itrial,ichannel,:) = f;
+            %                             erspboot(itrial,ichannel,:,:) = Pboot;
+            %                             itcboot(itrial,ichannel,:,:) = Rboot;
+            freqs(itrial,ichannel,:) = f;
+            times(itrial,ichannel,:) = t;
+    
+        end
+        %power(:,ichannel,:,:) = power(:,ichannel,:,:) - mean(power(:,ichannel,:,:),1);
+        %power(:,ichannel,:,:) =  (power(:,ichannel,:,:) - mean(power(:,ichannel,:,timeindex1:timeindex2),'all'))./std(power(:,ichannel,:,timeindex1:timeindex2),[],'all'); % baseline over trials
+    end
+
+   % power = (power - mean(power(:,:,:,timeindex1:timeindex2),[1,3,4]))./std(power(:,:,:,timeindex1:timeindex2),[],[1,3,4]);
+
+    % Power is num_trials x num_channels x frequency x time for this
+    % subject
+    left_hemisphere_channels = [1,2,4,5];
+    right_hemisphere_channels = [7,8,9,10];
+    figure; 
+    % Spectrograms listen left vs listen right
+    subID=subjID{subind};
+    rows_this_subject = find(BehaviorTable.S == string(subID));
+    conditions = BehaviorTable.Condition(rows_this_subject);
+
+    attend_left_conditions = ismember(conditions,find(contains(all_maskers,'__itd_500__targ_l__')));
+    attend_right_conditions = ismember(conditions,find(contains(all_maskers,'__itd_500__targ_r__')));
+
+    subplot(2,2,1)
+    imagesc(t,f,squeeze(mean(power(attend_left_conditions,left_hemisphere_channels,:,:),[1,2])))
+    xline(0)
+    set(gca,'YDir','normal')
+    title('Attend Left Left Hem')
+    subplot(2,2,2)
+    imagesc(t,f,squeeze(mean(power(attend_left_conditions,right_hemisphere_channels,:,:),[1,2])))
+    xline(0)
+    set(gca,'YDir','normal')
+    title('Attend Left Right Hem')
+    subplot(2,2,3)
+    imagesc(t,f,squeeze(mean(power(attend_right_conditions,left_hemisphere_channels,:,:),[1,2])))
+    xline(0)
+    set(gca,'YDir','normal')
+    xlabel('Time from cue onset (ms)','FontSize',18)
+    ylabel('Frequency (Hz)','FontSize',18)
+    title('Attend Right Left Hem')
+    subplot(2,2,4)
+    imagesc(t,f,squeeze(mean(power(attend_right_conditions,right_hemisphere_channels,:,:),[1,2])))
+    xline(0)
+    set(gca,'YDir','normal')
+
+    title('Attend Right Right Hem')
+    sgtitle(subID)
+    colorbar
+
+
+
+
+    %% Extract alpha 
+    current_alpha_power = squeeze(mean(power(:,:,find(f==ipaf-1):find(f==ipaf+1),:),[3])); % take average over frequency 
+    % baseline over trials
+    [~,timeindex1] = min(abs(t + 1000)); 
+    [~,timeindex2] = min(abs(t + 0));
+    for ichannel = 1:numchannels
+        baseline_mean = mean(current_alpha_power(:,ichannel,timeindex1:timeindex2),'all');
+        baseline_std = std(current_alpha_power(:,ichannel,timeindex1:timeindex2),[],'all');
+        current_alpha_power(:,ichannel,:) = (current_alpha_power(:,ichannel,:) - baseline_mean)./baseline_std;
+    end
+
+
+    %% DOUBLE CHECK BASELINE AND LOOK AT RAW SPECTROGRAMS
+
+   extracted_alpha_data{subind}= current_alpha_power; %permute(current_alpha_power,[2 1 3]);
+end
+
+% subject loop ends
+
+
+for isubject = 1:length(subjID)
+    subID=subjID{isubject};
+    rows_this_subject = find(BehaviorTable.S == string(subID));
+    conditions = BehaviorTable.Condition(rows_this_subject);
+
+    if length(conditions) < 20
+        disp(subjID(isubject))
+    end
+
+    for icondition = 1:length(unique(conditions))
+        extracted_alpha_for_plotting(isubject,icondition,:,:,:) = extracted_alpha_data{isubject}(conditions==icondition,:,:);
+        % num subjects x num conditions x num presentations x num channels
+        % of this condition x time
+    end
+end
+    
+
+
+%% Speech ONLY attend left vs. attend right for each processing
+speech_conditions = contains(all_maskers,'speech');
+experimental_conditions = contains(all_maskers,'control_0');
+speech_experimental_maskers = all_maskers((speech_conditions.*experimental_conditions) == 1);
+
+left_hemisphere_channels = [1,2,4,5];
+right_hemisphere_channels = [7,8,9,10];
+
+for isubject = 1:length(subjID)
+    for i = 1:length(speech_experimental_maskers)
+        if contains(speech_experimental_maskers(i),'itd_50__')
+            if contains(speech_experimental_maskers(i),'targ_l_')
+                left_hem_attend_left_itd_50(isubject,:,:,:) = squeeze(extracted_alpha_for_plotting(isubject,string(all_maskers) == string(speech_experimental_maskers(i)),:,left_hemisphere_channels,:));
+                right_hem_attend_left_itd_50(isubject,:,:,:)  = squeeze(extracted_alpha_for_plotting(isubject,string(all_maskers) == string(speech_experimental_maskers(i)),:,right_hemisphere_channels,:));
+            elseif contains(speech_experimental_maskers(i),'targ_r_')
+                left_hem_attend_right_itd_50(isubject,:,:,:)  = squeeze(extracted_alpha_for_plotting(isubject,string(all_maskers) == string(speech_experimental_maskers(i)),:,left_hemisphere_channels,:));
+                right_hem_attend_right_itd_50(isubject,:,:,:)  = squeeze(extracted_alpha_for_plotting(isubject,string(all_maskers) == string(speech_experimental_maskers(i)),:,right_hemisphere_channels,:));
+            end
+        elseif contains(speech_experimental_maskers(i),'itd_500__')
+            if contains(speech_experimental_maskers(i),'targ_l_')
+                left_hem_attend_left_itd_500(isubject,:,:,:)  = squeeze(extracted_alpha_for_plotting(isubject,string(all_maskers) == string(speech_experimental_maskers(i)),:,left_hemisphere_channels,:));
+                right_hem_attend_left_itd_500(isubject,:,:,:)  = squeeze(extracted_alpha_for_plotting(isubject,string(all_maskers) == string(speech_experimental_maskers(i)),:,right_hemisphere_channels,:));
+            elseif contains(speech_experimental_maskers(i),'targ_r_')
+                left_hem_attend_right_itd_500(isubject,:,:,:)  = squeeze(extracted_alpha_for_plotting(isubject,string(all_maskers) == string(speech_experimental_maskers(i)),:,left_hemisphere_channels,:));
+                right_hem_attend_right_itd_500(isubject,:,:,:)  = squeeze(extracted_alpha_for_plotting(isubject,string(all_maskers) == string(speech_experimental_maskers(i)),:,right_hemisphere_channels,:));
+            end
+        elseif contains(speech_experimental_maskers(i),'ild_10')
+            if contains(speech_experimental_maskers(i),'targ_l_')
+                left_hem_attend_left_ild_10(isubject,:,:,:)  = squeeze(extracted_alpha_for_plotting(isubject,string(all_maskers) == string(speech_experimental_maskers(i)),:,left_hemisphere_channels,:));
+                right_hem_attend_left_ild_10(isubject,:,:,:) = squeeze(extracted_alpha_for_plotting(isubject,string(all_maskers) == string(speech_experimental_maskers(i)),:,right_hemisphere_channels,:));
+            elseif contains(speech_experimental_maskers(i),'targ_r_')
+                left_hem_attend_right_ild_10(isubject,:,:,:)  = squeeze(extracted_alpha_for_plotting(isubject,string(all_maskers) == string(speech_experimental_maskers(i)),:,left_hemisphere_channels,:));
+                right_hem_attend_right_ild_10(isubject,:,:,:) = squeeze(extracted_alpha_for_plotting(isubject,string(all_maskers) == string(speech_experimental_maskers(i)),:,right_hemisphere_channels,:));
+            end
+        elseif contains(speech_experimental_maskers(i),'ild_70n')
+            if contains(speech_experimental_maskers(i),'targ_l_')
+                left_hem_attend_left_ild_70n(isubject,:,:,:)  = squeeze(extracted_alpha_for_plotting(isubject,string(all_maskers) == string(speech_experimental_maskers(i)),:,left_hemisphere_channels,:));
+                right_hem_attend_left_ild_70n(isubject,:,:,:)  = squeeze(extracted_alpha_for_plotting(isubject,string(all_maskers) == string(speech_experimental_maskers(i)),:,right_hemisphere_channels,:));
+            elseif contains(speech_experimental_maskers(i),'targ_r_')
+                left_hem_attend_right_ild_70n(isubject,:,:,:)  = squeeze(extracted_alpha_for_plotting(isubject,string(all_maskers) == string(speech_experimental_maskers(i)),:,left_hemisphere_channels,:));
+                right_hem_attend_right_ild_70n(isubject,:,:,:)  = squeeze(extracted_alpha_for_plotting(isubject,string(all_maskers) == string(speech_experimental_maskers(i)),:,right_hemisphere_channels,:));
+            end
+        end
+
+    end
+end
+% Take mean over presentations (current size: subjects x presentations x
+% channels x time)
+left_hem_attend_left_itd_50 = squeeze(mean(left_hem_attend_left_itd_50,2));
+right_hem_attend_left_itd_50  = squeeze(mean(right_hem_attend_left_itd_50,2));
+left_hem_attend_right_itd_50 = squeeze(mean(left_hem_attend_right_itd_50 ,2));
+right_hem_attend_right_itd_50 = squeeze(mean(right_hem_attend_right_itd_50,2));
+left_hem_attend_left_itd_500 = squeeze(mean(left_hem_attend_left_itd_500,2));
+right_hem_attend_left_itd_500 = squeeze(mean(right_hem_attend_left_itd_500,2));
+left_hem_attend_right_itd_500 = squeeze(mean(left_hem_attend_right_itd_500 ,2));
+right_hem_attend_right_itd_500 =  squeeze(mean(right_hem_attend_right_itd_500,2));
+left_hem_attend_left_ild_10 = squeeze(mean(left_hem_attend_left_ild_10,2));
+right_hem_attend_left_ild_10 = squeeze(mean(right_hem_attend_left_ild_10 ,2));
+left_hem_attend_right_ild_10  = squeeze(mean(left_hem_attend_right_ild_10,2));
+right_hem_attend_right_ild_10 =    squeeze(mean(right_hem_attend_right_ild_10,2));
+left_hem_attend_left_ild_70n  = squeeze(mean(left_hem_attend_left_ild_70n,2));
+right_hem_attend_left_ild_70n  = squeeze(mean(right_hem_attend_left_ild_70n ,2));
+left_hem_attend_right_ild_70n =squeeze(mean(left_hem_attend_right_ild_70n,2));
+right_hem_attend_right_ild_70n =squeeze(mean(right_hem_attend_right_ild_70n ,2));
+% new size: 
+
+% Plot mean and std over subjects
+% 4 panels: left hemisphere attend right - attend left, right hemisphere
+% attend right - attend left
+figure;
+time = linspace(all_eeg_epoch.EEG.xmin,all_eeg_epoch.EEG.xmax,size(power,4));
+subplot(2,1,1) % Left Hemisphere attend Left
+hold on
+shadedErrorBar(time,detrend(squeeze(mean(left_hem_attend_left_itd_50,[1,2]) - mean(left_hem_attend_right_itd_50,[1,2]))),std(squeeze(mean(left_hem_attend_left_itd_50,2) - mean(left_hem_attend_right_itd_50,2)),[],1)./(sqrt(length(subjID))-1),'lineProps','-r')
+shadedErrorBar(time,detrend(squeeze(mean(left_hem_attend_left_itd_500,[1,2]) - mean(left_hem_attend_right_itd_500,[1,2]))),std(squeeze(mean(left_hem_attend_left_itd_500,2) - mean(left_hem_attend_right_itd_500,2)),[],1)./(sqrt(length(subjID))-1),'lineProps','-g')
+shadedErrorBar(time,detrend(squeeze(mean(left_hem_attend_left_ild_10,[1,2]) - mean(left_hem_attend_right_ild_10,[1,2]))),std(squeeze(mean(left_hem_attend_left_ild_10,2) - mean(left_hem_attend_right_ild_10,2)),[],1)./(sqrt(length(subjID))-1),'lineProps','-b')
+shadedErrorBar(time,detrend(squeeze(mean(left_hem_attend_left_ild_70n,[1,2]) - mean(left_hem_attend_right_ild_70n,[1,2]))),std(squeeze(mean(left_hem_attend_left_ild_70n,2) - mean(left_hem_attend_right_ild_70n,2)),[],1)./(sqrt(length(subjID))-1),'lineProps','-c')
+title('Left Hemisphere Attend Left - Attend Right')
+
+subplot(2,1,2) % right Hemisphere attend Left
+hold on
+shadedErrorBar(time,detrend(squeeze(mean(right_hem_attend_left_itd_50,[1,2]) - mean(right_hem_attend_right_itd_50,[1,2]))),std(squeeze(mean(right_hem_attend_left_itd_50,2) - mean(right_hem_attend_right_itd_50,2)),[],1)./(sqrt(length(subjID))-1),'lineProps','-r')
+shadedErrorBar(time,detrend(squeeze(mean(right_hem_attend_left_itd_500,[1,2]) - mean(right_hem_attend_right_itd_500,[1,2]))),std(squeeze(mean(right_hem_attend_left_itd_500,2) - mean(right_hem_attend_right_itd_500,2)),[],1)./(sqrt(length(subjID))-1),'lineProps','-g')
+shadedErrorBar(time,detrend(squeeze(mean(right_hem_attend_left_ild_10,[1,2]) - mean(right_hem_attend_right_ild_10,[1,2]))),std(squeeze(mean(right_hem_attend_left_ild_10,2) - mean(right_hem_attend_right_ild_10,2)),[],1)./(sqrt(length(subjID))-1),'lineProps','-b')
+shadedErrorBar(time,detrend(squeeze(mean(right_hem_attend_left_ild_70n,[1,2]) - mean(right_hem_attend_right_ild_70n,[1,2]))),std(squeeze(mean(right_hem_attend_left_ild_70n,2) - mean(right_hem_attend_left_ild_70n,2)),[],1)./(sqrt(length(subjID))-1),'lineProps','-c')
+title('Right Hemisphere Attend Left - Attend Right')
+xlabel('Time from stimulus onset (s)','FontSize',18)
+ylabel('Alpha Power','FontSize',18)
+
+
+legend({'ITD50','ITD500','ILD10','ILD70n'})
+
+%% TOPOPLOTS
+figure;
+cmin = -1;
+cmax = 1;
+[~,timeindex3] = min(abs(t + 0));
+
+subplot(2,4,1)
+topoplot(squeeze(mean(extracted_alpha_for_plotting(:,contains(string(all_maskers),'m_speech__ild_0__itd_50__targ_l__control_0'),:,timeindex2:timeindex3) - extracted_alpha_for_plotting(:,contains(string(all_maskers),'m_speech__ild_0__itd_50__targ_r__control_0'),:,timeindex2:timeindex3),[1,2,3,5])),'C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\chan_locs_pol_PO_ONLY.txt','maplimits',[cmin cmax])
+colorbar
+ax = gca;
+ax.CLim = [cmin cmax];
+title('ITD50 Speech')
+
+subplot(2,4,2)
+topoplot(squeeze(mean(extracted_alpha_for_plotting(:,contains(string(all_maskers),'m_speech__ild_0__itd_500__targ_l__control_0'),:,timeindex2:timeindex3) - extracted_alpha_for_plotting(:,contains(string(all_maskers),'m_speech__ild_0__itd_500__targ_r__control_0'),:,timeindex2:timeindex3),[1,2,3,5])),'C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\chan_locs_pol_PO_ONLY.txt','maplimits',[cmin cmax])
+colorbar
+ax = gca;
+ax.CLim = [cmin cmax];
+title('ITD500 Speech')
+
+subplot(2,4,3)
+topoplot(squeeze(mean(extracted_alpha_for_plotting(:,contains(string(all_maskers),'m_speech__ild_10__itd_0__targ_l__control_0'),:,timeindex2:timeindex3) - extracted_alpha_for_plotting(:,contains(string(all_maskers),'m_speech__ild_10__itd_0__targ_r__control_0'),:,timeindex2:timeindex3),[1,2,3,5])),'C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\chan_locs_pol_PO_ONLY.txt','maplimits',[cmin cmax])
+colorbar
+ax = gca;
+ax.CLim = [cmin cmax];
+title('ILD10 Speech')
+
+subplot(2,4,4)
+topoplot(squeeze(mean(extracted_alpha_for_plotting(:,contains(string(all_maskers),'m_speech__ild_70n__itd_0__targ_l__control_0'),:,timeindex2:timeindex3) - extracted_alpha_for_plotting(:,contains(string(all_maskers),'m_speech__ild_70n__itd_0__targ_r__control_0'),:,timeindex2:timeindex3),[1,2,3,5])),'C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\chan_locs_pol_PO_ONLY.txt','maplimits',[cmin cmax])
+colorbar
+ax = gca;
+ax.CLim = [cmin cmax];
+title('ILD70n Speech')
+
+subplot(2,4,5)
+topoplot(squeeze(mean(extracted_alpha_for_plotting(:,contains(string(all_maskers),'m_noise__ild_0__itd_50__targ_l__control_0'),:,timeindex2:timeindex3) - extracted_alpha_for_plotting(:,contains(string(all_maskers),'m_noise__ild_0__itd_50__targ_r__control_0'),:,timeindex2:timeindex3),[1,2,3,5])),'C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\chan_locs_pol_PO_ONLY.txt','maplimits',[cmin cmax])
+colorbar
+ax = gca;
+ax.CLim = [cmin cmax];
+title('ITD50 Noise')
+
+subplot(2,4,6)
+topoplot(squeeze(mean(extracted_alpha_for_plotting(:,contains(string(all_maskers),'m_noise__ild_0__itd_500__targ_l__control_0'),:,timeindex2:timeindex3) - extracted_alpha_for_plotting(:,contains(string(all_maskers),'m_noise__ild_0__itd_500__targ_r__control_0'),:,timeindex2:timeindex3),[1,2,3,5])),'C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\chan_locs_pol_PO_ONLY.txt','maplimits',[cmin cmax])
+colorbar
+ax = gca;
+ax.CLim = [cmin cmax];
+title('ITD500 Noise')
+
+subplot(2,4,7)
+topoplot(squeeze(mean(extracted_alpha_for_plotting(:,contains(string(all_maskers),'m_noise__ild_10__itd_0__targ_l__control_0'),:,timeindex2:timeindex3) - extracted_alpha_for_plotting(:,contains(string(all_maskers),'m_noise__ild_10__itd_0__targ_r__control_0'),:,timeindex2:timeindex3),[1,2,3,5])),'C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\chan_locs_pol_PO_ONLY.txt','maplimits',[cmin cmax])
+colorbar
+ax = gca;
+ax.CLim = [cmin cmax];
+title('ILD10 Noise')
+
+subplot(2,4,8)
+topoplot(squeeze(mean(extracted_alpha_for_plotting(:,contains(string(all_maskers),'m_noise__ild_70n__itd_0__targ_l__control_0'),:,timeindex2:timeindex3) - extracted_alpha_for_plotting(:,contains(string(all_maskers),'m_noise__ild_70n__itd_0__targ_r__control_0'),:,timeindex2:timeindex3),[1,2,3,5])),'C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\chan_locs_pol_PO_ONLY.txt','maplimits',[cmin cmax])
+colorbar
+ax = gca;
+ax.CLim = [cmin cmax];
+title('ILD70n Noise')
+
+sgtitle('Attend Left - Attend Right Topoplots during Cue Period')

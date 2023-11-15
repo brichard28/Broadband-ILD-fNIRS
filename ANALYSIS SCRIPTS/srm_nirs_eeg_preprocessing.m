@@ -10,8 +10,9 @@
 %order = preprocessing, epoch, postprocessing, multsubjects
 %-------------------------------------------------------------------------------------------------------------------
 addpath('C:\Users\benri\Documents\eeglab2023.0');
-subID = 'NDARHM932KNX';
-filename = ['C:\Users\benri\Nextcloud\eeg\', subID, '.bdf'];
+subID = 'NDARZD647HJ1';
+filename = ['C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\', subID, '.bdf'];
+%filename = ['C:\Users\benri\Nextcloud\eeg\', subID, '.bdf'];
 eeglab
 
 %loading in BDF files and re-referencing to externals (mastoids/earlobes)
@@ -19,7 +20,7 @@ eeglab
 EEG = pop_biosig(filename, 'ref', [33 34], 'blockepoch', 'off', 'refoptions', {'keepref', 'off'});
 [ALLEEG EEG CURRENTSET] = pop_newset(ALLEEG, EEG, 0, 'gui', 'off');
 EEG = eeg_checkset( EEG );
-
+ 
 %removing extra channels
 EEG = pop_select(EEG, 'nochannel', {'A1','A2','A3','A4','A5','A6','A7','A8','A9','A10','A21','A22','A23','A24','A25','A26','A27','A28','A29','A30','A31','A32','EXG3','EXG4','EXG5','EXG6','EXG7','EXG8','GSR1','GSR2','Erg1','Erg2','Resp','Plet','Temp'});
 [ALLEEG EEG CURRENTSET] = pop_newset(ALLEEG, EEG, 1, 'gui', 'off');
@@ -69,8 +70,6 @@ EEG = pop_saveset( EEG, 'filename', [subID , '_ICAdone.set'], 'filepath', 'C:\Us
 [ALLEEG EEG] = eeg_store(ALLEEG, EEG, CURRENTSET);
 
 eeglab redraw;
-
-
 
 
 

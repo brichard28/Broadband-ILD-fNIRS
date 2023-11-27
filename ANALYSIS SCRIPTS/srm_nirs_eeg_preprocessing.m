@@ -9,15 +9,23 @@
 %taking raw BDF file and saving it at .set file
 %order = preprocessing, epoch, postprocessing, multsubjects
 %-------------------------------------------------------------------------------------------------------------------
-addpath('C:\Users\benri\Documents\eeglab2023.0');
-subID = 'NDARZD647HJ1';
-filename = ['C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\', subID, '.bdf'];
-%filename = ['C:\Users\benri\Nextcloud\eeg\', subID, '.bdf'];
+%all_subject_ID = ['NDARVX375BR6','NDARZD647HJ1','NDARBL382XK5','NDARGF569BF3','NDARBA306US5','NDARFD284ZP3','NDARWK546QR2','NDARAS648DT4','NDARLM531OY3','NDARXL287BE1','NDARRF358KO3','NDARGT639XS6',
+%                'NDARDC882NK4','NDARWB491KR3','NDARNL224RR9','NDARTT639AB1','NDARAZC45TW3'];
+
+subID = 'NDARWK546QR2';
+range_A = 'A01';
+range_B = 'B01';
+badchannels = 'channelsremoved.xlsx';
+addpath('/home/ben/Documents/MATLAB/eeglab2023.1');
+pre_pro_epoched_data_folder = '/home/ben/Documents/GitHub/SRM-NIRS-EEG/prepro_epoched_data/';
+addpath(pre_pro_epoched_data_folder)
+BDF_filename = ['/home/ben/Nextcloud/data/eeg/', subID, '.bdf'];
+
 eeglab
 
 %loading in BDF files and re-referencing to externals (mastoids/earlobes)
 [ALLEEG EEG CURRENTSET ALLCOM] = eeglab;
-EEG = pop_biosig(filename, 'ref', [33 34], 'blockepoch', 'off', 'refoptions', {'keepref', 'off'});
+EEG = pop_biosig(BDF_filename, 'ref', [33 34], 'blockepoch', 'off', 'refoptions', {'keepref', 'off'});
 [ALLEEG EEG CURRENTSET] = pop_newset(ALLEEG, EEG, 0, 'gui', 'off');
 EEG = eeg_checkset( EEG );
  
@@ -28,7 +36,7 @@ EEG = eeg_checkset( EEG );
 
 %adding in channel locations - FOR NOW DOING LOAD, WILL EDIT LATER!
 % EEG=pop_chanedit(EEG, 'load',{'C:\Users\ema36\OneDrive\Documents\fNIRSandGerbils\richardson_32_chanlocs.locs' 'filetype' 'locs'});
-EEG=pop_chanedit(EEG, 'load',{'C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\chan_locs_cart_PO_ONLY.txt', 'filetype', 'sfp'});
+EEG=pop_chanedit(EEG, 'load',{'/home/ben/Documents/GitHub/SRM-NIRS-EEG/chan_locs_cart_PO_ONLY.txt', 'filetype', 'sfp'});
 
 
 % [ALLEEG EEG CURRENTSET] = pop_newset(ALLEEG, EEG, 2, 'gui', 'off');
@@ -45,6 +53,28 @@ fs = EEG.srate;
 EEG.data = filtfilt(b, a, double(EEG.data')); 
 EEG.data = EEG.data';
 EEG = eeg_checkset( EEG );
+[ALLEEG EEG CURRENTSET] = pop_newset(ALLEEG, EEG, 3,'setname',[subID, 'Bandpassed'],'gui','on');
+
+%Marking out very obvious artifacts - pause here and manually do it
+disp('Clean Up Data Before Running ICA!');
+eeglab redraw
+pause
+[ALLEEG EEG CURRENTSET] = pop_newset(ALLEEG, EEG, 4,'setname',[subID, 'artifactmarked'],'gui','on');
+EEG = pop_saveset( EEG, 'filename', [subID , '_artifactmarked.set'], 'filepath', pre_pro_epoched_data_folder);
+[ALLEEG EEG] = eeg_store(ALLEEG, EEG, CURRENTSET);
+
+%Rejecting/Interpolate Bad Channels - make sure to save # of bad channels
+%plot the graph
+pop_spectopo(EEG, 1);
+pause
+channels_to_remove = input('Please enter a comma-separated list of channels indices to interpolate (ex. [1 2 3]):');
+% EEG = pop_select(EEG, 'channel', channels_to_remove);
+EEG = pop_interp(EEG, channels_to_remove, 'spherical', [-1 16]);
+numchannels_removed = size(channels_to_remove, 2);
+writematrix(subID, badchannels, 'Sheet', 1,'Range', range_A);
+writematrix(numchannels_removed, badchannels, 'Sheet', 1, 'Range', range_B);
+[ALLEEG EEG CURRENTSET] = pop_newset(ALLEEG, EEG, 5,'setname',[subID, 'Channels Removed'],'gui','on');
+EEG = eeg_checkset( EEG );
 
 %Running ICA
 % EEG = pop_runica(EEG, 'icatype', 'runcia', 'extended', 1, 'interrupt', 'on');
@@ -53,10 +83,10 @@ EEG = eeg_checkset( EEG );
 EEG = pop_runica(EEG, 'extended',1);
 [ALLEEG EEG CURRENTSET] = pop_newset(ALLEEG, EEG, 2,'setname',[subID, 'ICA'],'gui','on');
 
-EEG = pop_saveset( EEG, 'filename', [subID , '_ICAcomponentsin.set'], 'filepath', 'C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\prepro_epoched_data\');
+EEG = pop_saveset( EEG, 'filename', [subID , '_ICAcomponentsin.set'], 'filepath', pre_pro_epoched_data_folder);
 [ALLEEG EEG] = eeg_store(ALLEEG, EEG, CURRENTSET);
 
-pop_selectcomps(EEG,[1:10])
+pop_selectcomps(EEG,[1:size(EEG.icawinv,2)])
 % Pause to select components
 pause
 %channels_to_remove = str2num(input('Please enter which components to remove:'));
@@ -66,8 +96,10 @@ close
 [ALLEEG EEG CURRENTSET] = pop_newset(ALLEEG, EEG, 3,'setname',[subID, 'ICA Cleaned'],'gui','on');
 
 %Saving ICA
-EEG = pop_saveset( EEG, 'filename', [subID , '_ICAdone.set'], 'filepath', 'C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\prepro_epoched_data\');
+EEG = pop_saveset( EEG, 'filename', [subID , '_ICAdone.set'], 'filepath', pre_pro_epoched_data_folder);
 [ALLEEG EEG] = eeg_store(ALLEEG, EEG, CURRENTSET);
+
+disp('Done')
 
 eeglab redraw;
 

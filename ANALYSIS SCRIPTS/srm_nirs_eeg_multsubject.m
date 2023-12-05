@@ -391,7 +391,7 @@ figure;
 cmin = -0.3;
 cmax = 0.3;
 [~,timeindex2] = min(abs(t - 0));
-[~,timeindex3] = min(abs(t - 1000));
+[~,timeindex3] = min(abs(t - 500));
 
 subplot(2,4,1)
 topoplot(squeeze(nanmean(extracted_alpha_for_plotting(:,contains(string(all_maskers),'m_speech__ild_0__itd_50__targ_l__control_0'),:,:,timeindex2:timeindex3) - extracted_alpha_for_plotting(:,contains(string(all_maskers),'m_speech__ild_0__itd_50__targ_r__control_0'),:,:,timeindex2:timeindex3),[1,2,3,5])),'/home/ben/Documents/GitHub/SRM-NIRS-EEG/chan_locs_pol_PO_ONLY.txt','maplimits',[cmin cmax],'interplimits','electrodes')

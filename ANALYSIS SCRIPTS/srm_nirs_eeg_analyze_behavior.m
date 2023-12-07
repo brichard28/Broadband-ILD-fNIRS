@@ -5,10 +5,10 @@
 
 % Script to analyze behavioral sensitivity (d-prime) for SRM NIRS EEG 1
 
-BehaviorTable = readtable('C:\Users\benri\Nextcloud\Python\data\srm-nirs-eeg-1.xlsx','Format','auto');
+BehaviorTable = readtable('/home/ben/Nextcloud/Python/data/srm-nirs-eeg-1.xlsx','Format','auto');
 
 %subject_ID = char('NDARYZ656HJ9','NDARCD778KPR','NDARMY829TKN','NDARLU426TBZ','NDARHM932KNX','NDARHN971WJ5');
-subject_ID = char('NDARVX753BR6','NDARZD647HJ1','NDARBL382XK5','NDARGF569BF3','NDARBA306US5','NDARFD284ZP3','NDARAS648DT4','NDARLM531OY3','NDARXL287BE1','NDARRF358KO3','NDARGT639XS6');%,'NDARLM531OY3');
+subject_ID = char('NDARVX753BR6','NDARZD647HJ1','NDARBL382XK5','NDARGF569BF3','NDARBA306US5','NDARFD284ZP3','NDARWK546QR2','NDARAS648DT4','NDARLM531OY3','NDARXL287BE1','NDARRF358KO3','NDARGT639XS6');
 num_conditions = 20;
 
 all_hits = zeros(size(subject_ID,1),num_conditions);
@@ -42,7 +42,7 @@ clicks_not_counted = 0;
 for isubject = 1:size(subject_ID,1) % For each subject...
 
     % Load the word times for this subject
-    WordTimesTable = readtable("C:\Users\benri\Nextcloud\Python\data\srm-nirs-eeg-1__s_" + string(subject_ID(isubject,:)) + "__Word_Times.csv");
+    WordTimesTable = readtable("/home/ben/Nextcloud/Python/data/srm-nirs-eeg-1__s_" + string(subject_ID(isubject,:)) + "__Word_Times.csv");
 
     run_count_per_condition = -1*ones(1,num_conditions); % array to keep track of which run in each condition we are on
 
@@ -208,5 +208,50 @@ xlim([0.75 4.25])
 xticklabels({'ITD 50 Speech','ITD 500 Speech','ILD 10 Speech','ILD Nat Speech'})
 ylabel('d-prime','FontSize',18)
 xlabel('Condition','FontSize',18)
-
+title('Speech Masker Behavior','FontSize',18)
 % Statistics
+[p,tbl,stats] = anova2(d_primes_speech_masker',1,'off');
+c = multcompare(stats,'Display','off');
+tbl = array2table(c,"VariableNames", ...
+    ["Group A","Group B","Lower Limit","A-B","Upper Limit","P-value"]);
+p_values = c(:,6);
+significant_comparisons = find(p_values < 0.05);
+for i = 1:length(significant_comparisons)
+    group_a = c(significant_comparisons(i),1);
+    group_b = c(significant_comparisons(i),2);
+    line([group_a,group_b],[max(d_primes_speech_masker(group_a,:))+0.25,max(d_primes_speech_masker(group_a,:))+0.25],'Color','k')
+    text(mean([group_a,group_b]),max(d_primes_speech_masker(group_a,:))+0.3,'*','FontSize',24)
+end
+%% Hit Rate Figure (Just Noise Masker)
+figure;
+hold on
+plot(all_hit_rates_collapsed(1:4,:),'Color',[0.4 0.4 0.4])
+e = errorbar([1:4],mean(all_hit_rates_collapsed(1:4,:),2,'omitnan'),std(all_hit_rates_collapsed(1:4,:),[],2,'omitnan')./(sqrt(size(subject_ID,1))-1));
+e.Marker = 'o';
+e.MarkerSize = 10;
+e.MarkerFaceColor = 'red';
+e.Color = 'red';
+e.CapSize = 15;
+e.LineWidth = 2;
+
+xticks([1:4])
+xlim([0.75 4.25])
+xticklabels({'ITD 50 Speech','ITD 500 Speech','ILD 10 Speech','ILD Nat Speech'})
+ylabel('Hit Rate','FontSize',18)
+xlabel('Condition','FontSize',18)
+title('Noise Masker Behavior','FontSize',18)
+% Statistics
+[p,tbl,stats] = anova2(all_hit_rates_collapsed(1:4,:)',1,'off');
+c = multcompare(stats,'Display','off');
+tbl = array2table(c,"VariableNames", ...
+    ["Group A","Group B","Lower Limit","A-B","Upper Limit","P-value"]);
+p_values = c(:,6);
+significant_comparisons = find(p_values < 0.05);
+for i = 1:length(significant_comparisons)
+    group_a = c(significant_comparisons(i),1);
+    group_b = c(significant_comparisons(i),2);
+    line([group_a,group_b],[max(all_hit_rates_collapsed(group_a,:))+0.25,max(all_hit_rates_collapsed(group_a,:))+0.25],'Color','k')
+    text(mean([group_a,group_b]),max(all_hit_rates_collapsed(group_a,:))+0.3,'*','FontSize',24)
+end
+
+

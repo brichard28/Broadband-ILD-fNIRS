@@ -27,7 +27,7 @@ all_maskers = {'m_speech__ild_0__itd_500__targ_r__control_0',...
     'm_noise__ild_0__itd_500__targ_l__control_0',...
     'm_speech__ild_70n__itd_0__targ_l__control_0'}; % we will maintain this order throughout
 
-subjID={'NDARVX375BR6','NDARZD647HJ1','NDARBL382XK5','NDARGF569BF3','NDARBA306US5','NDARFD284ZP3','NDARWK546QR2'};
+subjID={'NDARVX375BR6','NDARZD647HJ1','NDARBL382XK5','NDARGF569BF3','NDARBA306US5','NDARFD284ZP3','NDARWK546QR2','NDARAS648DT4','NDARLM531OY3','NDARXL287BE1','NDARRF358KO3','NDARGT639XS6'};
 %all_extracted_alpha= cell(length(subjID),1);
 
 BehaviorTable = readtable('/home/ben/Nextcloud/Python/data/srm-nirs-eeg-1.xlsx','Format','auto');
@@ -285,7 +285,7 @@ for isubject = 1:length(subjID)
     for icondition = 1:20
         for ipresentation = 1:4
             for ichannel = 1:10
-                if any(squeeze(extracted_alpha_for_plotting(isubject,icondition,ipresentation,ichannel,:)) > 3)
+                if any(abs(squeeze(extracted_alpha_for_plotting(isubject,icondition,ipresentation,ichannel,:))) > 5)
                     extracted_alpha_for_plotting(isubject,icondition,ipresentation,ichannel,:) = nan;
                 end
             end
@@ -391,7 +391,7 @@ figure;
 cmin = -0.3;
 cmax = 0.3;
 [~,timeindex2] = min(abs(t - 0));
-[~,timeindex3] = min(abs(t - 500));
+[~,timeindex3] = min(abs(t - 1000));
 
 subplot(2,4,1)
 topoplot(squeeze(nanmean(extracted_alpha_for_plotting(:,contains(string(all_maskers),'m_speech__ild_0__itd_50__targ_l__control_0'),:,:,timeindex2:timeindex3) - extracted_alpha_for_plotting(:,contains(string(all_maskers),'m_speech__ild_0__itd_50__targ_r__control_0'),:,:,timeindex2:timeindex3),[1,2,3,5])),'/home/ben/Documents/GitHub/SRM-NIRS-EEG/chan_locs_pol_PO_ONLY.txt','maplimits',[cmin cmax],'interplimits','electrodes')

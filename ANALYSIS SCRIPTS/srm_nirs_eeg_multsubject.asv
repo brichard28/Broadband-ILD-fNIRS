@@ -32,6 +32,7 @@ subjID={'NDARVX375BR6','NDARZD647HJ1','NDARBL382XK5','NDARGF569BF3','NDARBA306US
 
 BehaviorTable = readtable('/home/ben/Nextcloud/Python/data/srm-nirs-eeg-1.xlsx','Format','auto');
 
+figure;
 for subind= 1:length(subjID)
     subID=subjID{subind};
     all_eeg_epoch = load(['/home/ben/Documents/GitHub/SRM-NIRS-EEG/prepro_epoched_data/' subID 'all_epochs.mat']);
@@ -68,11 +69,11 @@ for subind= 1:length(subjID)
 
     %FFT
     data_segment=squeeze(nanmean(all_eeg_paritealoccipitalchan(:,index_time0:index_time1,:),[1,3]));
-    zero_padding= zeros(1,10*fs);
-    data_segment=[zero_padding data_segment zero_padding];
+    %zero_padding= zeros(1,10*fs);
+    %data_segment=[zero_padding data_segment zero_padding];
     %power_spectrum=abs(fft(data_segment));
     %avgpowerspectra(j)= nanmean(power_spectrum)
-    L=1024;
+    L=512;
     y= fft(data_segment);
     p2=abs(y/L);
     p1= p2(1:L/2+1);
@@ -146,8 +147,8 @@ for subind= 1:length(subjID)
             eeg_zeropadded = [zeros(1,n_padsamples),this_EEG,zeros(1,n_padsamples)]; % zero padding
 
             fs = 256;
-            nseg = 128;
-            overlap = 127;
+            nseg = 10;
+            overlap = 9; % 127
             nfft = 256;
             [P,f,~] = spectrogram(eeg_zeropadded,nseg,overlap,0:0.25:50,fs); % spectrogram(eeg_zeropadded,[],[],0:0.25:50,fs); %
             t = linspace((epoch_time_limits(1)-(n_padsamples/fs))*1000,(epoch_time_limits(2)+(n_padsamples/fs))*1000,size(P,2));
@@ -240,13 +241,19 @@ for subind= 1:length(subjID)
     for ichannel = 1:numchannels
         baseline_mean = nanmean(current_alpha_power(:,ichannel,timeindex1:timeindex2),'all');
         baseline_std = std(current_alpha_power(:,ichannel,timeindex1:timeindex2),[],'all');
-        current_alpha_power(:,ichannel,:) = (current_alpha_power(:,ichannel,:) - baseline_mean)./baseline_std;
+        current_alpha_power(:,ichannel,:) = (current_alpha_power(:,ichannel,:) - baseline_mean);%./baseline_std;
     end
 
 
     %% DOUBLE CHECK BASELINE AND LOOK AT RAW SPECTROGRAMS
 
     extracted_alpha_data{subind}= current_alpha_power; %permute(current_alpha_power,[2 1 3]);
+
+    %% PLOT INDIVIDUAL ALPHA TRACES
+    hold on
+    plot(t,squeeze(mean(current_alpha_power,[1,2])))
+    xlabel('Time (ms)','FontSize',18)
+    ylabel('Alpha Power (z-score)')
 end
 
 % subject loop ends
@@ -281,17 +288,17 @@ for isubject = 1:length(subjID)
 end
 
 % Checking for epochs with too large responses
-for isubject = 1:length(subjID)
-    for icondition = 1:20
-        for ipresentation = 1:4
-            for ichannel = 1:10
-                if any(abs(squeeze(extracted_alpha_for_plotting(isubject,icondition,ipresentation,ichannel,:))) > 3)
-                    extracted_alpha_for_plotting(isubject,icondition,ipresentation,ichannel,:) = nan;
-                end
-            end
-        end
-    end
-end
+% for isubject = 1:length(subjID)
+%     for icondition = 1:20
+%         for ipresentation = 1:4
+%             for ichannel = 1:10
+%                 if any(abs(squeeze(extracted_alpha_for_plotting(isubject,icondition,ipresentation,ichannel,:))) > 5)
+%                     extracted_alpha_for_plotting(isubject,icondition,ipresentation,ichannel,:) = nan;
+%                 end
+%             end
+%         end
+%     end
+% end
 
 
 %% Speech ONLY attend left vs. attend right for each processing
@@ -363,87 +370,87 @@ right_hem_attend_right_ild_70n =squeeze(nanmean(right_hem_attend_right_ild_70n ,
 % Plot nanmean and std over subjects
 % 4 panels: left hemisphere attend right - attend left, right hemisphere
 % attend right - attend left
-% figure;
-% time = linspace(all_eeg_epoch.EEG.xmin,all_eeg_epoch.EEG.xmax,size(power,4));
-% subplot(2,1,1) % Left Hemisphere attend Left
-% hold on
-% shadedErrorBar(time,detrend(squeeze(nanmean(left_hem_attend_left_itd_50,[1,2]) - nanmean(left_hem_attend_right_itd_50,[1,2]))),std(squeeze(nanmean(left_hem_attend_left_itd_50,2) - nanmean(left_hem_attend_right_itd_50,2)),[],1)./(sqrt(length(subjID))-1),'lineProps','-r')
-% shadedErrorBar(time,detrend(squeeze(nanmean(left_hem_attend_left_itd_500,[1,2]) - nanmean(left_hem_attend_right_itd_500,[1,2]))),std(squeeze(nanmean(left_hem_attend_left_itd_500,2) - nanmean(left_hem_attend_right_itd_500,2)),[],1)./(sqrt(length(subjID))-1),'lineProps','-g')
-% shadedErrorBar(time,detrend(squeeze(nanmean(left_hem_attend_left_ild_10,[1,2]) - nanmean(left_hem_attend_right_ild_10,[1,2]))),std(squeeze(nanmean(left_hem_attend_left_ild_10,2) - nanmean(left_hem_attend_right_ild_10,2)),[],1)./(sqrt(length(subjID))-1),'lineProps','-b')
-% shadedErrorBar(time,detrend(squeeze(nanmean(left_hem_attend_left_ild_70n,[1,2]) - nanmean(left_hem_attend_right_ild_70n,[1,2]))),std(squeeze(nanmean(left_hem_attend_left_ild_70n,2) - nanmean(left_hem_attend_right_ild_70n,2)),[],1)./(sqrt(length(subjID))-1),'lineProps','-c')
-% title('Left Hemisphere Attend Left - Attend Right')
-% 
-% subplot(2,1,2) % right Hemisphere attend Left
-% hold on
-% shadedErrorBar(time,detrend(squeeze(nanmean(right_hem_attend_left_itd_50,[1,2]) - nanmean(right_hem_attend_right_itd_50,[1,2]))),std(squeeze(nanmean(right_hem_attend_left_itd_50,2) - nanmean(right_hem_attend_right_itd_50,2)),[],1)./(sqrt(length(subjID))-1),'lineProps','-r')
-% shadedErrorBar(time,detrend(squeeze(nanmean(right_hem_attend_left_itd_500,[1,2]) - nanmean(right_hem_attend_right_itd_500,[1,2]))),std(squeeze(nanmean(right_hem_attend_left_itd_500,2) - nanmean(right_hem_attend_right_itd_500,2)),[],1)./(sqrt(length(subjID))-1),'lineProps','-g')
-% shadedErrorBar(time,detrend(squeeze(nanmean(right_hem_attend_left_ild_10,[1,2]) - nanmean(right_hem_attend_right_ild_10,[1,2]))),std(squeeze(nanmean(right_hem_attend_left_ild_10,2) - nanmean(right_hem_attend_right_ild_10,2)),[],1)./(sqrt(length(subjID))-1),'lineProps','-b')
-% shadedErrorBar(time,detrend(squeeze(nanmean(right_hem_attend_left_ild_70n,[1,2]) - nanmean(right_hem_attend_right_ild_70n,[1,2]))),std(squeeze(nanmean(right_hem_attend_left_ild_70n,2) - nanmean(right_hem_attend_left_ild_70n,2)),[],1)./(sqrt(length(subjID))-1),'lineProps','-c')
-% title('Right Hemisphere Attend Left - Attend Right')
-% xlabel('Time from stimulus onset (s)','FontSize',18)
-% ylabel('Alpha Power','FontSize',18)
-% 
-% 
-% legend({'ITD50','ITD500','ILD10','ILD70n'})
+figure;
+time = linspace(all_eeg_epoch.EEG.xmin,all_eeg_epoch.EEG.xmax,size(power,4));
+subplot(2,1,1) % Left Hemisphere attend Left
+hold on
+shadedErrorBar(time,smoothdata(squeeze(nanmean(left_hem_attend_left_itd_50,[1,2]) - nanmean(left_hem_attend_right_itd_50,[1,2])),'SmoothingFactor',0.5),std(squeeze(nanmean(left_hem_attend_left_itd_50,2) - nanmean(left_hem_attend_right_itd_50,2)),[],1)./(sqrt(length(subjID))-1),'lineProps','-r')
+shadedErrorBar(time,smoothdata(squeeze(nanmean(left_hem_attend_left_itd_500,[1,2]) - nanmean(left_hem_attend_right_itd_500,[1,2])),'SmoothingFactor',0.5),std(squeeze(nanmean(left_hem_attend_left_itd_500,2) - nanmean(left_hem_attend_right_itd_500,2)),[],1)./(sqrt(length(subjID))-1),'lineProps','-g')
+shadedErrorBar(time,smoothdata(squeeze(nanmean(left_hem_attend_left_ild_10,[1,2]) - nanmean(left_hem_attend_right_ild_10,[1,2])),'SmoothingFactor',0.5),std(squeeze(nanmean(left_hem_attend_left_ild_10,2) - nanmean(left_hem_attend_right_ild_10,2)),[],1)./(sqrt(length(subjID))-1),'lineProps','-b')
+shadedErrorBar(time,smoothdata(squeeze(nanmean(left_hem_attend_left_ild_70n,[1,2]) - nanmean(left_hem_attend_right_ild_70n,[1,2])),'SmoothingFactor',0.5),std(squeeze(nanmean(left_hem_attend_left_ild_70n,2) - nanmean(left_hem_attend_right_ild_70n,2)),[],1)./(sqrt(length(subjID))-1),'lineProps','-c')
+title('Left Hemisphere Attend Left - Attend Right')
+
+subplot(2,1,2) % right Hemisphere attend Left
+hold on
+shadedErrorBar(time,smoothdata(squeeze(nanmean(right_hem_attend_left_itd_50,[1,2]) - nanmean(right_hem_attend_right_itd_50,[1,2])),'SmoothingFactor',0.5),std(squeeze(nanmean(right_hem_attend_left_itd_50,2) - nanmean(right_hem_attend_right_itd_50,2)),[],1)./(sqrt(length(subjID))-1),'lineProps','-r')
+shadedErrorBar(time,smoothdata(squeeze(nanmean(right_hem_attend_left_itd_500,[1,2]) - nanmean(right_hem_attend_right_itd_500,[1,2])),'SmoothingFactor',0.5),std(squeeze(nanmean(right_hem_attend_left_itd_500,2) - nanmean(right_hem_attend_right_itd_500,2)),[],1)./(sqrt(length(subjID))-1),'lineProps','-g')
+shadedErrorBar(time,smoothdata(squeeze(nanmean(right_hem_attend_left_ild_10,[1,2]) - nanmean(right_hem_attend_right_ild_10,[1,2])),'SmoothingFactor',0.5),std(squeeze(nanmean(right_hem_attend_left_ild_10,2) - nanmean(right_hem_attend_right_ild_10,2)),[],1)./(sqrt(length(subjID))-1),'lineProps','-b')
+shadedErrorBar(time,smoothdata(squeeze(nanmean(right_hem_attend_left_ild_70n,[1,2]) - nanmean(right_hem_attend_right_ild_70n,[1,2])),'SmoothingFactor',0.5),std(squeeze(nanmean(right_hem_attend_left_ild_70n,2) - nanmean(right_hem_attend_left_ild_70n,2)),[],1)./(sqrt(length(subjID))-1),'lineProps','-c')
+title('Right Hemisphere Attend Left - Attend Right')
+xlabel('Time from stimulus onset (s)','FontSize',18)
+ylabel('Alpha Power','FontSize',18)
+
+
+legend({'ITD50','ITD500','ILD10','ILD70n'})
 
 %% TOPOPLOTS
 figure;
-cmin = -0.6;
-cmax = 0.6;
+cmin = -2;
+cmax = 2;
 [~,timeindex2] = min(abs(t - 0));
 [~,timeindex3] = min(abs(t - 500));
 
 subplot(2,4,1)
-topoplot(squeeze(nanmean(extracted_alpha_for_plotting(:,contains(string(all_maskers),'m_speech__ild_0__itd_50__targ_l__control_0'),:,:,timeindex2:timeindex3) - extracted_alpha_for_plotting(:,contains(string(all_maskers),'m_speech__ild_0__itd_50__targ_r__control_0'),:,:,timeindex2:timeindex3),[1,2,3,5])),'/home/ben/Documents/GitHub/SRM-NIRS-EEG/chan_locs_pol_PO_ONLY.txt','maplimits',[cmin cmax],'interplimits','electrodes')
+topoplot(squeeze(nanmean(extracted_alpha_for_plotting(:,contains(string(all_maskers),'m_speech__ild_0__itd_50__targ_l__control_0'),:,:,timeindex2:timeindex3) - extracted_alpha_for_plotting(:,contains(string(all_maskers),'m_speech__ild_0__itd_50__targ_r__control_0'),:,:,timeindex2:timeindex3),[1,2,3,5])),'/home/ben/Documents/GitHub/SRM-NIRS-EEG/chan_locs_pol_PO_ONLY.txt','maplimits',[cmin cmax],'interplimits','electrodes','plotrad',0.6)
 colorbar
 ax = gca;
 ax.CLim = [cmin cmax];
 title('ITD50 Speech')
 
 subplot(2,4,2)
-topoplot(squeeze(nanmean(extracted_alpha_for_plotting(:,contains(string(all_maskers),'m_speech__ild_0__itd_500__targ_l__control_0'),:,:,timeindex2:timeindex3) - extracted_alpha_for_plotting(:,contains(string(all_maskers),'m_speech__ild_0__itd_500__targ_r__control_0'),:,:,timeindex2:timeindex3),[1,2,3,5])),'/home/ben/Documents/GitHub/SRM-NIRS-EEG/chan_locs_pol_PO_ONLY.txt','maplimits',[cmin cmax],'interplimits','electrodes')
+topoplot(squeeze(nanmean(extracted_alpha_for_plotting(:,contains(string(all_maskers),'m_speech__ild_0__itd_500__targ_l__control_0'),:,:,timeindex2:timeindex3) - extracted_alpha_for_plotting(:,contains(string(all_maskers),'m_speech__ild_0__itd_500__targ_r__control_0'),:,:,timeindex2:timeindex3),[1,2,3,5])),'/home/ben/Documents/GitHub/SRM-NIRS-EEG/chan_locs_pol_PO_ONLY.txt','maplimits',[cmin cmax],'interplimits','electrodes','plotrad',0.6)
 colorbar
 ax = gca;
 ax.CLim = [cmin cmax];
 title('ITD500 Speech')
 
 subplot(2,4,3)
-topoplot(squeeze(nanmean(extracted_alpha_for_plotting(:,contains(string(all_maskers),'m_speech__ild_10__itd_0__targ_l__control_0'),:,:,timeindex2:timeindex3) - extracted_alpha_for_plotting(:,contains(string(all_maskers),'m_speech__ild_10__itd_0__targ_r__control_0'),:,:,timeindex2:timeindex3),[1,2,3,5])),'/home/ben/Documents/GitHub/SRM-NIRS-EEG/chan_locs_pol_PO_ONLY.txt','maplimits',[cmin cmax],'interplimits','electrodes')
+topoplot(squeeze(nanmean(extracted_alpha_for_plotting(:,contains(string(all_maskers),'m_speech__ild_10__itd_0__targ_l__control_0'),:,:,timeindex2:timeindex3) - extracted_alpha_for_plotting(:,contains(string(all_maskers),'m_speech__ild_10__itd_0__targ_r__control_0'),:,:,timeindex2:timeindex3),[1,2,3,5])),'/home/ben/Documents/GitHub/SRM-NIRS-EEG/chan_locs_pol_PO_ONLY.txt','maplimits',[cmin cmax],'interplimits','electrodes','plotrad',0.6)
 colorbar
 ax = gca;
 ax.CLim = [cmin cmax];
 title('ILD10 Speech')
 
 subplot(2,4,4)
-topoplot(squeeze(nanmean(extracted_alpha_for_plotting(:,contains(string(all_maskers),'m_speech__ild_70n__itd_0__targ_l__control_0'),:,:,timeindex2:timeindex3) - extracted_alpha_for_plotting(:,contains(string(all_maskers),'m_speech__ild_70n__itd_0__targ_r__control_0'),:,:,timeindex2:timeindex3),[1,2,3,5])),'/home/ben/Documents/GitHub/SRM-NIRS-EEG/chan_locs_pol_PO_ONLY.txt','maplimits',[cmin cmax],'interplimits','electrodes')
+topoplot(squeeze(nanmean(extracted_alpha_for_plotting(:,contains(string(all_maskers),'m_speech__ild_70n__itd_0__targ_l__control_0'),:,:,timeindex2:timeindex3) - extracted_alpha_for_plotting(:,contains(string(all_maskers),'m_speech__ild_70n__itd_0__targ_r__control_0'),:,:,timeindex2:timeindex3),[1,2,3,5])),'/home/ben/Documents/GitHub/SRM-NIRS-EEG/chan_locs_pol_PO_ONLY.txt','maplimits',[cmin cmax],'interplimits','electrodes','plotrad',0.6)
 colorbar
 ax = gca;
 ax.CLim = [cmin cmax];
 title('ILD70n Speech')
 
 subplot(2,4,5)
-topoplot(squeeze(nanmean(extracted_alpha_for_plotting(:,contains(string(all_maskers),'m_noise__ild_0__itd_50__targ_l__control_0'),:,:,timeindex2:timeindex3) - extracted_alpha_for_plotting(:,contains(string(all_maskers),'m_noise__ild_0__itd_50__targ_r__control_0'),:,:,timeindex2:timeindex3),[1,2,3,5])),'/home/ben/Documents/GitHub/SRM-NIRS-EEG/chan_locs_pol_PO_ONLY.txt','maplimits',[cmin cmax],'interplimits','electrodes')
+topoplot(squeeze(nanmean(extracted_alpha_for_plotting(:,contains(string(all_maskers),'m_noise__ild_0__itd_50__targ_l__control_0'),:,:,timeindex2:timeindex3) - extracted_alpha_for_plotting(:,contains(string(all_maskers),'m_noise__ild_0__itd_50__targ_r__control_0'),:,:,timeindex2:timeindex3),[1,2,3,5])),'/home/ben/Documents/GitHub/SRM-NIRS-EEG/chan_locs_pol_PO_ONLY.txt','maplimits',[cmin cmax],'interplimits','electrodes','plotrad',0.6)
 colorbar
 ax = gca;
 ax.CLim = [cmin cmax];
 title('ITD50 Noise')
 
 subplot(2,4,6)
-topoplot(squeeze(nanmean(extracted_alpha_for_plotting(:,contains(string(all_maskers),'m_noise__ild_0__itd_500__targ_l__control_0'),:,:,timeindex2:timeindex3) - extracted_alpha_for_plotting(:,contains(string(all_maskers),'m_noise__ild_0__itd_500__targ_r__control_0'),:,:,timeindex2:timeindex3),[1,2,3,5])),'/home/ben/Documents/GitHub/SRM-NIRS-EEG/chan_locs_pol_PO_ONLY.txt','maplimits',[cmin cmax],'interplimits','electrodes')
+topoplot(squeeze(nanmean(extracted_alpha_for_plotting(:,contains(string(all_maskers),'m_noise__ild_0__itd_500__targ_l__control_0'),:,:,timeindex2:timeindex3) - extracted_alpha_for_plotting(:,contains(string(all_maskers),'m_noise__ild_0__itd_500__targ_r__control_0'),:,:,timeindex2:timeindex3),[1,2,3,5])),'/home/ben/Documents/GitHub/SRM-NIRS-EEG/chan_locs_pol_PO_ONLY.txt','maplimits',[cmin cmax],'interplimits','electrodes','plotrad',0.6)
 colorbar
 ax = gca;
 ax.CLim = [cmin cmax];
 title('ITD500 Noise')
 
 subplot(2,4,7)
-topoplot(squeeze(nanmean(extracted_alpha_for_plotting(:,contains(string(all_maskers),'m_noise__ild_10__itd_0__targ_l__control_0'),:,:,timeindex2:timeindex3) - extracted_alpha_for_plotting(:,contains(string(all_maskers),'m_noise__ild_10__itd_0__targ_r__control_0'),:,:,timeindex2:timeindex3),[1,2,3,5])),'/home/ben/Documents/GitHub/SRM-NIRS-EEG/chan_locs_pol_PO_ONLY.txt','maplimits',[cmin cmax],'interplimits','electrodes')
+topoplot(squeeze(nanmean(extracted_alpha_for_plotting(:,contains(string(all_maskers),'m_noise__ild_10__itd_0__targ_l__control_0'),:,:,timeindex2:timeindex3) - extracted_alpha_for_plotting(:,contains(string(all_maskers),'m_noise__ild_10__itd_0__targ_r__control_0'),:,:,timeindex2:timeindex3),[1,2,3,5])),'/home/ben/Documents/GitHub/SRM-NIRS-EEG/chan_locs_pol_PO_ONLY.txt','maplimits',[cmin cmax],'interplimits','electrodes','plotrad',0.6)
 colorbar
 ax = gca;
 ax.CLim = [cmin cmax];
 title('ILD10 Noise')
 
 subplot(2,4,8)
-topoplot(squeeze(nanmean(extracted_alpha_for_plotting(:,contains(string(all_maskers),'m_noise__ild_70n__itd_0__targ_l__control_0'),:,:,timeindex2:timeindex3) - extracted_alpha_for_plotting(:,contains(string(all_maskers),'m_noise__ild_70n__itd_0__targ_r__control_0'),:,:,timeindex2:timeindex3),[1,2,3,5])),'/home/ben/Documents/GitHub/SRM-NIRS-EEG/chan_locs_pol_PO_ONLY.txt','maplimits',[cmin cmax],'interplimits','electrodes')
+topoplot(squeeze(nanmean(extracted_alpha_for_plotting(:,contains(string(all_maskers),'m_noise__ild_70n__itd_0__targ_l__control_0'),:,:,timeindex2:timeindex3) - extracted_alpha_for_plotting(:,contains(string(all_maskers),'m_noise__ild_70n__itd_0__targ_r__control_0'),:,:,timeindex2:timeindex3),[1,2,3,5])),'/home/ben/Documents/GitHub/SRM-NIRS-EEG/chan_locs_pol_PO_ONLY.txt','maplimits',[cmin cmax],'interplimits','electrodes','plotrad',0.6)
 colorbar
 ax = gca;
 ax.CLim = [cmin cmax];
@@ -451,41 +458,52 @@ title('ILD70n Noise')
 
 sgtitle('Attend Left - Attend Right Topoplots during Cue Period')
 
-% Bar Plots
-left_itd_50 = [];
-left_itd_500 = [];
-left_ild_10 = [];
-left_ild_70n = [];
 
-right_itd_50 = [];
-right_itd_500 = [];
-right_ild_10 = [];
-right_ild_70n = [];
+%% Total Amount of Alpha Power during Cue period in each condition
+
+% Bar Plots
+total_alpha_itd_50 = [];
+total_alpha_itd_500 = [];
+total_alpha_ild_10 = [];
+total_alpha_ild_70n = [];
 for isubject = 1:length(subjID)
     % Difference between attend left and attend right in each hemisphere,
     % for each subject and condition
-    
-    % 
-    left_itd_50(isubject) = squeeze(nanmean(extracted_alpha_for_plotting(isubject,contains(string(all_maskers),'m_speech__ild_0__itd_50__targ_l__control_0'),:,left_hemisphere_channels,timeindex2:timeindex3) - extracted_alpha_for_plotting(isubject,contains(string(all_maskers),'m_speech__ild_0__itd_50__targ_r__control_0'),:,left_hemisphere_channels,timeindex2:timeindex3),[1,2,3,4,5]));
-    left_itd_500(isubject) = squeeze(nanmean(extracted_alpha_for_plotting(isubject,contains(string(all_maskers),'m_speech__ild_0__itd_500__targ_l__control_0'),:,left_hemisphere_channels,timeindex2:timeindex3) - extracted_alpha_for_plotting(isubject,contains(string(all_maskers),'m_speech__ild_0__itd_500__targ_r__control_0'),:,left_hemisphere_channels,timeindex2:timeindex3),[1,2,3,4,5]));
-    left_ild_10(isubject) = squeeze(nanmean(extracted_alpha_for_plotting(isubject,contains(string(all_maskers),'m_speech__ild_10__itd_0__targ_l__control_0'),:,left_hemisphere_channels,timeindex2:timeindex3) - extracted_alpha_for_plotting(isubject,contains(string(all_maskers),'m_speech__ild_10__itd_0__targ_r__control_0'),:,left_hemisphere_channels,timeindex2:timeindex3),[1,2,3,4,5]));
-    left_ild_70n(isubject) = squeeze(nanmean(extracted_alpha_for_plotting(isubject,contains(string(all_maskers),'m_speech__ild_70n__itd_0__targ_l__control_0'),:,left_hemisphere_channels,timeindex2:timeindex3) - extracted_alpha_for_plotting(isubject,contains(string(all_maskers),'m_speech__ild_70n__itd_0__targ_r__control_0'),:,left_hemisphere_channels,timeindex2:timeindex3),[1,2,3,4,5]));
 
-    right_itd_50(isubject) = squeeze(nanmean(extracted_alpha_for_plotting(isubject,contains(string(all_maskers),'m_speech__ild_0__itd_50__targ_l__control_0'),:,right_hemisphere_channels,timeindex2:timeindex3) - extracted_alpha_for_plotting(isubject,contains(string(all_maskers),'m_speech__ild_0__itd_50__targ_r__control_0'),:,right_hemisphere_channels,timeindex2:timeindex3),[1,2,3,4,5]));
-    right_itd_500(isubject) = squeeze(nanmean(extracted_alpha_for_plotting(isubject,contains(string(all_maskers),'m_speech__ild_0__itd_500__targ_l__control_0'),:,right_hemisphere_channels,timeindex2:timeindex3) - extracted_alpha_for_plotting(isubject,contains(string(all_maskers),'m_speech__ild_0__itd_500__targ_r__control_0'),:,right_hemisphere_channels,timeindex2:timeindex3),[1,2,3,4,5]));
-    right_ild_10(isubject) = squeeze(nanmean(extracted_alpha_for_plotting(isubject,contains(string(all_maskers),'m_speech__ild_10__itd_0__targ_l__control_0'),:,right_hemisphere_channels,timeindex2:timeindex3) - extracted_alpha_for_plotting(isubject,contains(string(all_maskers),'m_speech__ild_10__itd_0__targ_r__control_0'),:,right_hemisphere_channels,timeindex2:timeindex3),[1,2,3,4,5]));
-    right_ild_70n(isubject) = squeeze(nanmean(extracted_alpha_for_plotting(isubject,contains(string(all_maskers),'m_speech__ild_70n__itd_0__targ_l__control_0'),:,right_hemisphere_channels,timeindex2:timeindex3) - extracted_alpha_for_plotting(isubject,contains(string(all_maskers),'m_speech__ild_70n__itd_0__targ_r__control_0'),:,right_hemisphere_channels,timeindex2:timeindex3),[1,2,3,4,5]));
+    %
+    total_alpha_itd_50(isubject) = squeeze(nanmean(extracted_alpha_for_plotting(isubject,logical(contains(string(all_maskers),'__ild_0__itd_50__').*contains(string(all_maskers),'__control_0')),:,:,timeindex2:timeindex3),[1,2,3,4,5]));
+    total_alpha_itd_500(isubject) = squeeze(nanmean(extracted_alpha_for_plotting(isubject,logical(contains(string(all_maskers),'__ild_0__itd_500__').*contains(string(all_maskers),'__control_0')),:,:,timeindex2:timeindex3),[1,2,3,4,5]));
+    total_alpha_ild_10(isubject) = squeeze(nanmean(extracted_alpha_for_plotting(isubject,logical(contains(string(all_maskers),'__ild_10__itd_0__').*contains(string(all_maskers),'__control_0')),:,:,timeindex2:timeindex3),[1,2,3,4,5]));
+    total_alpha_ild_70n(isubject) = squeeze(nanmean(extracted_alpha_for_plotting(isubject,logical(contains(string(all_maskers),'__ild_70n__itd_0__targ_').*contains(string(all_maskers),'__control_0')),:,:,timeindex2:timeindex3),[1,2,3,4,5]));
+
 end
 
 figure;
-boxplot([left_itd_50;left_itd_500;left_ild_10;left_ild_70n]')
+boxplot([total_alpha_itd_50;total_alpha_itd_500;total_alpha_ild_10;total_alpha_ild_70n]')
 xticklabels({'ITD 50','ITD 500','ILD 10','ILD 70n'})
 xlabel('Condition','FontSize',18)
-ylabel('Attend Left - Attend Right Voltage','FontSize',18)
-title('Left Hemisphere','FontSize',18)
-figure;
-boxplot([right_itd_50;right_itd_500;right_ild_10;right_ild_70n]')
-xticklabels({'ITD 50','ITD 500','ILD 10','ILD 70n'})
-xlabel('Condition','FontSize',18)
-ylabel('Attend Left - Attend Right Voltage','FontSize',18)
-title('Right Hemisphere','FontSize',18)
+ylabel('Mean Alpha Power','FontSize',18)
+title('Mean Alpha Power (Cue Period: 0-500 ms)','FontSize',18)
+ylim([-5 5])
+
+
+
+
+%% Topographical Alpha Lateralization
+% From Wostmann et al 2021
+% (Pow_attend_left - Pow_attend_right) / (Pow_attend_left +
+% Pow_attend_right)
+% Calculated as the mean during the cue period
+spatial_lateralization = []; % 4 x 32 vector (condition order: itd50, itd500, ild10, ild70n
+
+condition_tags = {'__ild_0__itd_50__','__ild_0__itd_500__','__ild_10__itd_0__','__ild_70n__itd_0__'};
+for i = 1:length(condition_tags)
+    this_condition_tag = string(condition_tags(i));
+
+
+end
+squeeze(nanmean(extracted_alpha_for_plotting(:,contains(string(all_maskers),'m_noise__ild_70n__itd_0__targ_l__control_0'),:,:,timeindex2:timeindex3)
+%% Time Resolved Alpha Lateralization
+% Equation from Wostmann et al 2021
+% (Pow_ipsilateral - Pow_contralateral) / (Pow_ipsilateral +
+% Pow_contralateral)

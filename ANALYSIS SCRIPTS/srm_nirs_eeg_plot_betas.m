@@ -1,7 +1,7 @@
 %% srm_nirs_eeg_plot_betas.m
 
-GroupResults = readtable('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\Group Results.csv','Format','auto');
-subjects = unique(GroupResults.S);
+GroupResults = readtable('/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/Group Results SRM-NIRS-EEG-1.csv','Format','auto');
+subjects = unique(GroupResults.ID);
 subjects(3) = [];
 channels = unique(GroupResults.ch_name);
 channels = string(channels);
@@ -27,7 +27,7 @@ all_betas = [];
 for isubject = 1:length(subjects)
     for ichannel = 1:length(channels)
         for icondition = 1:length(conditions)
-            all_betas(isubject,ichannel,icondition) = GroupResults.theta(string(GroupResults.S) == string(subjects(isubject)) & string(GroupResults.ch_name) == string(channels(ichannel)) & string(GroupResults.Condition) == string(conditions(icondition)) & string(GroupResults.Chroma) == "hbo");
+            all_betas(isubject,ichannel,icondition) = GroupResults.theta(string(GroupResults.ID) == string(subjects(isubject)) & string(GroupResults.ch_name) == string(channels(ichannel)) & string(GroupResults.Condition) == string(conditions(icondition)) & string(GroupResults.Chroma) == "hbo");
         end
     end
 end

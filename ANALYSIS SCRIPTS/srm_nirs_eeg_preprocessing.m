@@ -12,14 +12,23 @@
 %all_subject_ID = ['NDARVX375BR6','NDARZD647HJ1','NDARBL382XK5','NDARGF569BF3','NDARBA306US5','NDARFD284ZP3','NDARWK546QR2','NDARAS648DT4','NDARLM531OY3','NDARXL287BE1','NDARRF358KO3','NDARGT639XS6',
 %                'NDARDC882NK4','NDARWB491KR3','NDARNL224RR9','NDARTT639AB1','NDARAZC45TW3'];
 
-subID = 'NDARGF569BF3';
+user = 'Laptop';
+subID = 'NDARVX375BR6';
 range_A = 'A04';
 range_B = 'B04';
 badchannels = 'channelsremoved.xlsx';
-addpath('/home/ben/Documents/MATLAB/eeglab2023.1');
-pre_pro_epoched_data_folder = '/home/ben/Documents/GitHub/SRM-NIRS-EEG/prepro_epoched_data/';
-addpath(pre_pro_epoched_data_folder)
-BDF_filename = ['/home/ben/Nextcloud/data/eeg/', subID, '.bdf'];
+if user == 'Laptop'
+    addpath("C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\errorbar_files\errorbar_files");
+    addpath(genpath('C:\Users\benri\Documents\eeglab2023.0\functions'));
+    pre_pro_epoched_data_folder = 'C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\prepro_epoched_data\';
+    addpath(pre_pro_epoched_data_folder)
+    BDF_filename = ['C:\Users\benri\Downloads\', subID, '.bdf'];
+else
+    addpath('/home/ben/Documents/MATLAB/eeglab2023.1');
+    pre_pro_epoched_data_folder = '/home/ben/Documents/GitHub/SRM-NIRS-EEG/prepro_epoched_data/';
+    addpath(pre_pro_epoched_data_folder)
+    BDF_filename = ['/home/ben/Nextcloud/data/eeg/', subID, '.bdf'];
+end
 
 eeglab
 
@@ -36,8 +45,11 @@ EEG = eeg_checkset( EEG );
 
 %adding in channel locations - FOR NOW DOING LOAD, WILL EDIT LATER!
 % EEG=pop_chanedit(EEG, 'load',{'C:\Users\ema36\OneDrive\Documents\fNIRSandGerbils\richardson_32_chanlocs.locs' 'filetype' 'locs'});
+if user == 'Laptop'
+EEG=pop_chanedit(EEG, 'load',{'C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\chan_locs_cart_PO_ONLY.txt', 'filetype', 'sfp'});
+else
 EEG=pop_chanedit(EEG, 'load',{'/home/ben/Documents/GitHub/SRM-NIRS-EEG/chan_locs_cart_PO_ONLY.txt', 'filetype', 'sfp'});
-
+end
 
 % [ALLEEG EEG CURRENTSET] = pop_newset(ALLEEG, EEG, 2, 'gui', 'off');
 EEG = eeg_checkset( EEG );

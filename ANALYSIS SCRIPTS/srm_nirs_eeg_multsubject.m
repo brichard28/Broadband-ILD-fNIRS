@@ -104,8 +104,8 @@ for subind= 1:length(subjID)
     %% YUQI DENG METHOD
     method = 'Yuq';
     extracted_alpha=[]; % num of channels,num of trials
-    lowpass_cutoff = ((ipaf -1)/all_eeg_epoch.EEG.srate)*2; % normalize frequency
-    highpass_cutoff = ((ipaf + 1)/all_eeg_epoch.EEG.srate)*2;
+    lowpass_cutoff = ((ipaf - 1)/(all_eeg_epoch.EEG.srate/2)); % normalize frequency
+    highpass_cutoff = ((ipaf + 1)/(all_eeg_epoch.EEG.srate/2));
     b = fir1(256,[lowpass_cutoff highpass_cutoff]);
     disp(["Subject: ", subID])
     this_wb = waitbar(0, 'Starting');
@@ -206,7 +206,6 @@ for subind= 1:length(subjID)
 
 
     %% DOUBLE CHECK BASELINE AND LOOK AT RAW SPECTROGRAMS
-
     extracted_alpha_data{subind}= current_alpha_power; %permute(current_alpha_power,[2 1 3]);
 
     %% PLOT INDIVIDUAL ALPHA TRACES
@@ -263,7 +262,7 @@ end
 % end
 
 [~,timeindex2] = min(abs(t - 0));
-[~,timeindex3] = min(abs(t - 500));
+[~,timeindex3] = min(abs(t - 12000));
 
 
 %% Total Amount of Alpha Power during Cue period in each condition
@@ -314,8 +313,8 @@ for i = 1:length(condition_tags)
 end
 %locs_filename  = '/home/ben/Documents/GitHub/SRM-NIRS-EEG/chan_locs_pol_PO_ONLY.txt';
 locs_filename = 'C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\chan_locs_pol_PO_ONLY.txt';
-cmin = -0.5;
-cmax = 0.5;
+cmin = -0.05;
+cmax = 0.05;
 figure;
 subplot(2,2,1)
 topoplot(spatial_lateralization(1,:),locs_filename,'maplimits',[cmin cmax],'interplimits','head','plotrad',0.6)

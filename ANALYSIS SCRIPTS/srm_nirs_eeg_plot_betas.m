@@ -1,13 +1,20 @@
 %% srm_nirs_eeg_plot_betas.m
-
-GroupResults = readtable('/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/Group Results SRM-NIRS-EEG-1.csv','Format','auto');
+user = 'Laptop';
+analysis_type = 'collapsed attend and masker';
+if user == 'Laptop' && analysis_type == 'collapsed attend and masker'
+GroupResults = readtable('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\Group Results SRM-NIRS-EEG-1 collapsed attend and masker.csv','Format','auto');
+else
+GroupResults = readtable('/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/Group Results SRM-NIRS-EEG-1 collapsed attend and masker.csv','Format','auto');
+end
 subjects = unique(GroupResults.ID);
-subjects(3) = [];
 channels = unique(GroupResults.ch_name);
 channels = string(channels);
 channels(contains(channels,'hbr')) = [];
 
 conditions = unique(GroupResults.Condition);
+conditions(string(conditions) == 'Exhale') = [];
+conditions(string(conditions) == 'Inhale') = [];
+conditions(string(conditions) == 'Hold') = [];
 
 % channels
 dlpfc_channels = [1,2,3,4,5,6];
@@ -32,551 +39,585 @@ for isubject = 1:length(subjects)
     end
 end
 
-% plot speech attend left vs. speech attend right 
-all_stg_noise_betas = all_betas(:,stg_channels,4:9);
-all_stg_speech_betas = all_betas(:,stg_channels,10:15);
+all_stg_betas = all_betas(:,stg_channels,:);
+all_pfc_betas = all_betas(:,dlpfc_channels,:);
 
+% Tak channel with maximum beta in control conditions
+control_condition = find(string(conditions) == 'control');
+[~,which_channel_stg] = max(squeeze(all_stg_betas(:,:,control_condition)),[],2);
+[~,which_channel_pfc] = max(squeeze(all_pfc_betas(:,:,control_condition)),[],2);
+for isubject = 1:length(subjects)
+    stg_betas_to_plot(isubject,:) = all_stg_betas(isubject,which_channel_stg(isubject),:);
+    pfc_betas_to_plot(isubject,:) = all_pfc_betas(isubject,which_channel_pfc(isubject),:);
+end
 
-
-%% INCLUDING ALL CHANNELS
-% Speech plot Left Hemisphere (attend left vs. attend right)
-upper_ylim = 1;
-lower_ylim = -1;
 figure;
-subplot(2,2,1)
-attend_left_betas = all_betas(:,left_stg_channels,intersect(speech_conditions,attend_left_conditions));
-attend_right_betas = all_betas(:,left_stg_channels,intersect(speech_conditions,attend_right_conditions));
-x_axis_attend_left = 1:3:10;
-x_axis_attend_right = 2:3:11;
-p1 = violinplot_T(reshape(attend_left_betas,[size(attend_left_betas,1)*size(attend_left_betas,2),size(attend_left_betas,3)]),{'1','2','3','4'},x_axis_attend_left,'ViolinColor',[0 0 1],'ViolinAlpha',{0.5 0.02}');
-hold on;p2 =  violinplot_T(reshape(attend_right_betas,[size(attend_right_betas,1)*size(attend_right_betas,2),size(attend_right_betas,3)]),{'1','2','3','4'},x_axis_attend_right,'ViolinColor',[1 0 0],'ViolinAlpha',{0.5 0.02}');
-legend([p1(1,1).ViolinPlot,p2(1,1).ViolinPlot],{'Attend Left','Attend Right'})
-xticks(1.5:3:16.5)
-xticklabels({'ITD 500','ITD 50','ILD 10','ILD Nat'})
-title('Speech Masker Left STG','FontSize',18)
+bar(squeeze(mean(stg_betas_to_plot(:,2:end),1)))
+hold on
+errorbar(1:4,squeeze(mean(stg_betas_to_plot(:,2:end),1)),squeeze(std(stg_betas_to_plot(:,2:end),[],1))./length(subjects),'k','LineWidth',2)
 xlabel('Condition','FontSize',18)
-ylabel('Beta','FontSize',18)
-ylim([lower_ylim upper_ylim])
+ylabel('Beta (AU)','FontSize',18)
+xticklabels({'ITD 50','ITD 500','ILD 10','ILD Nat'})
+title('STG','FontSize',18)
 
-
-
-% Speech plot Right Hemisphere (attend_left vs. attend_right)
-subplot(2,2,2)
-attend_left_betas = all_betas(:,right_stg_channels,intersect(speech_conditions,attend_left_conditions));
-attend_right_betas = all_betas(:,right_stg_channels,intersect(speech_conditions,attend_right_conditions));
-p1 = violinplot_T(reshape(attend_left_betas,[size(attend_left_betas,1)*size(attend_left_betas,2),size(attend_left_betas,3)]),{'1','2','3','4'},x_axis_attend_left,'ViolinColor',[0 0 1],'ViolinAlpha',{0.5 0.02}');
-hold on;p2 =  violinplot_T(reshape(attend_right_betas,[size(attend_right_betas,1)*size(attend_right_betas,2),size(attend_right_betas,3)]),{'1','2','3','4'},x_axis_attend_right,'ViolinColor',[1 0 0],'ViolinAlpha',{0.5 0.02}');
-legend([p1(1,1).ViolinPlot,p2(1,1).ViolinPlot],{'Attend Left','Attend Right'})
-xticks(1.5:3:16.5)
-xticklabels({'ITD 500','ITD 50','ILD 10','ILD Nat'})
-title('Speech Masker Right STG','FontSize',18)
-xlabel('Condition','FontSize',18)
-ylabel('Beta','FontSize',18)
-ylim([lower_ylim upper_ylim])
-
-
-% Noise plot Left Hemisphere (attend left vs. attend right)
-subplot(2,2,3)
-attend_left_betas = all_betas(:,left_stg_channels,intersect(noise_conditions,attend_left_conditions));
-attend_right_betas = all_betas(:,left_stg_channels,intersect(noise_conditions,attend_right_conditions));
-p1 = violinplot_T(reshape(attend_left_betas,[size(attend_left_betas,1)*size(attend_left_betas,2),size(attend_left_betas,3)]),{'1','2','3','4'},x_axis_attend_left,'ViolinColor',[0 0 1],'ViolinAlpha',{0.5 0.02}');
-hold on;p2 =  violinplot_T(reshape(attend_right_betas,[size(attend_right_betas,1)*size(attend_right_betas,2),size(attend_right_betas,3)]),{'1','2','3','4'},x_axis_attend_right,'ViolinColor',[1 0 0],'ViolinAlpha',{0.5 0.02}');
-legend([p1(1,1).ViolinPlot,p2(1,1).ViolinPlot],{'Attend Left','Attend Right'})
-xticks(1.5:3:16.5)
-xticklabels({'ITD 500','ITD 50','ILD 10','ILD Nat'})
-title('Noise Masker Left STG','FontSize',18)
-xlabel('Condition','FontSize',18)
-ylabel('Beta','FontSize',18)
-ylim([lower_ylim upper_ylim])
-
-
-% Noise plot Right hemisphere (attend left vs. attend right)
-subplot(2,2,4)
-attend_left_betas = all_betas(:,right_stg_channels,intersect(noise_conditions,attend_left_conditions));
-attend_right_betas = all_betas(:,right_stg_channels,intersect(noise_conditions,attend_right_conditions));
-p1 = violinplot_T(reshape(attend_left_betas,[size(attend_left_betas,1)*size(attend_left_betas,2),size(attend_left_betas,3)]),{'1','2','3','4'},x_axis_attend_left,'ViolinColor',[0 0 1],'ViolinAlpha',{0.5 0.02}');
-hold on;p2 =  violinplot_T(reshape(attend_right_betas,[size(attend_right_betas,1)*size(attend_right_betas,2),size(attend_right_betas,3)]),{'1','2','3','4'},x_axis_attend_right,'ViolinColor',[1 0 0],'ViolinAlpha',{0.5 0.02}');
-legend([p1(1,1).ViolinPlot,p2(1,1).ViolinPlot],{'Attend Left','Attend Right'})
-xticks(1.5:3:16.5)
-xticklabels({'ITD 500','ITD 50','ILD 10','ILD Nat'})
-title('Noise Masker Right STG','FontSize',18)
-xlabel('Condition','FontSize',18)
-ylabel('Beta','FontSize',18)
-ylim([lower_ylim upper_ylim])
-
-
-sgtitle('REGULAR DONT TOUCH ALL CHANNELS REPRESENTED HERE')
-
-
-
-
-
-
-%% CHOOSING CHANNEL ON EACH SIDE BASED ON ATTEND LEFT or ATTEND RIGHT ITD 500 SPEECH NOISE CONTRAST
-
-left_stg_control_conditions = all_betas(:,left_stg_channels,speech_control_conditions(1)) - all_betas(:,left_stg_channels,noise_control_conditions(1));
-right_stg_control_conditions = all_betas(:,right_stg_channels,speech_control_conditions(1)) - all_betas(:,right_stg_channels,noise_control_conditions(1));
-
-[~,channels_to_choose_by_subject_left_stg] = max(left_stg_control_conditions,[],2);
-[~,channels_to_choose_by_subject_right_stg] = max(right_stg_control_conditions,[],2);
-
-% Speech plot Left Hemisphere (attend left vs. attend right)
 figure;
-subplot(2,2,1)
-attend_left_betas = [];
-attend_right_betas = [];
-for isubject = 1:length(subjects)
-    attend_left_betas(isubject,:,:) = all_betas(isubject,left_stg_channels(channels_to_choose_by_subject_left_stg(isubject)),intersect(speech_conditions,attend_left_conditions));
-    attend_right_betas(isubject,:,:) = all_betas(isubject,left_stg_channels(channels_to_choose_by_subject_left_stg(isubject)),intersect(speech_conditions,attend_right_conditions));
-end
-x_axis_attend_left = 1:3:10;
-x_axis_attend_right = 2:3:11;
-p1 = violinplot_T(attend_left_betas,{'1','2','3'},x_axis_attend_left,'ViolinColor',[0 0 1],'ViolinAlpha',{0.5 0.02}');
-hold on;p2 =  violinplot_T(attend_right_betas,{'1','2','3'},x_axis_attend_right,'ViolinColor',[1 0 0],'ViolinAlpha',{0.5 0.02}');
-legend([p1(1,1).ViolinPlot,p2(1,1).ViolinPlot],{'Attend Left','Attend Right'})
-xticks(1.5:3:16.5)
-xticklabels({'ITD 500','ITD 50','ILD 10','ILD Nat'})
-title('Speech Masker Left STG','FontSize',18)
+bar(squeeze(mean(pfc_betas_to_plot(:,2:end),1)))
+hold on
+errorbar(1:4,squeeze(mean(pfc_betas_to_plot(:,2:end),1)),squeeze(std(pfc_betas_to_plot(:,2:end),[],1))./length(subjects),'k','LineWidth',2)
 xlabel('Condition','FontSize',18)
-ylabel('Beta','FontSize',18)
-ylim([lower_ylim upper_ylim])
+ylabel('Beta (AU)','FontSize',18)
+xticklabels({'ITD 50','ITD 500','ILD 10','ILD Nat'})
+title('PFC','FontSize',18)
+
+% 
 
 
-% Speech plot Right Hemisphere (attend_left vs. attend_right)
-subplot(2,2,2)
-attend_left_betas = [];
-attend_right_betas = [];
-for isubject = 1:length(subjects)
-
-attend_left_betas(isubject,:,:) = all_betas(isubject,right_stg_channels(channels_to_choose_by_subject_right_stg(isubject)),intersect(speech_conditions,attend_left_conditions));
-attend_right_betas(isubject,:,:) = all_betas(isubject,right_stg_channels(channels_to_choose_by_subject_right_stg(isubject)),intersect(speech_conditions,attend_right_conditions));
-end
-p1 = violinplot_T(attend_left_betas,{'1','2','3','4'},x_axis_attend_left,'ViolinColor',[0 0 1],'ViolinAlpha',{0.5 0.02}');
-hold on;p2 =  violinplot_T(attend_right_betas,{'1','2','3','4'},x_axis_attend_right,'ViolinColor',[1 0 0],'ViolinAlpha',{0.5 0.02}');
-legend([p1(1,1).ViolinPlot,p2(1,1).ViolinPlot],{'Attend Left','Attend Right'})
-xticks(1.5:3:16.5)
-xticklabels({'ITD 500','ITD 50','ILD 10','ILD Nat'})
-title('Speech Masker Right STG','FontSize',18)
-xlabel('Condition','FontSize',18)
-ylabel('Beta','FontSize',18)
-ylim([lower_ylim upper_ylim])
-
-% Noise plot Left Hemisphere (attend left vs. attend right)
-subplot(2,2,3)
-attend_left_betas = [];
-attend_right_betas = [];
-for isubject = 1:length(subjects)
-
-attend_left_betas(isubject,:,:) = all_betas(isubject,left_stg_channels(channels_to_choose_by_subject_left_stg(isubject)),intersect(noise_conditions,attend_left_conditions));
-attend_right_betas(isubject,:,:) = all_betas(isubject,left_stg_channels(channels_to_choose_by_subject_left_stg(isubject)),intersect(noise_conditions,attend_right_conditions));
-end
-p1 = violinplot_T(attend_left_betas,{'1','2','3','4'},x_axis_attend_left,'ViolinColor',[0 0 1],'ViolinAlpha',{0.5 0.02}');
-hold on;p2 =  violinplot_T(attend_right_betas,{'1','2','3','4'},x_axis_attend_right,'ViolinColor',[1 0 0],'ViolinAlpha',{0.5 0.02}');
-legend([p1(1,1).ViolinPlot,p2(1,1).ViolinPlot],{'Attend Left','Attend Right'})
-xticks(1.5:3:16.5)
-xticklabels({'ITD 500','ITD 50','ILD 10','ILD Nat'})
-title('Noise Masker Left STG','FontSize',18)
-xlabel('Condition','FontSize',18)
-ylabel('Beta','FontSize',18)
-ylim([lower_ylim upper_ylim])
-
-% Noise plot Right hemisphere (attend left vs. attend right)
-subplot(2,2,4)
-attend_left_betas = [];
-attend_right_betas = [];
-for isubject = 1:length(subjects)
-
-attend_left_betas(isubject,:,:) = all_betas(isubject,right_stg_channels(channels_to_choose_by_subject_right_stg(isubject)),intersect(noise_conditions,attend_left_conditions));
-attend_right_betas(isubject,:,:) = all_betas(isubject,right_stg_channels(channels_to_choose_by_subject_right_stg(isubject)),intersect(noise_conditions,attend_right_conditions));
-end
-p1 = violinplot_T(attend_left_betas,{'1','2','3','4'},x_axis_attend_left,'ViolinColor',[0 0 1],'ViolinAlpha',{0.5 0.02}');
-hold on;p2 =  violinplot_T(attend_right_betas,{'1','2','3','4'},x_axis_attend_right,'ViolinColor',[1 0 0],'ViolinAlpha',{0.5 0.02}');
-legend([p1(1,1).ViolinPlot,p2(1,1).ViolinPlot],{'Attend Left','Attend Right'})
-xticks(1.5:3:16.5)
-xticklabels({'ITD 500','ITD 50','ILD 10','ILD Nat'})
-title('Noise Masker Right STG','FontSize',18)
-xlabel('Condition','FontSize',18)
-ylabel('Beta','FontSize',18)
-ylim([lower_ylim upper_ylim])
+%% OLD CODE
+% % plot speech attend left vs. speech attend right 
+% all_stg_noise_betas = all_betas(:,stg_channels,4:9);
+% all_stg_speech_betas = all_betas(:,stg_channels,10:15);
 
 
-sgtitle('Channel Chosen from ITD500 Control Condition Speech vs. Noise ATTEND LEFT')
-
-%% COLLAPSED ACROSS LEFT AND RIGHT ATTEND LEFT CHANNEL CHOICE STG
-% Left Hemisphere Speech
-figure;
-subplot(2,2,1)
-betas_to_plot = [];
-for isubject = 1:length(subjects)
-    a =  all_betas(isubject,left_stg_channels(channels_to_choose_by_subject_left_stg(isubject)),intersect(speech_conditions,attend_left_conditions));
-    b = all_betas(isubject,left_stg_channels(channels_to_choose_by_subject_left_stg(isubject)),intersect(speech_conditions,attend_right_conditions));
-    betas_to_plot(isubject,:,:) = mean([a,b],2);
-end
-p1 = violinplot_T(betas_to_plot,{'1','2','3','4'},[1,2,3,4],'ViolinColor',[0 0 1],'ViolinAlpha',{0.5 0.02}');
-xticks(1:4)
-xticklabels({'ITD 500','ITD 50','ILD 10','ILD Nat'})
-title('Speech Masker Left STG','FontSize',18)
-xlabel('Condition','FontSize',18)
-ylabel('Beta','FontSize',18)
-ylim([lower_ylim upper_ylim])
-% Right Hemisphere Speech
-subplot(2,2,2)
-betas_to_plot = [];
-for isubject = 1:length(subjects)
-    a =  all_betas(isubject,right_stg_channels(channels_to_choose_by_subject_right_stg(isubject)),intersect(speech_conditions,attend_left_conditions));
-    b = all_betas(isubject,right_stg_channels(channels_to_choose_by_subject_right_stg(isubject)),intersect(speech_conditions,attend_right_conditions));
-    betas_to_plot(isubject,:,:) = mean([a,b],2);
-end
-p1 = violinplot_T(betas_to_plot,{'1','2','3','4'},[1,2,3,4],'ViolinColor',[0 0 1],'ViolinAlpha',{0.5 0.02}');
-xticks(1:4)
-xticklabels({'ITD 500','ITD 50','ILD 10','ILD Nat'})
-title('Speech Masker Left STG','FontSize',18)
-xlabel('Condition','FontSize',18)
-ylabel('Beta','FontSize',18)
-ylim([lower_ylim upper_ylim])
-% Left Hemisphere Noise
-subplot(2,2,3)
-betas_to_plot = [];
-for isubject = 1:length(subjects)
-    a =  all_betas(isubject,left_stg_channels(channels_to_choose_by_subject_left_stg(isubject)),intersect(noise_conditions,attend_left_conditions));
-    b = all_betas(isubject,left_stg_channels(channels_to_choose_by_subject_left_stg(isubject)),intersect(noise_conditions,attend_right_conditions));
-    betas_to_plot(isubject,:,:) = mean([a,b],2);
-end
-p1 = violinplot_T(betas_to_plot,{'1','2','3','4'},[1,2,3,4],'ViolinColor',[0 0 1],'ViolinAlpha',{0.5 0.02}');
-xticks(1:4)
-xticklabels({'ITD 500','ITD 50','ILD 10','ILD Nat'})
-title('Noise Masker Left STG','FontSize',18)
-xlabel('Condition','FontSize',18)
-ylabel('Beta','FontSize',18)
-ylim([lower_ylim upper_ylim])
-% Right Hemisphere Noise
-subplot(2,2,4)
-betas_to_plot = [];
-for isubject = 1:length(subjects)
-    a =  all_betas(isubject,right_stg_channels(channels_to_choose_by_subject_right_stg(isubject)),intersect(noise_conditions,attend_left_conditions));
-    b = all_betas(isubject,right_stg_channels(channels_to_choose_by_subject_right_stg(isubject)),intersect(noise_conditions,attend_right_conditions));
-    betas_to_plot(isubject,:,:) = mean([a,b],2);
-end
-p1 = violinplot_T(betas_to_plot,{'1','2','3','4'},[1,2,3,4],'ViolinColor',[0 0 1],'ViolinAlpha',{0.5 0.02}');
-xticks(1:4)
-xticklabels({'ITD 500','ITD 50','ILD 10','ILD Nat'})
-title('Noise Masker Right STG','FontSize',18)
-xlabel('Condition','FontSize',18)
-ylabel('Beta','FontSize',18)
-ylim([lower_ylim upper_ylim])
-
-sgtitle('ATTEND RIGHT Channel Choice, collapsed attend left and right')
-
-%% CHOOSING CHANNEL ON EACH SIDE BASED ON ATTEND LEFT or ATTEND RIGHT ITD 500 SPEECH NOISE CONTRAST
-
-left_stg_control_conditions = all_betas(:,left_stg_channels,speech_control_conditions(2)) - all_betas(:,left_stg_channels,noise_control_conditions(2));
-right_stg_control_conditions = all_betas(:,right_stg_channels,speech_control_conditions(2)) - all_betas(:,right_stg_channels,noise_control_conditions(2));
-
-[~,channels_to_choose_by_subject_left_stg] = max(left_stg_control_conditions,[],2);
-[~,channels_to_choose_by_subject_right_stg] = max(right_stg_control_conditions,[],2);
-
-% Speech plot Left Hemisphere (attend left vs. attend right)
-figure;
-subplot(2,2,1)
-attend_left_betas = [];
-attend_right_betas = [];
-for isubject = 1:length(subjects)
-    attend_left_betas(isubject,:,:) = all_betas(isubject,left_stg_channels(channels_to_choose_by_subject_left_stg(isubject)),intersect(speech_conditions,attend_left_conditions));
-    attend_right_betas(isubject,:,:) = all_betas(isubject,left_stg_channels(channels_to_choose_by_subject_left_stg(isubject)),intersect(speech_conditions,attend_right_conditions));
-end
-x_axis_attend_left = 1:3:10;
-x_axis_attend_right = 2:3:11;
-p1 = violinplot_T(attend_left_betas,{'1','2','3'},x_axis_attend_left,'ViolinColor',[0 0 1],'ViolinAlpha',{0.5 0.02}');
-hold on;p2 =  violinplot_T(attend_right_betas,{'1','2','3'},x_axis_attend_right,'ViolinColor',[1 0 0],'ViolinAlpha',{0.5 0.02}');
-legend([p1(1,1).ViolinPlot,p2(1,1).ViolinPlot],{'Attend Left','Attend Right'})
-xticks(1.5:3:16.5)
-xticklabels({'ITD 500','ITD 50','ILD 10','ILD Nat'})
-title('Speech Masker Left STG','FontSize',18)
-xlabel('Condition','FontSize',18)
-ylabel('Beta','FontSize',18)
-ylim([lower_ylim upper_ylim])
-
-
-% Speech plot Right Hemisphere (attend_left vs. attend_right)
-subplot(2,2,2)
-attend_left_betas = [];
-attend_right_betas = [];
-for isubject = 1:length(subjects)
-
-attend_left_betas(isubject,:,:) = all_betas(isubject,right_stg_channels(channels_to_choose_by_subject_right_stg(isubject)),intersect(speech_conditions,attend_left_conditions));
-attend_right_betas(isubject,:,:) = all_betas(isubject,right_stg_channels(channels_to_choose_by_subject_right_stg(isubject)),intersect(speech_conditions,attend_right_conditions));
-end
-p1 = violinplot_T(attend_left_betas,{'1','2','3','4'},x_axis_attend_left,'ViolinColor',[0 0 1],'ViolinAlpha',{0.5 0.02}');
-hold on;p2 =  violinplot_T(attend_right_betas,{'1','2','3','4'},x_axis_attend_right,'ViolinColor',[1 0 0],'ViolinAlpha',{0.5 0.02}');
-legend([p1(1,1).ViolinPlot,p2(1,1).ViolinPlot],{'Attend Left','Attend Right'})
-xticks(1.5:3:16.5)
-xticklabels({'ITD 500','ITD 50','ILD 10','ILD Nat'})
-title('Speech Masker Right STG','FontSize',18)
-xlabel('Condition','FontSize',18)
-ylabel('Beta','FontSize',18)
-ylim([lower_ylim upper_ylim])
-
-% Noise plot Left Hemisphere (attend left vs. attend right)
-subplot(2,2,3)
-attend_left_betas = [];
-attend_right_betas = [];
-for isubject = 1:length(subjects)
-
-attend_left_betas(isubject,:,:) = all_betas(isubject,left_stg_channels(channels_to_choose_by_subject_left_stg(isubject)),intersect(noise_conditions,attend_left_conditions));
-attend_right_betas(isubject,:,:) = all_betas(isubject,left_stg_channels(channels_to_choose_by_subject_left_stg(isubject)),intersect(noise_conditions,attend_right_conditions));
-end
-p1 = violinplot_T(attend_left_betas,{'1','2','3','4'},x_axis_attend_left,'ViolinColor',[0 0 1],'ViolinAlpha',{0.5 0.02}');
-hold on;p2 =  violinplot_T(attend_right_betas,{'1','2','3','4'},x_axis_attend_right,'ViolinColor',[1 0 0],'ViolinAlpha',{0.5 0.02}');
-legend([p1(1,1).ViolinPlot,p2(1,1).ViolinPlot],{'Attend Left','Attend Right'})
-xticks(1.5:3:16.5)
-xticklabels({'ITD 500','ITD 50','ILD 10','ILD Nat'})
-title('Noise Masker Left STG','FontSize',18)
-xlabel('Condition','FontSize',18)
-ylabel('Beta','FontSize',18)
-ylim([lower_ylim upper_ylim])
-
-% Noise plot Right hemisphere (attend left vs. attend right)
-subplot(2,2,4)
-attend_left_betas = [];
-attend_right_betas = [];
-for isubject = 1:length(subjects)
-
-attend_left_betas(isubject,:,:) = all_betas(isubject,right_stg_channels(channels_to_choose_by_subject_right_stg(isubject)),intersect(noise_conditions,attend_left_conditions));
-attend_right_betas(isubject,:,:) = all_betas(isubject,right_stg_channels(channels_to_choose_by_subject_right_stg(isubject)),intersect(noise_conditions,attend_right_conditions));
-end
-p1 = violinplot_T(attend_left_betas,{'1','2','3','4'},x_axis_attend_left,'ViolinColor',[0 0 1],'ViolinAlpha',{0.5 0.02}');
-hold on;p2 =  violinplot_T(attend_right_betas,{'1','2','3','4'},x_axis_attend_right,'ViolinColor',[1 0 0],'ViolinAlpha',{0.5 0.02}');
-legend([p1(1,1).ViolinPlot,p2(1,1).ViolinPlot],{'Attend Left','Attend Right'})
-xticks(1.5:3:16.5)
-xticklabels({'ITD 500','ITD 50','ILD 10','ILD Nat'})
-title('Noise Masker Right STG','FontSize',18)
-xlabel('Condition','FontSize',18)
-ylabel('Beta','FontSize',18)
-ylim([lower_ylim upper_ylim])
-
-
-sgtitle('Channel Chosen from ITD500 Control Condition Speech vs. Noise ATTEND RIGHT')
-
-%% COLLAPSED ACROSS LEFT AND RIGHT ATTEND RIGHT CHANNEL CHOICE STG
-% Left Hemisphere Speech
-figure;
-subplot(2,2,1)
-betas_to_plot = [];
-for isubject = 1:length(subjects)
-    a =  all_betas(isubject,left_stg_channels(channels_to_choose_by_subject_left_stg(isubject)),intersect(speech_conditions,attend_left_conditions));
-    b = all_betas(isubject,left_stg_channels(channels_to_choose_by_subject_left_stg(isubject)),intersect(speech_conditions,attend_right_conditions));
-    betas_to_plot(isubject,:,:) = mean([a,b],2);
-end
-p1 = violinplot_T(betas_to_plot,{'1','2','3','4'},[1,2,3,4],'ViolinColor',[0 0 1],'ViolinAlpha',{0.5 0.02}');
-xticks(1:4)
-xticklabels({'ITD 500','ITD 50','ILD 10','ILD Nat'})
-title('Speech Masker Left STG','FontSize',18)
-xlabel('Condition','FontSize',18)
-ylabel('Beta','FontSize',18)
-ylim([lower_ylim upper_ylim])
-% Right Hemisphere Speech
-subplot(2,2,2)
-betas_to_plot = [];
-for isubject = 1:length(subjects)
-    a =  all_betas(isubject,right_stg_channels(channels_to_choose_by_subject_right_stg(isubject)),intersect(speech_conditions,attend_left_conditions));
-    b = all_betas(isubject,right_stg_channels(channels_to_choose_by_subject_right_stg(isubject)),intersect(speech_conditions,attend_right_conditions));
-    betas_to_plot(isubject,:,:) = mean([a,b],2);
-end
-p1 = violinplot_T(betas_to_plot,{'1','2','3','4'},[1,2,3,4],'ViolinColor',[0 0 1],'ViolinAlpha',{0.5 0.02}');
-xticks(1:4)
-xticklabels({'ITD 500','ITD 50','ILD 10','ILD Nat'})
-title('Speech Masker Left STG','FontSize',18)
-xlabel('Condition','FontSize',18)
-ylabel('Beta','FontSize',18)
-ylim([lower_ylim upper_ylim])
-% Left Hemisphere Noise
-subplot(2,2,3)
-betas_to_plot = [];
-for isubject = 1:length(subjects)
-    a =  all_betas(isubject,left_stg_channels(channels_to_choose_by_subject_left_stg(isubject)),intersect(noise_conditions,attend_left_conditions));
-    b = all_betas(isubject,left_stg_channels(channels_to_choose_by_subject_left_stg(isubject)),intersect(noise_conditions,attend_right_conditions));
-    betas_to_plot(isubject,:,:) = mean([a,b],2);
-end
-p1 = violinplot_T(betas_to_plot,{'1','2','3','4'},[1,2,3,4],'ViolinColor',[0 0 1],'ViolinAlpha',{0.5 0.02}');
-xticks(1:4)
-xticklabels({'ITD 500','ITD 50','ILD 10','ILD Nat'})
-title('Noise Masker Left STG','FontSize',18)
-xlabel('Condition','FontSize',18)
-ylabel('Beta','FontSize',18)
-ylim([lower_ylim upper_ylim])
-% Right Hemisphere Noise
-subplot(2,2,4)
-betas_to_plot = [];
-for isubject = 1:length(subjects)
-    a =  all_betas(isubject,right_stg_channels(channels_to_choose_by_subject_right_stg(isubject)),intersect(noise_conditions,attend_left_conditions));
-    b = all_betas(isubject,right_stg_channels(channels_to_choose_by_subject_right_stg(isubject)),intersect(noise_conditions,attend_right_conditions));
-    betas_to_plot(isubject,:,:) = mean([a,b],2);
-end
-p1 = violinplot_T(betas_to_plot,{'1','2','3','4'},[1,2,3,4],'ViolinColor',[0 0 1],'ViolinAlpha',{0.5 0.02}');
-xticks(1:4)
-xticklabels({'ITD 500','ITD 50','ILD 10','ILD Nat'})
-title('Noise Masker Right STG','FontSize',18)
-xlabel('Condition','FontSize',18)
-ylabel('Beta','FontSize',18)
-ylim([lower_ylim upper_ylim])
-
-sgtitle('ATTEND RIGHT Channel Choice, collapsed attend left and right')
-
-
-%% Prefrontal Cortex
-%% INCLUDING ALL CHANNELS
-% Speech plot (attend left vs. attend right)
-upper_ylim = 0.3;
-lower_ylim = -0.3;
-figure;
-subplot(2,1,1)
-attend_left_betas = all_betas(:,dlpfc_channels,intersect(speech_conditions,attend_left_conditions));
-attend_right_betas = all_betas(:,dlpfc_channels,intersect(speech_conditions,attend_right_conditions));
-x_axis_attend_left = 1:3:10;
-x_axis_attend_right = 2:3:11;
-p1 = violinplot_T(reshape(attend_left_betas,[size(attend_left_betas,1)*size(attend_left_betas,2),size(attend_left_betas,3)]),{'1','2','3','4'},x_axis_attend_left,'ViolinColor',[0 0 1],'ViolinAlpha',{0.5 0.02}');
-hold on;p2 =  violinplot_T(reshape(attend_right_betas,[size(attend_right_betas,1)*size(attend_right_betas,2),size(attend_right_betas,3)]),{'1','2','3','4'},x_axis_attend_right,'ViolinColor',[1 0 0],'ViolinAlpha',{0.5 0.02}');
-legend([p1(1,1).ViolinPlot,p2(1,1).ViolinPlot],{'Attend Left','Attend Right'})
-xticks(1.5:3:16.5)
-xticklabels({'ITD 500','ITD 50','ILD 10','ILD Nat'})
-title('Speech Masker','FontSize',18)
-xlabel('Condition','FontSize',18)
-ylabel('Beta','FontSize',18)
-ylim([lower_ylim upper_ylim])
-
-
-
-% Noise plot (attend_left vs. attend_right)
-subplot(2,1,2)
-attend_left_betas = all_betas(:,dlpfc_channels,intersect(noise_conditions,attend_left_conditions));
-attend_right_betas = all_betas(:,dlpfc_channels,intersect(noise_conditions,attend_right_conditions));
-p1 = violinplot_T(reshape(attend_left_betas,[size(attend_left_betas,1)*size(attend_left_betas,2),size(attend_left_betas,3)]),{'1','2','3','4'},x_axis_attend_left,'ViolinColor',[0 0 1],'ViolinAlpha',{0.5 0.02}');
-hold on;p2 =  violinplot_T(reshape(attend_right_betas,[size(attend_right_betas,1)*size(attend_right_betas,2),size(attend_right_betas,3)]),{'1','2','3','4'},x_axis_attend_right,'ViolinColor',[1 0 0],'ViolinAlpha',{0.5 0.02}');
-legend([p1(1,1).ViolinPlot,p2(1,1).ViolinPlot],{'Attend Left','Attend Right'})
-xticks(1.5:3:16.5)
-xticklabels({'ITD 500','ITD 50','ILD 10','ILD Nat'})
-title('Noise Masker','FontSize',18)
-xlabel('Condition','FontSize',18)
-ylabel('Beta','FontSize',18)
-ylim([lower_ylim upper_ylim])
-
-
-sgtitle('PFC All Channels')
-
-
-%% CHOOSE CHANNELS BASED ON ITD500 CONTROL CONDITIONS
-dlpfc_control_conditions = all_betas(:,dlpfc_channels,speech_control_conditions(2)) - all_betas(:,dlpfc_channels,noise_control_conditions(2));
-
-[~,channels_to_choose_by_subject_pfc] = max(dlpfc_control_conditions,[],2);
-
-% Speech plot (attend left vs. attend right)
-upper_ylim = 0.3;
-lower_ylim = -0.3;
-figure;
-subplot(2,1,1)
-attend_left_betas = [];
-attend_right_betas = [];
-for isubject = 1:length(subjects)
-attend_left_betas(isubject,:,:) = all_betas(isubject,dlpfc_channels(channels_to_choose_by_subject_pfc(isubject)),intersect(speech_conditions,attend_left_conditions));
-attend_right_betas(isubject,:,:) = all_betas(isubject,dlpfc_channels(channels_to_choose_by_subject_pfc(isubject)),intersect(speech_conditions,attend_right_conditions));
-end
-x_axis_attend_left = 1:3:10;
-x_axis_attend_right = 2:3:11;
-p1 = violinplot_T(attend_left_betas,{'1','2','3','4'},x_axis_attend_left,'ViolinColor',[0 0 1],'ViolinAlpha',{0.5 0.02}');
-hold on;p2 =  violinplot_T(attend_right_betas,{'1','2','3','4'},x_axis_attend_right,'ViolinColor',[1 0 0],'ViolinAlpha',{0.5 0.02}');
-legend([p1(1,1).ViolinPlot,p2(1,1).ViolinPlot],{'Attend Left','Attend Right'})
-xticks(1.5:3:16.5)
-xticklabels({'ITD 500','ITD 50','ILD 10','ILD Nat'})
-title('Speech Masker','FontSize',18)
-xlabel('Condition','FontSize',18)
-ylabel('Beta','FontSize',18)
-ylim([lower_ylim upper_ylim])
-
-
-
-% Noise plot (attend_left vs. attend_right)
-subplot(2,1,2)
-attend_left_betas = [];
-attend_right_betas = [];
-for isubject = 1:length(subjects)
-attend_left_betas(isubject,:,:) = all_betas(isubject,dlpfc_channels(channels_to_choose_by_subject_pfc(isubject)),intersect(noise_conditions,attend_left_conditions));
-attend_right_betas(isubject,:,:) = all_betas(isubject,dlpfc_channels(channels_to_choose_by_subject_pfc(isubject)),intersect(noise_conditions,attend_right_conditions));
-end
-p1 = violinplot_T(attend_left_betas,{'1','2','3','4'},x_axis_attend_left,'ViolinColor',[0 0 1],'ViolinAlpha',{0.5 0.02}');
-hold on;p2 =  violinplot_T(attend_right_betas,{'1','2','3','4'},x_axis_attend_right,'ViolinColor',[1 0 0],'ViolinAlpha',{0.5 0.02}');
-legend([p1(1,1).ViolinPlot,p2(1,1).ViolinPlot],{'Attend Left','Attend Right'})
-xticks(1.5:3:16.5)
-xticklabels({'ITD 500','ITD 50','ILD 10','ILD Nat'})
-title('Noise Masker','FontSize',18)
-xlabel('Condition','FontSize',18)
-ylabel('Beta','FontSize',18)
-ylim([lower_ylim upper_ylim])
-
-sgtitle('PFC Channel Choice')
-
-
-%% COLLAPSED ACROSS LEFT AND RIGHT CHANNEL CHOICE PFC
-%% COLLAPSED ACROSS LEFT AND RIGHT ATTEND RIGHT CHANNEL CHOICE STG
-% Left Hemisphere Speech
-figure;
-subplot(2,2,1)
-betas_to_plot = [];
-for isubject = 1:length(subjects)
-    a =  all_betas(isubject,dlpfc_channels(channels_to_choose_by_subject_pfc(isubject)),intersect(speech_conditions,attend_left_conditions));
-    b = all_betas(isubject,dlpfc_channels(channels_to_choose_by_subject_pfc(isubject)),intersect(speech_conditions,attend_right_conditions));
-    betas_to_plot(isubject,:,:) = mean([a,b],2);
-end
-p1 = violinplot_T(betas_to_plot,{'1','2','3','4'},[1,2,3,4],'ViolinColor',[0 0 1],'ViolinAlpha',{0.5 0.02}');
-xticks(1:4)
-xticklabels({'ITD 500','ITD 50','ILD 10','ILD Nat'})
-title('Speech Masker Left STG','FontSize',18)
-xlabel('Condition','FontSize',18)
-ylabel('Beta','FontSize',18)
-ylim([lower_ylim upper_ylim])
-% Right Hemisphere Speech
-subplot(2,2,2)
-betas_to_plot = [];
-for isubject = 1:length(subjects)
-    a =  all_betas(isubject,dlpfc_channels(channels_to_choose_by_subject_pfc(isubject)),intersect(speech_conditions,attend_left_conditions));
-    b = all_betas(isubject,dlpfc_channels(channels_to_choose_by_subject_pfc(isubject)),intersect(speech_conditions,attend_right_conditions));
-    betas_to_plot(isubject,:,:) = mean([a,b],2);
-end
-p1 = violinplot_T(betas_to_plot,{'1','2','3','4'},[1,2,3,4],'ViolinColor',[0 0 1],'ViolinAlpha',{0.5 0.02}');
-xticks(1:4)
-xticklabels({'ITD 500','ITD 50','ILD 10','ILD Nat'})
-title('Speech Masker Left STG','FontSize',18)
-xlabel('Condition','FontSize',18)
-ylabel('Beta','FontSize',18)
-ylim([lower_ylim upper_ylim])
-% Left Hemisphere Noise
-subplot(2,2,3)
-betas_to_plot = [];
-for isubject = 1:length(subjects)
-    a =  all_betas(isubject,dlpfc_channels(channels_to_choose_by_subject_pfc(isubject)),intersect(noise_conditions,attend_left_conditions));
-    b = all_betas(isubject,dlpfc_channels(channels_to_choose_by_subject_pfc(isubject)),intersect(noise_conditions,attend_right_conditions));
-    betas_to_plot(isubject,:,:) = mean([a,b],2);
-end
-p1 = violinplot_T(betas_to_plot,{'1','2','3','4'},[1,2,3,4],'ViolinColor',[0 0 1],'ViolinAlpha',{0.5 0.02}');
-xticks(1:4)
-xticklabels({'ITD 500','ITD 50','ILD 10','ILD Nat'})
-title('Noise Masker Left STG','FontSize',18)
-xlabel('Condition','FontSize',18)
-ylabel('Beta','FontSize',18)
-ylim([lower_ylim upper_ylim])
-% Right Hemisphere Noise
-subplot(2,2,4)
-betas_to_plot = [];
-for isubject = 1:length(subjects)
-    a =  all_betas(isubject,dlpfc_channels(channels_to_choose_by_subject_pfc(isubject)),intersect(noise_conditions,attend_left_conditions));
-    b = all_betas(isubject,dlpfc_channels(channels_to_choose_by_subject_pfc(isubject)),intersect(noise_conditions,attend_right_conditions));
-    betas_to_plot(isubject,:,:) = mean([a,b],2);
-end
-p1 = violinplot_T(betas_to_plot,{'1','2','3','4'},[1,2,3,4],'ViolinColor',[0 0 1],'ViolinAlpha',{0.5 0.02}');
-xticks(1:4)
-xticklabels({'ITD 500','ITD 50','ILD 10','ILD Nat'})
-title('Noise Masker Right STG','FontSize',18)
-xlabel('Condition','FontSize',18)
-ylabel('Beta','FontSize',18)
-ylim([lower_ylim upper_ylim])
-
-sgtitle('ATTEND RIGHT Channel Choice, collapsed attend left and right')
+% 
+% %% INCLUDING ALL CHANNELS
+% % Speech plot Left Hemisphere (attend left vs. attend right)
+% upper_ylim = 1;
+% lower_ylim = -1;
+% figure;
+% subplot(2,2,1)
+% attend_left_betas = all_betas(:,left_stg_channels,intersect(speech_conditions,attend_left_conditions));
+% attend_right_betas = all_betas(:,left_stg_channels,intersect(speech_conditions,attend_right_conditions));
+% x_axis_attend_left = 1:3:10;
+% x_axis_attend_right = 2:3:11;
+% p1 = violinplot_T(reshape(attend_left_betas,[size(attend_left_betas,1)*size(attend_left_betas,2),size(attend_left_betas,3)]),{'1','2','3','4'},x_axis_attend_left,'ViolinColor',[0 0 1],'ViolinAlpha',{0.5 0.02}');
+% hold on;p2 =  violinplot_T(reshape(attend_right_betas,[size(attend_right_betas,1)*size(attend_right_betas,2),size(attend_right_betas,3)]),{'1','2','3','4'},x_axis_attend_right,'ViolinColor',[1 0 0],'ViolinAlpha',{0.5 0.02}');
+% legend([p1(1,1).ViolinPlot,p2(1,1).ViolinPlot],{'Attend Left','Attend Right'})
+% xticks(1.5:3:16.5)
+% xticklabels({'ITD 500','ITD 50','ILD 10','ILD Nat'})
+% title('Speech Masker Left STG','FontSize',18)
+% xlabel('Condition','FontSize',18)
+% ylabel('Beta','FontSize',18)
+% ylim([lower_ylim upper_ylim])
+% 
+% 
+% 
+% % Speech plot Right Hemisphere (attend_left vs. attend_right)
+% subplot(2,2,2)
+% attend_left_betas = all_betas(:,right_stg_channels,intersect(speech_conditions,attend_left_conditions));
+% attend_right_betas = all_betas(:,right_stg_channels,intersect(speech_conditions,attend_right_conditions));
+% p1 = violinplot_T(reshape(attend_left_betas,[size(attend_left_betas,1)*size(attend_left_betas,2),size(attend_left_betas,3)]),{'1','2','3','4'},x_axis_attend_left,'ViolinColor',[0 0 1],'ViolinAlpha',{0.5 0.02}');
+% hold on;p2 =  violinplot_T(reshape(attend_right_betas,[size(attend_right_betas,1)*size(attend_right_betas,2),size(attend_right_betas,3)]),{'1','2','3','4'},x_axis_attend_right,'ViolinColor',[1 0 0],'ViolinAlpha',{0.5 0.02}');
+% legend([p1(1,1).ViolinPlot,p2(1,1).ViolinPlot],{'Attend Left','Attend Right'})
+% xticks(1.5:3:16.5)
+% xticklabels({'ITD 500','ITD 50','ILD 10','ILD Nat'})
+% title('Speech Masker Right STG','FontSize',18)
+% xlabel('Condition','FontSize',18)
+% ylabel('Beta','FontSize',18)
+% ylim([lower_ylim upper_ylim])
+% 
+% 
+% % Noise plot Left Hemisphere (attend left vs. attend right)
+% subplot(2,2,3)
+% attend_left_betas = all_betas(:,left_stg_channels,intersect(noise_conditions,attend_left_conditions));
+% attend_right_betas = all_betas(:,left_stg_channels,intersect(noise_conditions,attend_right_conditions));
+% p1 = violinplot_T(reshape(attend_left_betas,[size(attend_left_betas,1)*size(attend_left_betas,2),size(attend_left_betas,3)]),{'1','2','3','4'},x_axis_attend_left,'ViolinColor',[0 0 1],'ViolinAlpha',{0.5 0.02}');
+% hold on;p2 =  violinplot_T(reshape(attend_right_betas,[size(attend_right_betas,1)*size(attend_right_betas,2),size(attend_right_betas,3)]),{'1','2','3','4'},x_axis_attend_right,'ViolinColor',[1 0 0],'ViolinAlpha',{0.5 0.02}');
+% legend([p1(1,1).ViolinPlot,p2(1,1).ViolinPlot],{'Attend Left','Attend Right'})
+% xticks(1.5:3:16.5)
+% xticklabels({'ITD 500','ITD 50','ILD 10','ILD Nat'})
+% title('Noise Masker Left STG','FontSize',18)
+% xlabel('Condition','FontSize',18)
+% ylabel('Beta','FontSize',18)
+% ylim([lower_ylim upper_ylim])
+% 
+% 
+% % Noise plot Right hemisphere (attend left vs. attend right)
+% subplot(2,2,4)
+% attend_left_betas = all_betas(:,right_stg_channels,intersect(noise_conditions,attend_left_conditions));
+% attend_right_betas = all_betas(:,right_stg_channels,intersect(noise_conditions,attend_right_conditions));
+% p1 = violinplot_T(reshape(attend_left_betas,[size(attend_left_betas,1)*size(attend_left_betas,2),size(attend_left_betas,3)]),{'1','2','3','4'},x_axis_attend_left,'ViolinColor',[0 0 1],'ViolinAlpha',{0.5 0.02}');
+% hold on;p2 =  violinplot_T(reshape(attend_right_betas,[size(attend_right_betas,1)*size(attend_right_betas,2),size(attend_right_betas,3)]),{'1','2','3','4'},x_axis_attend_right,'ViolinColor',[1 0 0],'ViolinAlpha',{0.5 0.02}');
+% legend([p1(1,1).ViolinPlot,p2(1,1).ViolinPlot],{'Attend Left','Attend Right'})
+% xticks(1.5:3:16.5)
+% xticklabels({'ITD 500','ITD 50','ILD 10','ILD Nat'})
+% title('Noise Masker Right STG','FontSize',18)
+% xlabel('Condition','FontSize',18)
+% ylabel('Beta','FontSize',18)
+% ylim([lower_ylim upper_ylim])
+% 
+% 
+% sgtitle('REGULAR DONT TOUCH ALL CHANNELS REPRESENTED HERE')
+% 
+% 
+% 
+% 
+% 
+% 
+% %% CHOOSING CHANNEL ON EACH SIDE BASED ON ATTEND LEFT or ATTEND RIGHT ITD 500 SPEECH NOISE CONTRAST
+% 
+% left_stg_control_conditions = all_betas(:,left_stg_channels,speech_control_conditions(1)) - all_betas(:,left_stg_channels,noise_control_conditions(1));
+% right_stg_control_conditions = all_betas(:,right_stg_channels,speech_control_conditions(1)) - all_betas(:,right_stg_channels,noise_control_conditions(1));
+% 
+% [~,channels_to_choose_by_subject_left_stg] = max(left_stg_control_conditions,[],2);
+% [~,channels_to_choose_by_subject_right_stg] = max(right_stg_control_conditions,[],2);
+% 
+% % Speech plot Left Hemisphere (attend left vs. attend right)
+% figure;
+% subplot(2,2,1)
+% attend_left_betas = [];
+% attend_right_betas = [];
+% for isubject = 1:length(subjects)
+%     attend_left_betas(isubject,:,:) = all_betas(isubject,left_stg_channels(channels_to_choose_by_subject_left_stg(isubject)),intersect(speech_conditions,attend_left_conditions));
+%     attend_right_betas(isubject,:,:) = all_betas(isubject,left_stg_channels(channels_to_choose_by_subject_left_stg(isubject)),intersect(speech_conditions,attend_right_conditions));
+% end
+% x_axis_attend_left = 1:3:10;
+% x_axis_attend_right = 2:3:11;
+% p1 = violinplot_T(attend_left_betas,{'1','2','3'},x_axis_attend_left,'ViolinColor',[0 0 1],'ViolinAlpha',{0.5 0.02}');
+% hold on;p2 =  violinplot_T(attend_right_betas,{'1','2','3'},x_axis_attend_right,'ViolinColor',[1 0 0],'ViolinAlpha',{0.5 0.02}');
+% legend([p1(1,1).ViolinPlot,p2(1,1).ViolinPlot],{'Attend Left','Attend Right'})
+% xticks(1.5:3:16.5)
+% xticklabels({'ITD 500','ITD 50','ILD 10','ILD Nat'})
+% title('Speech Masker Left STG','FontSize',18)
+% xlabel('Condition','FontSize',18)
+% ylabel('Beta','FontSize',18)
+% ylim([lower_ylim upper_ylim])
+% 
+% 
+% % Speech plot Right Hemisphere (attend_left vs. attend_right)
+% subplot(2,2,2)
+% attend_left_betas = [];
+% attend_right_betas = [];
+% for isubject = 1:length(subjects)
+% 
+% attend_left_betas(isubject,:,:) = all_betas(isubject,right_stg_channels(channels_to_choose_by_subject_right_stg(isubject)),intersect(speech_conditions,attend_left_conditions));
+% attend_right_betas(isubject,:,:) = all_betas(isubject,right_stg_channels(channels_to_choose_by_subject_right_stg(isubject)),intersect(speech_conditions,attend_right_conditions));
+% end
+% p1 = violinplot_T(attend_left_betas,{'1','2','3','4'},x_axis_attend_left,'ViolinColor',[0 0 1],'ViolinAlpha',{0.5 0.02}');
+% hold on;p2 =  violinplot_T(attend_right_betas,{'1','2','3','4'},x_axis_attend_right,'ViolinColor',[1 0 0],'ViolinAlpha',{0.5 0.02}');
+% legend([p1(1,1).ViolinPlot,p2(1,1).ViolinPlot],{'Attend Left','Attend Right'})
+% xticks(1.5:3:16.5)
+% xticklabels({'ITD 500','ITD 50','ILD 10','ILD Nat'})
+% title('Speech Masker Right STG','FontSize',18)
+% xlabel('Condition','FontSize',18)
+% ylabel('Beta','FontSize',18)
+% ylim([lower_ylim upper_ylim])
+% 
+% % Noise plot Left Hemisphere (attend left vs. attend right)
+% subplot(2,2,3)
+% attend_left_betas = [];
+% attend_right_betas = [];
+% for isubject = 1:length(subjects)
+% 
+% attend_left_betas(isubject,:,:) = all_betas(isubject,left_stg_channels(channels_to_choose_by_subject_left_stg(isubject)),intersect(noise_conditions,attend_left_conditions));
+% attend_right_betas(isubject,:,:) = all_betas(isubject,left_stg_channels(channels_to_choose_by_subject_left_stg(isubject)),intersect(noise_conditions,attend_right_conditions));
+% end
+% p1 = violinplot_T(attend_left_betas,{'1','2','3','4'},x_axis_attend_left,'ViolinColor',[0 0 1],'ViolinAlpha',{0.5 0.02}');
+% hold on;p2 =  violinplot_T(attend_right_betas,{'1','2','3','4'},x_axis_attend_right,'ViolinColor',[1 0 0],'ViolinAlpha',{0.5 0.02}');
+% legend([p1(1,1).ViolinPlot,p2(1,1).ViolinPlot],{'Attend Left','Attend Right'})
+% xticks(1.5:3:16.5)
+% xticklabels({'ITD 500','ITD 50','ILD 10','ILD Nat'})
+% title('Noise Masker Left STG','FontSize',18)
+% xlabel('Condition','FontSize',18)
+% ylabel('Beta','FontSize',18)
+% ylim([lower_ylim upper_ylim])
+% 
+% % Noise plot Right hemisphere (attend left vs. attend right)
+% subplot(2,2,4)
+% attend_left_betas = [];
+% attend_right_betas = [];
+% for isubject = 1:length(subjects)
+% 
+% attend_left_betas(isubject,:,:) = all_betas(isubject,right_stg_channels(channels_to_choose_by_subject_right_stg(isubject)),intersect(noise_conditions,attend_left_conditions));
+% attend_right_betas(isubject,:,:) = all_betas(isubject,right_stg_channels(channels_to_choose_by_subject_right_stg(isubject)),intersect(noise_conditions,attend_right_conditions));
+% end
+% p1 = violinplot_T(attend_left_betas,{'1','2','3','4'},x_axis_attend_left,'ViolinColor',[0 0 1],'ViolinAlpha',{0.5 0.02}');
+% hold on;p2 =  violinplot_T(attend_right_betas,{'1','2','3','4'},x_axis_attend_right,'ViolinColor',[1 0 0],'ViolinAlpha',{0.5 0.02}');
+% legend([p1(1,1).ViolinPlot,p2(1,1).ViolinPlot],{'Attend Left','Attend Right'})
+% xticks(1.5:3:16.5)
+% xticklabels({'ITD 500','ITD 50','ILD 10','ILD Nat'})
+% title('Noise Masker Right STG','FontSize',18)
+% xlabel('Condition','FontSize',18)
+% ylabel('Beta','FontSize',18)
+% ylim([lower_ylim upper_ylim])
+% 
+% 
+% sgtitle('Channel Chosen from ITD500 Control Condition Speech vs. Noise ATTEND LEFT')
+% 
+% %% COLLAPSED ACROSS LEFT AND RIGHT ATTEND LEFT CHANNEL CHOICE STG
+% % Left Hemisphere Speech
+% figure;
+% subplot(2,2,1)
+% betas_to_plot = [];
+% for isubject = 1:length(subjects)
+%     a =  all_betas(isubject,left_stg_channels(channels_to_choose_by_subject_left_stg(isubject)),intersect(speech_conditions,attend_left_conditions));
+%     b = all_betas(isubject,left_stg_channels(channels_to_choose_by_subject_left_stg(isubject)),intersect(speech_conditions,attend_right_conditions));
+%     betas_to_plot(isubject,:,:) = mean([a,b],2);
+% end
+% p1 = violinplot_T(betas_to_plot,{'1','2','3','4'},[1,2,3,4],'ViolinColor',[0 0 1],'ViolinAlpha',{0.5 0.02}');
+% xticks(1:4)
+% xticklabels({'ITD 500','ITD 50','ILD 10','ILD Nat'})
+% title('Speech Masker Left STG','FontSize',18)
+% xlabel('Condition','FontSize',18)
+% ylabel('Beta','FontSize',18)
+% ylim([lower_ylim upper_ylim])
+% % Right Hemisphere Speech
+% subplot(2,2,2)
+% betas_to_plot = [];
+% for isubject = 1:length(subjects)
+%     a =  all_betas(isubject,right_stg_channels(channels_to_choose_by_subject_right_stg(isubject)),intersect(speech_conditions,attend_left_conditions));
+%     b = all_betas(isubject,right_stg_channels(channels_to_choose_by_subject_right_stg(isubject)),intersect(speech_conditions,attend_right_conditions));
+%     betas_to_plot(isubject,:,:) = mean([a,b],2);
+% end
+% p1 = violinplot_T(betas_to_plot,{'1','2','3','4'},[1,2,3,4],'ViolinColor',[0 0 1],'ViolinAlpha',{0.5 0.02}');
+% xticks(1:4)
+% xticklabels({'ITD 500','ITD 50','ILD 10','ILD Nat'})
+% title('Speech Masker Left STG','FontSize',18)
+% xlabel('Condition','FontSize',18)
+% ylabel('Beta','FontSize',18)
+% ylim([lower_ylim upper_ylim])
+% % Left Hemisphere Noise
+% subplot(2,2,3)
+% betas_to_plot = [];
+% for isubject = 1:length(subjects)
+%     a =  all_betas(isubject,left_stg_channels(channels_to_choose_by_subject_left_stg(isubject)),intersect(noise_conditions,attend_left_conditions));
+%     b = all_betas(isubject,left_stg_channels(channels_to_choose_by_subject_left_stg(isubject)),intersect(noise_conditions,attend_right_conditions));
+%     betas_to_plot(isubject,:,:) = mean([a,b],2);
+% end
+% p1 = violinplot_T(betas_to_plot,{'1','2','3','4'},[1,2,3,4],'ViolinColor',[0 0 1],'ViolinAlpha',{0.5 0.02}');
+% xticks(1:4)
+% xticklabels({'ITD 500','ITD 50','ILD 10','ILD Nat'})
+% title('Noise Masker Left STG','FontSize',18)
+% xlabel('Condition','FontSize',18)
+% ylabel('Beta','FontSize',18)
+% ylim([lower_ylim upper_ylim])
+% % Right Hemisphere Noise
+% subplot(2,2,4)
+% betas_to_plot = [];
+% for isubject = 1:length(subjects)
+%     a =  all_betas(isubject,right_stg_channels(channels_to_choose_by_subject_right_stg(isubject)),intersect(noise_conditions,attend_left_conditions));
+%     b = all_betas(isubject,right_stg_channels(channels_to_choose_by_subject_right_stg(isubject)),intersect(noise_conditions,attend_right_conditions));
+%     betas_to_plot(isubject,:,:) = mean([a,b],2);
+% end
+% p1 = violinplot_T(betas_to_plot,{'1','2','3','4'},[1,2,3,4],'ViolinColor',[0 0 1],'ViolinAlpha',{0.5 0.02}');
+% xticks(1:4)
+% xticklabels({'ITD 500','ITD 50','ILD 10','ILD Nat'})
+% title('Noise Masker Right STG','FontSize',18)
+% xlabel('Condition','FontSize',18)
+% ylabel('Beta','FontSize',18)
+% ylim([lower_ylim upper_ylim])
+% 
+% sgtitle('ATTEND RIGHT Channel Choice, collapsed attend left and right')
+% 
+% %% CHOOSING CHANNEL ON EACH SIDE BASED ON ATTEND LEFT or ATTEND RIGHT ITD 500 SPEECH NOISE CONTRAST
+% 
+% left_stg_control_conditions = all_betas(:,left_stg_channels,speech_control_conditions(2)) - all_betas(:,left_stg_channels,noise_control_conditions(2));
+% right_stg_control_conditions = all_betas(:,right_stg_channels,speech_control_conditions(2)) - all_betas(:,right_stg_channels,noise_control_conditions(2));
+% 
+% [~,channels_to_choose_by_subject_left_stg] = max(left_stg_control_conditions,[],2);
+% [~,channels_to_choose_by_subject_right_stg] = max(right_stg_control_conditions,[],2);
+% 
+% % Speech plot Left Hemisphere (attend left vs. attend right)
+% figure;
+% subplot(2,2,1)
+% attend_left_betas = [];
+% attend_right_betas = [];
+% for isubject = 1:length(subjects)
+%     attend_left_betas(isubject,:,:) = all_betas(isubject,left_stg_channels(channels_to_choose_by_subject_left_stg(isubject)),intersect(speech_conditions,attend_left_conditions));
+%     attend_right_betas(isubject,:,:) = all_betas(isubject,left_stg_channels(channels_to_choose_by_subject_left_stg(isubject)),intersect(speech_conditions,attend_right_conditions));
+% end
+% x_axis_attend_left = 1:3:10;
+% x_axis_attend_right = 2:3:11;
+% p1 = violinplot_T(attend_left_betas,{'1','2','3'},x_axis_attend_left,'ViolinColor',[0 0 1],'ViolinAlpha',{0.5 0.02}');
+% hold on;p2 =  violinplot_T(attend_right_betas,{'1','2','3'},x_axis_attend_right,'ViolinColor',[1 0 0],'ViolinAlpha',{0.5 0.02}');
+% legend([p1(1,1).ViolinPlot,p2(1,1).ViolinPlot],{'Attend Left','Attend Right'})
+% xticks(1.5:3:16.5)
+% xticklabels({'ITD 500','ITD 50','ILD 10','ILD Nat'})
+% title('Speech Masker Left STG','FontSize',18)
+% xlabel('Condition','FontSize',18)
+% ylabel('Beta','FontSize',18)
+% ylim([lower_ylim upper_ylim])
+% 
+% 
+% % Speech plot Right Hemisphere (attend_left vs. attend_right)
+% subplot(2,2,2)
+% attend_left_betas = [];
+% attend_right_betas = [];
+% for isubject = 1:length(subjects)
+% 
+% attend_left_betas(isubject,:,:) = all_betas(isubject,right_stg_channels(channels_to_choose_by_subject_right_stg(isubject)),intersect(speech_conditions,attend_left_conditions));
+% attend_right_betas(isubject,:,:) = all_betas(isubject,right_stg_channels(channels_to_choose_by_subject_right_stg(isubject)),intersect(speech_conditions,attend_right_conditions));
+% end
+% p1 = violinplot_T(attend_left_betas,{'1','2','3','4'},x_axis_attend_left,'ViolinColor',[0 0 1],'ViolinAlpha',{0.5 0.02}');
+% hold on;p2 =  violinplot_T(attend_right_betas,{'1','2','3','4'},x_axis_attend_right,'ViolinColor',[1 0 0],'ViolinAlpha',{0.5 0.02}');
+% legend([p1(1,1).ViolinPlot,p2(1,1).ViolinPlot],{'Attend Left','Attend Right'})
+% xticks(1.5:3:16.5)
+% xticklabels({'ITD 500','ITD 50','ILD 10','ILD Nat'})
+% title('Speech Masker Right STG','FontSize',18)
+% xlabel('Condition','FontSize',18)
+% ylabel('Beta','FontSize',18)
+% ylim([lower_ylim upper_ylim])
+% 
+% % Noise plot Left Hemisphere (attend left vs. attend right)
+% subplot(2,2,3)
+% attend_left_betas = [];
+% attend_right_betas = [];
+% for isubject = 1:length(subjects)
+% 
+% attend_left_betas(isubject,:,:) = all_betas(isubject,left_stg_channels(channels_to_choose_by_subject_left_stg(isubject)),intersect(noise_conditions,attend_left_conditions));
+% attend_right_betas(isubject,:,:) = all_betas(isubject,left_stg_channels(channels_to_choose_by_subject_left_stg(isubject)),intersect(noise_conditions,attend_right_conditions));
+% end
+% p1 = violinplot_T(attend_left_betas,{'1','2','3','4'},x_axis_attend_left,'ViolinColor',[0 0 1],'ViolinAlpha',{0.5 0.02}');
+% hold on;p2 =  violinplot_T(attend_right_betas,{'1','2','3','4'},x_axis_attend_right,'ViolinColor',[1 0 0],'ViolinAlpha',{0.5 0.02}');
+% legend([p1(1,1).ViolinPlot,p2(1,1).ViolinPlot],{'Attend Left','Attend Right'})
+% xticks(1.5:3:16.5)
+% xticklabels({'ITD 500','ITD 50','ILD 10','ILD Nat'})
+% title('Noise Masker Left STG','FontSize',18)
+% xlabel('Condition','FontSize',18)
+% ylabel('Beta','FontSize',18)
+% ylim([lower_ylim upper_ylim])
+% 
+% % Noise plot Right hemisphere (attend left vs. attend right)
+% subplot(2,2,4)
+% attend_left_betas = [];
+% attend_right_betas = [];
+% for isubject = 1:length(subjects)
+% 
+% attend_left_betas(isubject,:,:) = all_betas(isubject,right_stg_channels(channels_to_choose_by_subject_right_stg(isubject)),intersect(noise_conditions,attend_left_conditions));
+% attend_right_betas(isubject,:,:) = all_betas(isubject,right_stg_channels(channels_to_choose_by_subject_right_stg(isubject)),intersect(noise_conditions,attend_right_conditions));
+% end
+% p1 = violinplot_T(attend_left_betas,{'1','2','3','4'},x_axis_attend_left,'ViolinColor',[0 0 1],'ViolinAlpha',{0.5 0.02}');
+% hold on;p2 =  violinplot_T(attend_right_betas,{'1','2','3','4'},x_axis_attend_right,'ViolinColor',[1 0 0],'ViolinAlpha',{0.5 0.02}');
+% legend([p1(1,1).ViolinPlot,p2(1,1).ViolinPlot],{'Attend Left','Attend Right'})
+% xticks(1.5:3:16.5)
+% xticklabels({'ITD 500','ITD 50','ILD 10','ILD Nat'})
+% title('Noise Masker Right STG','FontSize',18)
+% xlabel('Condition','FontSize',18)
+% ylabel('Beta','FontSize',18)
+% ylim([lower_ylim upper_ylim])
+% 
+% 
+% sgtitle('Channel Chosen from ITD500 Control Condition Speech vs. Noise ATTEND RIGHT')
+% 
+% %% COLLAPSED ACROSS LEFT AND RIGHT ATTEND RIGHT CHANNEL CHOICE STG
+% % Left Hemisphere Speech
+% figure;
+% subplot(2,2,1)
+% betas_to_plot = [];
+% for isubject = 1:length(subjects)
+%     a =  all_betas(isubject,left_stg_channels(channels_to_choose_by_subject_left_stg(isubject)),intersect(speech_conditions,attend_left_conditions));
+%     b = all_betas(isubject,left_stg_channels(channels_to_choose_by_subject_left_stg(isubject)),intersect(speech_conditions,attend_right_conditions));
+%     betas_to_plot(isubject,:,:) = mean([a,b],2);
+% end
+% p1 = violinplot_T(betas_to_plot,{'1','2','3','4'},[1,2,3,4],'ViolinColor',[0 0 1],'ViolinAlpha',{0.5 0.02}');
+% xticks(1:4)
+% xticklabels({'ITD 500','ITD 50','ILD 10','ILD Nat'})
+% title('Speech Masker Left STG','FontSize',18)
+% xlabel('Condition','FontSize',18)
+% ylabel('Beta','FontSize',18)
+% ylim([lower_ylim upper_ylim])
+% % Right Hemisphere Speech
+% subplot(2,2,2)
+% betas_to_plot = [];
+% for isubject = 1:length(subjects)
+%     a =  all_betas(isubject,right_stg_channels(channels_to_choose_by_subject_right_stg(isubject)),intersect(speech_conditions,attend_left_conditions));
+%     b = all_betas(isubject,right_stg_channels(channels_to_choose_by_subject_right_stg(isubject)),intersect(speech_conditions,attend_right_conditions));
+%     betas_to_plot(isubject,:,:) = mean([a,b],2);
+% end
+% p1 = violinplot_T(betas_to_plot,{'1','2','3','4'},[1,2,3,4],'ViolinColor',[0 0 1],'ViolinAlpha',{0.5 0.02}');
+% xticks(1:4)
+% xticklabels({'ITD 500','ITD 50','ILD 10','ILD Nat'})
+% title('Speech Masker Left STG','FontSize',18)
+% xlabel('Condition','FontSize',18)
+% ylabel('Beta','FontSize',18)
+% ylim([lower_ylim upper_ylim])
+% % Left Hemisphere Noise
+% subplot(2,2,3)
+% betas_to_plot = [];
+% for isubject = 1:length(subjects)
+%     a =  all_betas(isubject,left_stg_channels(channels_to_choose_by_subject_left_stg(isubject)),intersect(noise_conditions,attend_left_conditions));
+%     b = all_betas(isubject,left_stg_channels(channels_to_choose_by_subject_left_stg(isubject)),intersect(noise_conditions,attend_right_conditions));
+%     betas_to_plot(isubject,:,:) = mean([a,b],2);
+% end
+% p1 = violinplot_T(betas_to_plot,{'1','2','3','4'},[1,2,3,4],'ViolinColor',[0 0 1],'ViolinAlpha',{0.5 0.02}');
+% xticks(1:4)
+% xticklabels({'ITD 500','ITD 50','ILD 10','ILD Nat'})
+% title('Noise Masker Left STG','FontSize',18)
+% xlabel('Condition','FontSize',18)
+% ylabel('Beta','FontSize',18)
+% ylim([lower_ylim upper_ylim])
+% % Right Hemisphere Noise
+% subplot(2,2,4)
+% betas_to_plot = [];
+% for isubject = 1:length(subjects)
+%     a =  all_betas(isubject,right_stg_channels(channels_to_choose_by_subject_right_stg(isubject)),intersect(noise_conditions,attend_left_conditions));
+%     b = all_betas(isubject,right_stg_channels(channels_to_choose_by_subject_right_stg(isubject)),intersect(noise_conditions,attend_right_conditions));
+%     betas_to_plot(isubject,:,:) = mean([a,b],2);
+% end
+% p1 = violinplot_T(betas_to_plot,{'1','2','3','4'},[1,2,3,4],'ViolinColor',[0 0 1],'ViolinAlpha',{0.5 0.02}');
+% xticks(1:4)
+% xticklabels({'ITD 500','ITD 50','ILD 10','ILD Nat'})
+% title('Noise Masker Right STG','FontSize',18)
+% xlabel('Condition','FontSize',18)
+% ylabel('Beta','FontSize',18)
+% ylim([lower_ylim upper_ylim])
+% 
+% sgtitle('ATTEND RIGHT Channel Choice, collapsed attend left and right')
+% 
+% 
+% %% Prefrontal Cortex
+% %% INCLUDING ALL CHANNELS
+% % Speech plot (attend left vs. attend right)
+% upper_ylim = 0.3;
+% lower_ylim = -0.3;
+% figure;
+% subplot(2,1,1)
+% attend_left_betas = all_betas(:,dlpfc_channels,intersect(speech_conditions,attend_left_conditions));
+% attend_right_betas = all_betas(:,dlpfc_channels,intersect(speech_conditions,attend_right_conditions));
+% x_axis_attend_left = 1:3:10;
+% x_axis_attend_right = 2:3:11;
+% p1 = violinplot_T(reshape(attend_left_betas,[size(attend_left_betas,1)*size(attend_left_betas,2),size(attend_left_betas,3)]),{'1','2','3','4'},x_axis_attend_left,'ViolinColor',[0 0 1],'ViolinAlpha',{0.5 0.02}');
+% hold on;p2 =  violinplot_T(reshape(attend_right_betas,[size(attend_right_betas,1)*size(attend_right_betas,2),size(attend_right_betas,3)]),{'1','2','3','4'},x_axis_attend_right,'ViolinColor',[1 0 0],'ViolinAlpha',{0.5 0.02}');
+% legend([p1(1,1).ViolinPlot,p2(1,1).ViolinPlot],{'Attend Left','Attend Right'})
+% xticks(1.5:3:16.5)
+% xticklabels({'ITD 500','ITD 50','ILD 10','ILD Nat'})
+% title('Speech Masker','FontSize',18)
+% xlabel('Condition','FontSize',18)
+% ylabel('Beta','FontSize',18)
+% ylim([lower_ylim upper_ylim])
+% 
+% 
+% 
+% % Noise plot (attend_left vs. attend_right)
+% subplot(2,1,2)
+% attend_left_betas = all_betas(:,dlpfc_channels,intersect(noise_conditions,attend_left_conditions));
+% attend_right_betas = all_betas(:,dlpfc_channels,intersect(noise_conditions,attend_right_conditions));
+% p1 = violinplot_T(reshape(attend_left_betas,[size(attend_left_betas,1)*size(attend_left_betas,2),size(attend_left_betas,3)]),{'1','2','3','4'},x_axis_attend_left,'ViolinColor',[0 0 1],'ViolinAlpha',{0.5 0.02}');
+% hold on;p2 =  violinplot_T(reshape(attend_right_betas,[size(attend_right_betas,1)*size(attend_right_betas,2),size(attend_right_betas,3)]),{'1','2','3','4'},x_axis_attend_right,'ViolinColor',[1 0 0],'ViolinAlpha',{0.5 0.02}');
+% legend([p1(1,1).ViolinPlot,p2(1,1).ViolinPlot],{'Attend Left','Attend Right'})
+% xticks(1.5:3:16.5)
+% xticklabels({'ITD 500','ITD 50','ILD 10','ILD Nat'})
+% title('Noise Masker','FontSize',18)
+% xlabel('Condition','FontSize',18)
+% ylabel('Beta','FontSize',18)
+% ylim([lower_ylim upper_ylim])
+% 
+% 
+% sgtitle('PFC All Channels')
+% 
+% 
+% %% CHOOSE CHANNELS BASED ON ITD500 CONTROL CONDITIONS
+% dlpfc_control_conditions = all_betas(:,dlpfc_channels,speech_control_conditions(2)) - all_betas(:,dlpfc_channels,noise_control_conditions(2));
+% 
+% [~,channels_to_choose_by_subject_pfc] = max(dlpfc_control_conditions,[],2);
+% 
+% % Speech plot (attend left vs. attend right)
+% upper_ylim = 0.3;
+% lower_ylim = -0.3;
+% figure;
+% subplot(2,1,1)
+% attend_left_betas = [];
+% attend_right_betas = [];
+% for isubject = 1:length(subjects)
+% attend_left_betas(isubject,:,:) = all_betas(isubject,dlpfc_channels(channels_to_choose_by_subject_pfc(isubject)),intersect(speech_conditions,attend_left_conditions));
+% attend_right_betas(isubject,:,:) = all_betas(isubject,dlpfc_channels(channels_to_choose_by_subject_pfc(isubject)),intersect(speech_conditions,attend_right_conditions));
+% end
+% x_axis_attend_left = 1:3:10;
+% x_axis_attend_right = 2:3:11;
+% p1 = violinplot_T(attend_left_betas,{'1','2','3','4'},x_axis_attend_left,'ViolinColor',[0 0 1],'ViolinAlpha',{0.5 0.02}');
+% hold on;p2 =  violinplot_T(attend_right_betas,{'1','2','3','4'},x_axis_attend_right,'ViolinColor',[1 0 0],'ViolinAlpha',{0.5 0.02}');
+% legend([p1(1,1).ViolinPlot,p2(1,1).ViolinPlot],{'Attend Left','Attend Right'})
+% xticks(1.5:3:16.5)
+% xticklabels({'ITD 500','ITD 50','ILD 10','ILD Nat'})
+% title('Speech Masker','FontSize',18)
+% xlabel('Condition','FontSize',18)
+% ylabel('Beta','FontSize',18)
+% ylim([lower_ylim upper_ylim])
+% 
+% 
+% 
+% % Noise plot (attend_left vs. attend_right)
+% subplot(2,1,2)
+% attend_left_betas = [];
+% attend_right_betas = [];
+% for isubject = 1:length(subjects)
+% attend_left_betas(isubject,:,:) = all_betas(isubject,dlpfc_channels(channels_to_choose_by_subject_pfc(isubject)),intersect(noise_conditions,attend_left_conditions));
+% attend_right_betas(isubject,:,:) = all_betas(isubject,dlpfc_channels(channels_to_choose_by_subject_pfc(isubject)),intersect(noise_conditions,attend_right_conditions));
+% end
+% p1 = violinplot_T(attend_left_betas,{'1','2','3','4'},x_axis_attend_left,'ViolinColor',[0 0 1],'ViolinAlpha',{0.5 0.02}');
+% hold on;p2 =  violinplot_T(attend_right_betas,{'1','2','3','4'},x_axis_attend_right,'ViolinColor',[1 0 0],'ViolinAlpha',{0.5 0.02}');
+% legend([p1(1,1).ViolinPlot,p2(1,1).ViolinPlot],{'Attend Left','Attend Right'})
+% xticks(1.5:3:16.5)
+% xticklabels({'ITD 500','ITD 50','ILD 10','ILD Nat'})
+% title('Noise Masker','FontSize',18)
+% xlabel('Condition','FontSize',18)
+% ylabel('Beta','FontSize',18)
+% ylim([lower_ylim upper_ylim])
+% 
+% sgtitle('PFC Channel Choice')
+% 
+% 
+% %% COLLAPSED ACROSS LEFT AND RIGHT CHANNEL CHOICE PFC
+% %% COLLAPSED ACROSS LEFT AND RIGHT ATTEND RIGHT CHANNEL CHOICE STG
+% % Left Hemisphere Speech
+% figure;
+% subplot(2,2,1)
+% betas_to_plot = [];
+% for isubject = 1:length(subjects)
+%     a =  all_betas(isubject,dlpfc_channels(channels_to_choose_by_subject_pfc(isubject)),intersect(speech_conditions,attend_left_conditions));
+%     b = all_betas(isubject,dlpfc_channels(channels_to_choose_by_subject_pfc(isubject)),intersect(speech_conditions,attend_right_conditions));
+%     betas_to_plot(isubject,:,:) = mean([a,b],2);
+% end
+% p1 = violinplot_T(betas_to_plot,{'1','2','3','4'},[1,2,3,4],'ViolinColor',[0 0 1],'ViolinAlpha',{0.5 0.02}');
+% xticks(1:4)
+% xticklabels({'ITD 500','ITD 50','ILD 10','ILD Nat'})
+% title('Speech Masker Left STG','FontSize',18)
+% xlabel('Condition','FontSize',18)
+% ylabel('Beta','FontSize',18)
+% ylim([lower_ylim upper_ylim])
+% % Right Hemisphere Speech
+% subplot(2,2,2)
+% betas_to_plot = [];
+% for isubject = 1:length(subjects)
+%     a =  all_betas(isubject,dlpfc_channels(channels_to_choose_by_subject_pfc(isubject)),intersect(speech_conditions,attend_left_conditions));
+%     b = all_betas(isubject,dlpfc_channels(channels_to_choose_by_subject_pfc(isubject)),intersect(speech_conditions,attend_right_conditions));
+%     betas_to_plot(isubject,:,:) = mean([a,b],2);
+% end
+% p1 = violinplot_T(betas_to_plot,{'1','2','3','4'},[1,2,3,4],'ViolinColor',[0 0 1],'ViolinAlpha',{0.5 0.02}');
+% xticks(1:4)
+% xticklabels({'ITD 500','ITD 50','ILD 10','ILD Nat'})
+% title('Speech Masker Left STG','FontSize',18)
+% xlabel('Condition','FontSize',18)
+% ylabel('Beta','FontSize',18)
+% ylim([lower_ylim upper_ylim])
+% % Left Hemisphere Noise
+% subplot(2,2,3)
+% betas_to_plot = [];
+% for isubject = 1:length(subjects)
+%     a =  all_betas(isubject,dlpfc_channels(channels_to_choose_by_subject_pfc(isubject)),intersect(noise_conditions,attend_left_conditions));
+%     b = all_betas(isubject,dlpfc_channels(channels_to_choose_by_subject_pfc(isubject)),intersect(noise_conditions,attend_right_conditions));
+%     betas_to_plot(isubject,:,:) = mean([a,b],2);
+% end
+% p1 = violinplot_T(betas_to_plot,{'1','2','3','4'},[1,2,3,4],'ViolinColor',[0 0 1],'ViolinAlpha',{0.5 0.02}');
+% xticks(1:4)
+% xticklabels({'ITD 500','ITD 50','ILD 10','ILD Nat'})
+% title('Noise Masker Left STG','FontSize',18)
+% xlabel('Condition','FontSize',18)
+% ylabel('Beta','FontSize',18)
+% ylim([lower_ylim upper_ylim])
+% % Right Hemisphere Noise
+% subplot(2,2,4)
+% betas_to_plot = [];
+% for isubject = 1:length(subjects)
+%     a =  all_betas(isubject,dlpfc_channels(channels_to_choose_by_subject_pfc(isubject)),intersect(noise_conditions,attend_left_conditions));
+%     b = all_betas(isubject,dlpfc_channels(channels_to_choose_by_subject_pfc(isubject)),intersect(noise_conditions,attend_right_conditions));
+%     betas_to_plot(isubject,:,:) = mean([a,b],2);
+% end
+% p1 = violinplot_T(betas_to_plot,{'1','2','3','4'},[1,2,3,4],'ViolinColor',[0 0 1],'ViolinAlpha',{0.5 0.02}');
+% xticks(1:4)
+% xticklabels({'ITD 500','ITD 50','ILD 10','ILD Nat'})
+% title('Noise Masker Right STG','FontSize',18)
+% xlabel('Condition','FontSize',18)
+% ylabel('Beta','FontSize',18)
+% ylim([lower_ylim upper_ylim])
+% 
+% sgtitle('ATTEND RIGHT Channel Choice, collapsed attend left and right')

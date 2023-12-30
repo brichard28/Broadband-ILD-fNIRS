@@ -88,9 +88,9 @@ for subind= 1:length(subjID)
     [~,high_end_f_index] = min(abs(f - 14)); % index of 14 Hz
     f_alpha = f(low_end_f_index:high_end_f_index);
     p_alpha = p1(low_end_f_index:high_end_f_index);
-    [~,ipaf_index] = findpeaks(p_alpha);
+    [ipaf_maxs,ipaf_index] = findpeaks(p_alpha);
     if length(ipaf_index) > 1
-        ipaf_index = ipaf_index(1);
+        ipaf_index = ipaf_index(ipaf_maxs == max(ipaf_maxs));
     end
     if ~isempty(ipaf_index)
         ipaf = f_alpha(ipaf_index);
@@ -104,8 +104,8 @@ for subind= 1:length(subjID)
     %% YUQI DENG METHOD
     method = 'Yuq';
     extracted_alpha=[]; % num of channels,num of trials
-    lowpass_cutoff = ((ipaf - 1)/(all_eeg_epoch.EEG.srate/2)); % normalize frequency
-    highpass_cutoff = ((ipaf + 1)/(all_eeg_epoch.EEG.srate/2));
+    lowpass_cutoff = ((ipaf - 2)/(all_eeg_epoch.EEG.srate/2)); % normalize frequency
+    highpass_cutoff = ((ipaf + 2)/(all_eeg_epoch.EEG.srate/2));
     b = fir1(256,[lowpass_cutoff highpass_cutoff]);
     disp(["Subject: ", subID])
     this_wb = waitbar(0, 'Starting');
@@ -261,7 +261,7 @@ end
 %     end
 % end
 
-[~,timeindex2] = min(abs(t - 0));
+[~,timeindex2] = min(abs(t - 1000));
 [~,timeindex3] = min(abs(t - 12000));
 
 
@@ -313,8 +313,8 @@ for i = 1:length(condition_tags)
 end
 %locs_filename  = '/home/ben/Documents/GitHub/SRM-NIRS-EEG/chan_locs_pol_PO_ONLY.txt';
 locs_filename = 'C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\chan_locs_pol_PO_ONLY.txt';
-cmin = -0.05;
-cmax = 0.05;
+cmin = -0.1;
+cmax = 0.1;
 figure;
 subplot(2,2,1)
 topoplot(spatial_lateralization(1,:),locs_filename,'maplimits',[cmin cmax],'interplimits','head','plotrad',0.6)
@@ -382,4 +382,24 @@ title('Pow Ipsilateral - Pow Contralateral')
 
 legend({'ITD50','ITD500','ILD10','ILD70n'})
 
+% Ipsilateral minus contralateral during cue bar plot
+ipsi_minus_contra_during_cue = [];
+[~,timeindex2] = min(abs(t - 1000));
+[~,timeindex3] = min(abs(t - 12000));
+for i = 1:length(condition_tags)
+    for isubject = 1:length(subID)
+        this_condition_tag = string(condition_tags(i));
+        pow_left_attend_left = squeeze(nanmean(extracted_alpha_for_plotting(isubject,logical(contains(string(all_maskers),this_condition_tag).*contains(string(all_maskers),'__targ_l').*contains(string(all_maskers),'__control_0')),:,left_hemisphere_channels,:),[1,2,4]));
+        pow_left_attend_right = squeeze(nanmean(extracted_alpha_for_plotting(isubject,logical(contains(string(all_maskers),this_condition_tag).*contains(string(all_maskers),'__targ_r').*contains(string(all_maskers),'__control_0')),:,left_hemisphere_channels,:),[1,2,4]));
+        pow_right_attend_left = squeeze(nanmean(extracted_alpha_for_plotting(isubject,logical(contains(string(all_maskers),this_condition_tag).*contains(string(all_maskers),'__targ_l').*contains(string(all_maskers),'__control_0')),:,right_hemisphere_channels,:),[1,2,4]));
+        pow_right_attend_right = squeeze(nanmean(extracted_alpha_for_plotting(isubject,logical(contains(string(all_maskers),this_condition_tag).*contains(string(all_maskers),'__targ_r').*contains(string(all_maskers),'__control_0')),:,right_hemisphere_channels,:),[1,2,4]));
+        pow_ipsilateral = cat(1,pow_left_attend_left,pow_right_attend_right);
+        pow_contralateral = cat(1,pow_left_attend_right,pow_right_attend_left);
+        ipsi_minus_contra_during_cue(i,isubject) = nanmean(pow_ipsilateral(:,timeindex2:timeindex3) - pow_contralateral(:,timeindex2:timeindex3),[1,2]);%./(pow_attend_left + pow_attend_right);
+    end
+end
+figure;
+violinplot(ipsi_minus_contra_during_cue')
+xticklabels({'ITD50','ITD500','ILD10','ILD70n'})
 
+% Total alpha during cue period vs. overall d-prime

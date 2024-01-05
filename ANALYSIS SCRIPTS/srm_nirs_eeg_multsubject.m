@@ -36,7 +36,7 @@ subjID={'NDARVX375BR6','NDARZD647HJ1','NDARBL382XK5','NDARGF569BF3','NDARBA306US
 %BehaviorTable = readtable('/home/ben/Nextcloud/Python/data/srm-nirs-eeg-1.xlsx','Format','auto');
 BehaviorTable = readtable('C:\Users\benri\Downloads\data\srm-nirs-eeg-1.xlsx','Format','auto');
 
-figure;
+
 for subind= 1:length(subjID)
     subID=subjID{subind};
 %    all_eeg_epoch = load(['/home/ben/Documents/GitHub/SRM-NIRS-EEG/prepro_epoched_data/' subID 'all_epochs.mat']);
@@ -104,8 +104,8 @@ for subind= 1:length(subjID)
     %% YUQI DENG METHOD
     method = 'Yuq';
     extracted_alpha=[]; % num of channels,num of trials
-    lowpass_cutoff = ((ipaf - 2)/(all_eeg_epoch.EEG.srate/2)); % normalize frequency
-    highpass_cutoff = ((ipaf + 2)/(all_eeg_epoch.EEG.srate/2));
+    lowpass_cutoff = ((ipaf - 1)/(all_eeg_epoch.EEG.srate/2)); % normalize frequency
+    highpass_cutoff = ((ipaf + 1)/(all_eeg_epoch.EEG.srate/2));
     b = fir1(256,[lowpass_cutoff highpass_cutoff]);
     disp(["Subject: ", subID])
     this_wb = waitbar(0, 'Starting');
@@ -126,6 +126,8 @@ for subind= 1:length(subjID)
         end
 
     end
+    
+
     close(this_wb)
     %% BEN METHOD FROM JASMINE EEG PROJECT
 %     method = 'Ben';
@@ -200,6 +202,7 @@ for subind= 1:length(subjID)
             baseline_mean = nanmean(current_alpha_power(:,ichannel,timeindex1:timeindex2),'all');
             baseline_std = std(current_alpha_power(:,ichannel,timeindex1:timeindex2),[],'all');
             current_alpha_power(:,ichannel,:) = (current_alpha_power(:,ichannel,:) - baseline_mean)./baseline_std;
+            %current_alpha_power(:,ichannel,:) = log10(current_alpha_power(:,ichannel,:)./baseline_mean);
         end
     end
     
@@ -208,16 +211,12 @@ for subind= 1:length(subjID)
     %% DOUBLE CHECK BASELINE AND LOOK AT RAW SPECTROGRAMS
     extracted_alpha_data{subind}= current_alpha_power; %permute(current_alpha_power,[2 1 3]);
 
-    %% PLOT INDIVIDUAL ALPHA TRACES
-    hold on
-    plot(t,squeeze(mean(current_alpha_power,[1,2])))
-    xlabel('Time (ms)','FontSize',18)
-    ylabel('Alpha Power (z-score)')
+
 end
 
 % subject loop ends
 
-
+figure;
 for isubject = 1:length(subjID)
     subID=subjID{isubject};
     if subID == "NDARVX375BR6"
@@ -245,8 +244,17 @@ for isubject = 1:length(subjID)
         end
         % num subjects x num conditions x num presentations x num channels
         % of this condition x time
+
+        % take mean over presentations, baseline
+        extracted_alpha_for_plotting(isubject,icondition,:,:,:) = (extracted_alpha_for_plotting(isubject,icondition,:,:,:) - nanmean(extracted_alpha_for_plotting(isubject,icondition,:,:,timeindex1:timeindex2),'all'))./nanstd(extracted_alpha_for_plotting(isubject,icondition,:,:,timeindex1:timeindex2),[],'all'); 
     end
+        %% PLOT INDIVIDUAL ALPHA TRACES
+    hold on
+    plot(t,squeeze(nanmean(extracted_alpha_for_plotting(isubject,:,:,:,:),[1,2,3,4])))
+    xlabel('Time (ms)','FontSize',18)
+    ylabel('Alpha Power (z-score)')
 end
+
 
 % Checking for epochs with too large responses
 % for isubject = 1:length(subjID)
@@ -261,8 +269,8 @@ end
 %     end
 % end
 
-[~,timeindex2] = min(abs(t - 1000));
-[~,timeindex3] = min(abs(t - 12000));
+[~,timeindex2] = min(abs(t - 0));
+[~,timeindex3] = min(abs(t - 1000));
 
 
 %% Total Amount of Alpha Power during Cue period in each condition

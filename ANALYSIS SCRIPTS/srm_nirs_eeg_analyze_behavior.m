@@ -5,12 +5,13 @@
 
 % Script to analyze behavioral sensitivity (d-prime) for SRM NIRS EEG 1
 
-BehaviorTable = readtable('/home/ben/Nextcloud/Python/data/srm-nirs-eeg-1.xlsx','Format','auto');
+%BehaviorTable = readtable('/home/ben/Nextcloud/Python/data/srm-nirs-eeg-1.xlsx','Format','auto');
+BehaviorTable = readtable('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\SRM-NIRS-EEG Behavior Files\srm-nirs-eeg-1.xlsx','Format','auto');
 
 %subject_ID = char('NDARYZ656HJ9','NDARCD778KPR','NDARMY829TKN','NDARLU426TBZ','NDARHM932KNX','NDARHN971WJ5');
-subject_ID = char('NDARVX753BR6','NDARZD647HJ1','NDARBL382XK5','NDARGF569BF3','NDARBA306US5','NDARFD284ZP3','NDARWK546QR2','NDARAS648DT4','NDARLM531OY3','NDARXL287BE1','NDARRF358KO3','NDARGT639XS6');
+subject_ID = char('NDARVX753BR6','NDARZD647HJ1','NDARBL382XK5','NDARGF569BF3','NDARBA306US5','NDARFD284ZP3','NDARWK546QR2','NDARAS648DT4','NDARLM531OY3','NDARXL287BE1','NDARRF358KO3','NDARGT639XS6','NDARFV472HU7','NDARDC882NK4','NDARNL224RR9','NDARTT639AB1','NDARAZC45TW3');
 num_conditions = 20;
-
+%'NDARWB491KR3',
 all_hits = zeros(size(subject_ID,1),num_conditions);
 all_FAs = zeros(size(subject_ID,1),num_conditions);
 all_num_target_color_words = zeros(size(subject_ID,1),num_conditions);
@@ -42,7 +43,8 @@ clicks_not_counted = 0;
 for isubject = 1:size(subject_ID,1) % For each subject...
 
     % Load the word times for this subject
-    WordTimesTable = readtable("/home/ben/Nextcloud/Python/data/srm-nirs-eeg-1__s_" + string(subject_ID(isubject,:)) + "__Word_Times.csv");
+   % WordTimesTable = readtable("/home/ben/Nextcloud/Python/data/srm-nirs-eeg-1__s_" + string(subject_ID(isubject,:)) + "__Word_Times.csv");
+    WordTimesTable = readtable("C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\SRM-NIRS-EEG Behavior Files\srm-nirs-eeg-1__s_" + string(subject_ID(isubject,:)) + "__Word_Times.csv");
 
     run_count_per_condition = -1*ones(1,num_conditions); % array to keep track of which run in each condition we are on
 

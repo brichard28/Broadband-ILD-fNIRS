@@ -1,10 +1,10 @@
 %% srm_nirs_eeg_plot_betas.m
 user = 'Laptop';
-analysis_type = 'collapsed attend and masker';
-if user == 'Laptop' && analysis_type == 'collapsed attend and masker'
-GroupResults = readtable('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\Group Results SRM-NIRS-EEG-1 collapsed attend and masker.csv','Format','auto');
+analysis_type = 'collapsed attend and condition PFC time constant';
+if user == 'Laptop'
+GroupResults = readtable(append('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\Group Results SRM-NIRS-EEG-1 ',analysis_type,'.csv'),'Format','auto');
 else
-GroupResults = readtable('/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/Group Results SRM-NIRS-EEG-1 collapsed attend and masker.csv','Format','auto');
+GroupResults = readtable(append('/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/Group Results SRM-NIRS-EEG-1 ',analysis_type ,'.csv'),'Format','auto');
 end
 subjects = unique(GroupResults.ID);
 channels = unique(GroupResults.ch_name);
@@ -51,24 +51,101 @@ for isubject = 1:length(subjects)
     pfc_betas_to_plot(isubject,:) = all_pfc_betas(isubject,which_channel_pfc(isubject),:);
 end
 
-figure;
-bar(squeeze(mean(stg_betas_to_plot(:,2:end),1)))
-hold on
-errorbar(1:4,squeeze(mean(stg_betas_to_plot(:,2:end),1)),squeeze(std(stg_betas_to_plot(:,2:end),[],1))./length(subjects),'k','LineWidth',2)
-xlabel('Condition','FontSize',18)
-ylabel('Beta (AU)','FontSize',18)
-xticklabels({'ITD 50','ITD 500','ILD 10','ILD Nat'})
-title('STG','FontSize',18)
+if contains(analysis_type,'collapsed attend and masker')
+    % STG
+    figure;
+    bar(squeeze(mean(stg_betas_to_plot(:,2:end),1)))
+    hold on
+    errorbar(1:4,squeeze(mean(stg_betas_to_plot(:,2:end),1)),squeeze(std(stg_betas_to_plot(:,2:end),[],1))./length(subjects),'k','LineWidth',2)
+    xlabel('Condition','FontSize',18)
+    ylabel('Beta (AU)','FontSize',18)
+    xticklabels({'ITD 50','ITD 500','ILD 10','ILD Nat'})
+    title('STG','FontSize',18)
+    ylim([-0.4, 1])
+     % Statistics
+    [p,tbl,stats] = anova2(stg_betas_to_plot(:,2:end),1,'off');
+    c = multcompare(stats,'Display','off');
+    tbl = array2table(c,"VariableNames", ...
+        ["Group A","Group B","Lower Limit","A-B","Upper Limit","P-value"]);
+    p_values = c(:,6);
+    significant_comparisons = find(p_values < 0.5);
+    for i = 1:length(significant_comparisons)
+        group_a = c(significant_comparisons(i),1);
+        group_b = c(significant_comparisons(i),2);
+        line([group_a,group_b],[max(squeeze(mean(stg_betas_to_plot(:,2:end),1)))+0.1,max(squeeze(mean(stg_betas_to_plot(:,2:end),1)))+0.1],'Color','k')
+        text(mean([group_a,group_b]),max(squeeze(mean(stg_betas_to_plot(:,2:end),1)))+0.15,'*','FontSize',24)
+    end
 
-figure;
-bar(squeeze(mean(pfc_betas_to_plot(:,2:end),1)))
-hold on
-errorbar(1:4,squeeze(mean(pfc_betas_to_plot(:,2:end),1)),squeeze(std(pfc_betas_to_plot(:,2:end),[],1))./length(subjects),'k','LineWidth',2)
-xlabel('Condition','FontSize',18)
-ylabel('Beta (AU)','FontSize',18)
-xticklabels({'ITD 50','ITD 500','ILD 10','ILD Nat'})
-title('PFC','FontSize',18)
+    % PFC
+    figure;
+    bar(squeeze(mean(pfc_betas_to_plot(:,2:end),1)))
+    hold on
+    errorbar(1:4,squeeze(mean(pfc_betas_to_plot(:,2:end),1)),squeeze(std(pfc_betas_to_plot(:,2:end),[],1))./length(subjects),'k','LineWidth',2)
+    xlabel('Condition','FontSize',18)
+    ylabel('Beta (AU)','FontSize',18)
+    xticklabels({'ITD 50','ITD 500','ILD 10','ILD Nat'})
+    title('PFC','FontSize',18)
+    ylim([-0.4, 1])
+     % Statistics
+    [p,tbl,stats] = anova2(pfc_betas_to_plot(:,2:end),1,'off');
+    c = multcompare(stats,'Display','off');
+    tbl = array2table(c,"VariableNames", ...
+        ["Group A","Group B","Lower Limit","A-B","Upper Limit","P-value"]);
+    p_values = c(:,6);
+    significant_comparisons = find(p_values < 0.5);
+    for i = 1:length(significant_comparisons)
+        group_a = c(significant_comparisons(i),1);
+        group_b = c(significant_comparisons(i),2);
+        line([group_a,group_b],[max(squeeze(mean(pfc_betas_to_plot(:,2:end),1)))+0.1,max(squeeze(mean(pfc_betas_to_plot(:,2:end),1)))+0.1],'Color','k')
+        text(mean([group_a,group_b]),max(squeeze(mean(pfc_betas_to_plot(:,2:end),1)))+0.15,'*','FontSize',24)
+    end
+elseif contains(analysis_type,'collapsed attend and condition')
+    % STG
+    figure;
+    bar(squeeze(mean(stg_betas_to_plot(:,2:end),1)))
+    hold on
+    errorbar(1:2,squeeze(mean(stg_betas_to_plot(:,2:end),1)),squeeze(std(stg_betas_to_plot(:,2:end),[],1))./length(subjects),'k','LineWidth',2)
+    xlabel('Condition','FontSize',18)
+    ylabel('Beta (AU)','FontSize',18)
+    xticklabels({'Noise Masker','Speech Masker'})
+    title('STG','FontSize',18)
+    % Statistics
+    [p,tbl,stats] = anova2(stg_betas_to_plot(:,2:end),1,'off');
+    c = multcompare(stats,'Display','off');
+    tbl = array2table(c,"VariableNames", ...
+        ["Group A","Group B","Lower Limit","A-B","Upper Limit","P-value"]);
+    p_values = c(:,6);
+    significant_comparisons = find(p_values < 0.5);
+    for i = 1:length(significant_comparisons)
+        group_a = c(significant_comparisons(i),1);
+        group_b = c(significant_comparisons(i),2);
+        line([group_a,group_b],[max(squeeze(mean(stg_betas_to_plot(:,2:end),1)))+0.1,max(squeeze(mean(stg_betas_to_plot(:,2:end),1)))+0.1],'Color','k')
+        text(mean([group_a,group_b]),max(squeeze(mean(stg_betas_to_plot(:,2:end),1)))+0.15,'*','FontSize',24)
+    end
 
+    % PFC
+    figure;
+    bar(squeeze(mean(pfc_betas_to_plot(:,2:end),1)))
+    hold on
+    errorbar(1:2,squeeze(mean(pfc_betas_to_plot(:,2:end),1)),squeeze(std(pfc_betas_to_plot(:,2:end),[],1))./length(subjects),'k','LineWidth',2)
+    xlabel('Condition','FontSize',18)
+    ylabel('Beta (AU)','FontSize',18)
+    xticklabels({'Noise Masker','Speech Masker'})
+    title('PFC','FontSize',18)
+    % Statistics
+    [p,tbl,stats] = anova2(pfc_betas_to_plot(:,2:end),1,'off');
+    c = multcompare(stats,'Display','off');
+    tbl = array2table(c,"VariableNames", ...
+        ["Group A","Group B","Lower Limit","A-B","Upper Limit","P-value"]);
+    p_values = c(:,6);
+    significant_comparisons = find(p_values < 0.5);
+    for i = 1:length(significant_comparisons)
+        group_a = c(significant_comparisons(i),1);
+        group_b = c(significant_comparisons(i),2);
+        line([group_a,group_b],[max(squeeze(mean(pfc_betas_to_plot(:,2:end),1)))+0.1,max(squeeze(mean(pfc_betas_to_plot(:,2:end),1)))+0.1],'Color','k')
+        text(mean([group_a,group_b]),max(squeeze(mean(pfc_betas_to_plot(:,2:end),1)))+0.15,'*','FontSize',24)
+    end
+end
 % 
 
 

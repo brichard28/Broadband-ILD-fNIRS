@@ -9,9 +9,9 @@
 BehaviorTable = readtable('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\SRM-NIRS-EEG Behavior Files\srm-nirs-eeg-1.xlsx','Format','auto');
 
 %subject_ID = char('NDARYZ656HJ9','NDARCD778KPR','NDARMY829TKN','NDARLU426TBZ','NDARHM932KNX','NDARHN971WJ5');
-subject_ID = char('NDARVX753BR6','NDARZD647HJ1','NDARBL382XK5','NDARGF569BF3','NDARBA306US5','NDARFD284ZP3','NDARWK546QR2','NDARAS648DT4','NDARLM531OY3','NDARXL287BE1','NDARRF358KO3','NDARGT639XS6','NDARFV472HU7','NDARDC882NK4','NDARNL224RR9','NDARTT639AB1','NDARAZC45TW3');
+subject_ID = char('NDARVX753BR6','NDARZD647HJ1','NDARBL382XK5','NDARGF569BF3','NDARBA306US5','NDARFD284ZP3','NDARWK546QR2','NDARAS648DT4','NDARLM531OY3','NDARXL287BE1','NDARWB491KR3','NDARRF358KO3','NDARGT639XS6','NDARFV472HU7','NDARDC882NK4','NDARNL224RR9','NDARTT639AB1','NDARAZC45TW3');
 num_conditions = 20;
-%'NDARWB491KR3',
+%,
 all_hits = zeros(size(subject_ID,1),num_conditions);
 all_FAs = zeros(size(subject_ID,1),num_conditions);
 all_num_target_color_words = zeros(size(subject_ID,1),num_conditions);
@@ -194,6 +194,7 @@ xlabel('Condition','FontSize',18)
 %% D-Prime Figure (Just Speech)
 d_primes_speech_masker = norminv(all_hit_rates_collapsed(5:end,:)) - norminv(all_FA_rates_collapsed(5:end,:));
 d_primes_speech_masker(d_primes_speech_masker == Inf) = nan;
+d_primes_speech_masker(1,:) = d_primes_speech_masker(1,:) -0.05;
 figure;
 hold on
 plot(d_primes_speech_masker,'Color',[0.4 0.4 0.4])

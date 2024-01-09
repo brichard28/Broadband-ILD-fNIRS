@@ -1,6 +1,6 @@
 %% srm_nirs_eeg_plot_betas.m
 user = 'Laptop';
-analysis_type = 'collapsed attend and condition PFC time constant';
+analysis_type = 'collapsed attend and masker PFC time constant';
 if user == 'Laptop'
 GroupResults = readtable(append('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\Group Results SRM-NIRS-EEG-1 ',analysis_type,'.csv'),'Format','auto');
 else

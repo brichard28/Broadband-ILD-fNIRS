@@ -57,7 +57,7 @@ from obspy.signal.detrend import polynomial
 
 
 root = ''
-user = 'Laptop'
+user = 'Noptop'
 if user == 'Laptop':
     all_fnirs_data_folders = ['C:/Users/benri/Downloads/2023-09-21/2023-09-21_001',
     'C:/Users/benri/Downloads/2023-09-25/2023-09-25_001',
@@ -225,6 +225,9 @@ def individual_analysis(fnirs_data_folder, ID):
 
     raw_od.resample(10)
 
+    raw_od_for_block_averages = short_channel_regression(raw_od, max_dist=0.01)
+    raw_haemo_for_block_averages = beer_lambert_law(raw_od_for_block_averages, ppf=0.1)
+
     raw_haemo = beer_lambert_law(raw_od, ppf=0.1)
     
     # Cut out just the short channels for creating a GLM repressor
@@ -237,7 +240,7 @@ def individual_analysis(fnirs_data_folder, ID):
     #iir_params = dict({"order":3,"ftype":"butter","padlen":10000})
     #raw_haemo = raw_haemo.filter(0.03, 0.7, iir_params=iir_params, method='iir', verbose=False)
     raw_haemo.filter(0.05, 0.7, h_trans_bandwidth=0.2, l_trans_bandwidth=0.02)
-
+    raw_haemo_for_block_averages.filter(0.05, 0.7, h_trans_bandwidth=0.2, l_trans_bandwidth=0.02)
     
 
     # # Plot events
@@ -253,6 +256,7 @@ def individual_analysis(fnirs_data_folder, ID):
             events_to_remove.append(int(event))
         if events_to_remove:
             raw_haemo.annotations.delete(events_to_remove)
+            raw_haemo_for_block_averages.annotations.delete(events_to_remove)
     
     tmin, tmax = -5, 12
     
@@ -278,7 +282,9 @@ def individual_analysis(fnirs_data_folder, ID):
     hold_data = np.mean(hold_data,axis=(0,1))
     max_during_breathing = np.max(hold_data)
     z = raw_haemo.get_data()
+    zz = raw_haemo_for_block_averages.get_data()
     raw_haemo._data = z/max_during_breathing
+    raw_haemo_for_block_averages._data = zz/max_during_breathing
     print(f"Max During Breathing = {max_during_breathing}")
     
     # Redefine epochs
@@ -302,14 +308,6 @@ def individual_analysis(fnirs_data_folder, ID):
     #for column, condition in enumerate(["m_noise__ild_0__itd_500__targ_l__control_1", "m_noise__ild_0__itd_500__targ_r__control_1"]):
     #    for ax in axes[:, column]:
     #        ax.set_title("{}: {}".format(condition, ax.get_title()))
-            
-    # Save Block Averages
-    # epochs_this_subject = epochs.to_data_frame()
-    # if user == 'Laptop':
-    #     epochs_this_subject.to_csv("C:/Users/benri/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/" + sub + " block averages.csv")
-    # else:
-    #     epochs_this_subject.to_csv("/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/" + sub + " block averages.csv")
-
     # Remove rejected epochs from design matrix
     epochs_to_remove = []
     for iepoch in range(len(epochs.drop_log)):
@@ -322,6 +320,21 @@ def individual_analysis(fnirs_data_folder, ID):
             epochs_to_remove.append(iepoch)
             print(f"deleted epoch: {iepoch}")
     raw_haemo.annotations.delete(epochs_to_remove)
+
+    # Save Block Averages
+    epochs_for_block_averages = mne.Epochs(raw_haemo_for_block_averages, events, event_id=event_dict,
+                           tmin=tmin, tmax=tmax,reject=reject_criteria,reject_by_annotation=True,
+                           proj=True, baseline=(-5, 0), preload=False,
+                           detrend=None, verbose=False)
+    epochs_this_subject = epochs_for_block_averages.to_data_frame()
+    if user == 'Laptop':
+        epochs_this_subject.to_csv("C:/Users/benri/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/" + sub + " block averages.csv")
+        pandas.DataFrame(epochs_to_remove).to_csv("C:/Users/benri/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/" + sub + " epochs deleted.csv")
+    else:
+        epochs_this_subject.to_csv("/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/" + sub + " block averages.csv")
+        pandas.DataFrame(epochs_to_remove).to_csv("/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/" + sub + " epochs deleted.csv")
+
+    
     # Create a design matrix
     design_matrix = make_first_level_design_matrix(raw_haemo, stim_dur=1.0, hrf_model='glover', drift_model='cosine'); #, drift_model= 'cosine')
     # For PFC, stim_dur = 1.0
@@ -398,6 +411,6 @@ if user == 'Laptop':
     grp_results.to_csv("C:/Users/benri/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/Group Results SRM-NIRS-EEG-1 collapsed attend and masker PFC time constant.csv")
 else:
 
-    grp_results.to_csv("/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/Group Results SRM-NIRS-EEG-1.csv")
+    grp_results.to_csv("/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/Group Results SRM-NIRS-EEG-1 collapsed attend and masker PFC time constant.csv")
 
 

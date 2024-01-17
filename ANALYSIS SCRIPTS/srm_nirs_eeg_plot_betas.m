@@ -1,10 +1,11 @@
 %% srm_nirs_eeg_plot_betas.m
-user = 'Laptop';
+user = 'Noptop';
 analysis_type = 'collapsed attend and masker PFC time constant';
 if user == 'Laptop'
 GroupResults = readtable(append('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\Group Results SRM-NIRS-EEG-1 ',analysis_type,'.csv'),'Format','auto');
 else
 GroupResults = readtable(append('/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/Group Results SRM-NIRS-EEG-1 ',analysis_type ,'.csv'),'Format','auto');
+addpath('/home/ben/Documents/GitHub/SRM-NIRS-EEG/errorbar_files/errorbar_files');
 end
 subjects = unique(GroupResults.ID);
 channels = unique(GroupResults.ch_name);
@@ -30,6 +31,9 @@ noise_conditions = [1,3,5:10]; % excluding control
 noise_control_conditions = [2,4]; % target left, target right
 speech_control_conditions = [12,14]; % target left, target right
 
+% time
+epoch_time_limits = [-5,12];
+
 all_betas = [];
 for isubject = 1:length(subjects)
     for ichannel = 1:length(channels)
@@ -42,16 +46,52 @@ end
 all_stg_betas = all_betas(:,stg_channels,:);
 all_pfc_betas = all_betas(:,dlpfc_channels,:);
 
+
+all_block_averages = [];
+for isubject = 1:length(subjects)
+    this_subject_table = readtable('/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/' + string(subjects(isubject)) + ' block averages.csv');
+    this_epochs_deleted = readtable('/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/' + string(subjects(isubject)) + ' epochs deleted.csv');
+    this_epochs_deleted = table2array(this_epochs_deleted(2:end,2));
+    all_epochs = this_subject_table.epoch;
+    for ichannel = 1:length(channels)
+        for icondition = 1:length(conditions)
+            this_condition_epochs = this_subject_table.epoch;
+            this_condition_epochs = this_condition_epochs(string(this_subject_table.condition) == conditions(icondition));
+            unique_epochs = unique(this_condition_epochs);
+            curr_hbo = eval('this_subject_table.' + erase(channels(ichannel),' hbo') + 'Hbo');
+            z = [];
+            for i = 1:length(unique_epochs)
+                if ~ismember(i,this_epochs_deleted)% is not rejected
+                    z(i,:) = curr_hbo(all_epochs == unique_epochs(i));
+                else
+                    z(i,:) = nan*ones(171,1);
+                end
+            end
+            all_block_averages(isubject,ichannel,icondition,:) = nanmean(z,1);
+        end
+    end
+end
+
+all_stg_block_averages = all_block_averages(:,stg_channels,:,:);
+all_pfc_block_averages = all_block_averages(:,dlpfc_channels,:,:);
+
 % Tak channel with maximum beta in control conditions
 control_condition = find(string(conditions) == 'control');
 [~,which_channel_stg] = max(squeeze(all_stg_betas(:,:,control_condition)),[],2);
 [~,which_channel_pfc] = max(squeeze(all_pfc_betas(:,:,control_condition)),[],2);
 for isubject = 1:length(subjects)
+    % Store beta values
     stg_betas_to_plot(isubject,:) = all_stg_betas(isubject,which_channel_stg(isubject),:);
     pfc_betas_to_plot(isubject,:) = all_pfc_betas(isubject,which_channel_pfc(isubject),:);
+
+    % Store block averages 
+    stg_block_averages_to_plot(isubject,:,:) = squeeze(all_stg_block_averages(isubject,which_channel_stg(isubject),:,:));
+    pfc_block_averages_to_plot(isubject,:,:) = squeeze(all_pfc_block_averages(isubject,which_channel_pfc(isubject),:,:));
+    %stg_block_averages_to_plot(isubject,:) = ;
+    %
 end
 
-if contains(analysis_type,'collapsed attend and masker')
+if contains(analysis_type,'collapsed attend and masker') % compare across condition
     % STG
     figure;
     bar(squeeze(mean(stg_betas_to_plot(:,2:end),1)))
@@ -146,7 +186,38 @@ elseif contains(analysis_type,'collapsed attend and condition')
         text(mean([group_a,group_b]),max(squeeze(mean(pfc_betas_to_plot(:,2:end),1)))+0.15,'*','FontSize',24)
     end
 end
-% 
+%% Block Averages
+if contains(analysis_type,'collapsed attend and masker') % compare across condition
+    time = linspace(epoch_time_limits(1),epoch_time_limits(2),size(all_block_averages,4));
+    lineprop_list = {'-k','-r','-g','-b','-m'};
+    % STG
+    figure;
+    for icondition = 2:length(conditions)
+        shadedErrorBar(time,squeeze(nanmean(stg_block_averages_to_plot(:,icondition,:),1)),squeeze(nanstd(stg_block_averages_to_plot(:,icondition,:),[],1))./(sqrt(length(subjects))-1),'lineProps',lineprop_list(icondition));
+        hold on
+    end
+    xlabel('Time re stimulus onset','FontSize',18)
+    ylabel('\Delta HbO (AU)','FontSize',18)
+    legend(conditions(2:end))
+    title('STG Block Averages','FontSize',18)
+    ylim([-4e5,10e5])
+    
+    % PFC
+    figure;
+    for icondition = 2:length(conditions)
+        shadedErrorBar(time,squeeze(nanmean(pfc_block_averages_to_plot(:,icondition,:),1)),squeeze(nanstd(pfc_block_averages_to_plot(:,icondition,:),[],1))./(sqrt(length(subjects))-1),'lineProps',lineprop_list(icondition));
+        hold on
+    end
+    xlabel('Time re stimulus onset','FontSize',18)
+    ylabel('\Delta HbO (AU)','FontSize',18)
+    legend(conditions(2:end))
+    title('PFC Block Averages','FontSize',18)
+    ylim([-4e5,10e5])
+
+end
+
+
+
 
 
 %% OLD CODE

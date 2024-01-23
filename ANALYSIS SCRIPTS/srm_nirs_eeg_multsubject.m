@@ -3,11 +3,11 @@
 % Benjamin Richardson, Maanasa Guru Adimurthy
 % script to analyze group averages for SRM-NIRS-EEG-1
  
-% addpath("/home/ben/Documents/GitHub/SRM-NIRS-EEG/errorbar_files/errorbar_files/");
-% addpath(genpath('/home/ben/Documents/MATLAB/eeglab2023.1/functions/'));
+addpath("/home/ben/Documents/GitHub/SRM-NIRS-EEG/errorbar_files/errorbar_files/");
+addpath(genpath('/home/ben/Documents/MATLAB/eeglab2023.1/functions/'));
 
-addpath("C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\errorbar_files\errorbar_files");
-addpath(genpath('C:\Users\benri\Documents\eeglab2023.0\functions'));
+%addpath("C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\errorbar_files\errorbar_files");
+%addpath(genpath('C:\Users\benri\Documents\eeglab2023.0\functions'));
 
 all_maskers = {'m_speech__ild_0__itd_500__targ_r__control_0',...
     'm_noise__ild_0__itd_50__targ_l__control_0',...
@@ -30,17 +30,17 @@ all_maskers = {'m_speech__ild_0__itd_500__targ_r__control_0',...
     'm_noise__ild_0__itd_500__targ_l__control_0',...
     'm_speech__ild_70n__itd_0__targ_l__control_0'}; % we will maintain this order throughout
 
-subjID={'NDARVX375BR6','NDARZD647HJ1','NDARBL382XK5','NDARGF569BF3','NDARBA306US5','NDARFD284ZP3','NDARWK546QR2','NDARAS648DT4','NDARLM531OY3','NDARXL287BE1','NDARRF358KO3','NDARGT639XS6'};
+subjID={'NDARVX375BR6','NDARZD647HJ1','NDARBL382XK5','NDARGF569BF3','NDARBA306US5','NDARFD284ZP3','NDARAS648DT4','NDARLM531OY3','NDARXL287BE1','NDARRF358KO3','NDARGT639XS6','NDARFV472HU7','NDARDC882NK4','NDARWB491KR3','NDARNL224RR9','NDARTT639AB1','NDARAZC45TW3'};
 %all_extracted_alpha= cell(length(subjID),1);
 
-%BehaviorTable = readtable('/home/ben/Nextcloud/Python/data/srm-nirs-eeg-1.xlsx','Format','auto');
-BehaviorTable = readtable('C:\Users\benri\Downloads\data\srm-nirs-eeg-1.xlsx','Format','auto');
+BehaviorTable = readtable('/home/ben/Nextcloud/Python/data/srm-nirs-eeg-1.xlsx','Format','auto');
+%BehaviorTable = readtable('C:\Users\benri\Downloads\data\srm-nirs-eeg-1.xlsx','Format','auto');
 
 
 for subind= 1:length(subjID)
     subID=subjID{subind};
-%    all_eeg_epoch = load(['/home/ben/Documents/GitHub/SRM-NIRS-EEG/prepro_epoched_data/' subID 'all_epochs.mat']);
-    all_eeg_epoch = load(['C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\prepro_epoched_data\' subID 'all_epochs.mat']);
+    all_eeg_epoch = load(['/home/ben/Documents/GitHub/SRM-NIRS-EEG/prepro_epoched_data/' subID 'all_epochs.mat']);
+%    all_eeg_epoch = load(['C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\prepro_epoched_data\' subID 'all_epochs.mat']);
     all_eeg_epoch_data=all_eeg_epoch.EEG.data;
     all_eeg_epoch_time=all_eeg_epoch.EEG.times;
 
@@ -221,11 +221,11 @@ for isubject = 1:length(subjID)
     subID=subjID{isubject};
     if subID == "NDARVX375BR6"
         subID = "NDARVX753BR6";
-        %        load('/home/ben/Documents/GitHub/SRM-NIRS-EEG/prepro_epoched_data/' +  "NDARVX375BR6" + 'epochs_removed.mat')
-        load('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\prepro_epoched_data\' +  "NDARVX375BR6" + 'epochs_removed.mat')
+        load('/home/ben/Documents/GitHub/SRM-NIRS-EEG/prepro_epoched_data/' +  "NDARVX375BR6" + 'epochs_removed.mat')
+        %        load('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\prepro_epoched_data\' +  "NDARVX375BR6" + 'epochs_removed.mat')
     else
-        %        load(append('/home/ben/Documents/GitHub/SRM-NIRS-EEG/prepro_epoched_data/',subID,'epochs_removed.mat'))
-        load(append('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\prepro_epoched_data\',subID,'epochs_removed.mat'))
+        load(append('/home/ben/Documents/GitHub/SRM-NIRS-EEG/prepro_epoched_data/',subID,'epochs_removed.mat'))
+        %   load(append('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\prepro_epoched_data\',subID,'epochs_removed.mat'))
     end
     rows_this_subject = find(BehaviorTable.S == string(subID));
     conditions = BehaviorTable.Condition(rows_this_subject);
@@ -319,8 +319,8 @@ for i = 1:length(condition_tags)
     end
     spatial_lateralization(i,:) = mean(these_lateralizations,1);
 end
-%locs_filename  = '/home/ben/Documents/GitHub/SRM-NIRS-EEG/chan_locs_pol_PO_ONLY.txt';
-locs_filename = 'C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\chan_locs_pol_PO_ONLY.txt';
+locs_filename  = '/home/ben/Documents/GitHub/SRM-NIRS-EEG/chan_locs_pol_PO_ONLY.txt';
+%locs_filename = 'C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\chan_locs_pol_PO_ONLY.txt';
 cmin = -0.1;
 cmax = 0.1;
 figure;

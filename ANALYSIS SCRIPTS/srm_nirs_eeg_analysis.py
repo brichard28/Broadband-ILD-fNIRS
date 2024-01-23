@@ -89,6 +89,7 @@ else:
     '/home/ben/Nextcloud/data/nirs/data/2023-10-17/2023-10-17_001',
     '/home/ben/Nextcloud/data/nirs/data/2023-10-19/2023-10-19_001',
     '/home/ben/Nextcloud/data/nirs/data/2023-10-19/2023-10-19_002',
+    '/home/ben/Nextcloud/data/nirs/data/2023-10-24/2023-10-24_001',
     '/home/ben/Nextcloud/data/nirs/data/2023-10-26/2023-10-26_001',
     '/home/ben/Nextcloud/data/nirs/data/2023-11-06/2023-11-06_001',
     '/home/ben/Nextcloud/data/nirs/data/2023-11-09/2023-11-09_001',
@@ -103,9 +104,9 @@ else:
                             #'/home/ben/Nextcloud/data/nirs/data/2023-08-02/2023-08-02_001',
 
 # After ITD500 Control Condition added
-subject_ID = ['NDARVX753BR6','NDARZD647HJ1','NDARBL382XK5','NDARGF569BF3','NDARBA306US5','NDARFD284ZP3','NDARWK546QR2','NDARAS648DT4','NDARLM531OY3','NDARXL287BE1','NDARRF358KO3','NDARGT639XS6',
+subject_ID = ['NDARVX753BR6','NDARZD647HJ1','NDARBL382XK5','NDARGF569BF3','NDARBA306US5','NDARFD284ZP3','NDARWK546QR2','NDARAS648DT4','NDARLM531OY3','NDARXL287BE1','NDARRF358KO3','NDARGT639XS6','NDARFV472HU7',
                 'NDARDC882NK4','NDARWB491KR3','NDARNL224RR9','NDARTT639AB1','NDARAZC45TW3']
-curr_subject_ID = ['NDARVX753BR6','NDARZD647HJ1','NDARBL382XK5','NDARGF569BF3','NDARBA306US5','NDARFD284ZP3','NDARWK546QR2','NDARAS648DT4','NDARLM531OY3','NDARXL287BE1','NDARRF358KO3','NDARGT639XS6']#,'NDARDC882NK4'] #,'NDARWB491KR3','NDARNL224RR9','NDARTT639AB1','NDARAZC45TW3']
+curr_subject_ID = ['NDARVX753BR6','NDARZD647HJ1','NDARBL382XK5','NDARGF569BF3','NDARBA306US5','NDARFD284ZP3','NDARAS648DT4','NDARLM531OY3','NDARXL287BE1','NDARRF358KO3','NDARGT639XS6','NDARDC882NK4','NDARWB491KR3','NDARNL224RR9','NDARTT639AB1','NDARAZC45TW3']
 
 
 
@@ -244,11 +245,12 @@ def individual_analysis(fnirs_data_folder, ID):
     
 
     # # Plot events
-    events, event_dict = mne.events_from_annotations(raw_haemo, verbose=False)
-    mne.viz.plot_events(events, event_id=event_dict,sfreq=raw_haemo.info['sfreq'])
+    
 
     # Pause to decide which events to remove
     if ID == 'NDARBA306US5' or ID == 'NDARDC882NK4' or ID == 'NDARAZC45TW3':
+        events, event_dict = mne.events_from_annotations(raw_haemo, verbose=False)
+        mne.viz.plot_events(events, event_id=event_dict,sfreq=raw_haemo.info['sfreq'])
         events_to_remove_list = list(map(int, 
             input("\nPlease enter any events to remove : ").strip().split()))
         events_to_remove = []
@@ -294,15 +296,15 @@ def individual_analysis(fnirs_data_folder, ID):
                            proj=True, baseline=(-5, 0), preload=False,
                            detrend=None, verbose=False)
 
-    epochs["control"].plot_image(picks=12,
-        combine=None,
-        vmin=-30/max_during_breathing,
-        vmax=30/max_during_breathing,
-        ts_args=dict(ylim=dict(hbo=[-15/max_during_breathing, 15/max_during_breathing], hbr=[-15/max_during_breathing, 15/max_during_breathing])),
-    )
+    #epochs["control"].plot_image(picks=12,
+    #    combine=None,
+    #    vmin=-30/max_during_breathing,
+    #    vmax=30/max_during_breathing,
+    #    ts_args=dict(ylim=dict(hbo=[-15/max_during_breathing, 15/max_during_breathing], hbr=[-15/max_during_breathing, 15/max_during_breathing])),
+    #)
     # View Consistency across channels
     #fig2, axes = plt.subplots(nrows=2, ncols=2, figsize=(15, 6))
-    #clims = dict(hbo=[-10, 10], hbr=[-10, 10])
+    #clims = dict(hbo=[-10, 10], hbr=[-10, 10])% 
     #epochs["m_noise__ild_0__itd_500__targ_l__control_1"].average().plot_image(axes=axes[:, 0], clim=clims)
     #epochs["m_noise__ild_0__itd_500__targ_r__control_1"].average().plot_image(axes=axes[:, 1], clim=clims)
     #for column, condition in enumerate(["m_noise__ild_0__itd_500__targ_l__control_1", "m_noise__ild_0__itd_500__targ_r__control_1"]):

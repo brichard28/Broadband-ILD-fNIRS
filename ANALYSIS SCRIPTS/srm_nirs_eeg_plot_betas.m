@@ -124,6 +124,8 @@ if contains(analysis_type,'collapsed attend and masker') % compare across condit
 
     % PFC
     figure;
+    plot(1:4,pfc_betas_to_plot(:,2:end),'-o')
+    figure;
     bar(squeeze(mean(pfc_betas_to_plot(:,2:end),1)))
     hold on
     errorbar(1:4,squeeze(mean(pfc_betas_to_plot(:,2:end),1)),squeeze(std(pfc_betas_to_plot(:,2:end),[],1))./length(subjects),'k','LineWidth',2)

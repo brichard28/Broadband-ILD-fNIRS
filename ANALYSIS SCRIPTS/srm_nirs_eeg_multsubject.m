@@ -33,14 +33,14 @@ all_maskers = {'m_speech__ild_0__itd_500__targ_r__control_0',...
 subjID={'NDARVX375BR6','NDARZD647HJ1','NDARBL382XK5','NDARGF569BF3','NDARBA306US5','NDARFD284ZP3','NDARAS648DT4','NDARLM531OY3','NDARXL287BE1','NDARRF358KO3','NDARGT639XS6','NDARFV472HU7','NDARDC882NK4','NDARWB491KR3','NDARNL224RR9','NDARTT639AB1','NDARAZC45TW3'};
 %all_extracted_alpha= cell(length(subjID),1);
 
-BehaviorTable = readtable('/home/ben/Nextcloud/Python/data/srm-nirs-eeg-1.xlsx','Format','auto');
-%BehaviorTable = readtable('C:\Users\benri\Downloads\data\srm-nirs-eeg-1.xlsx','Format','auto');
+%BehaviorTable = readtable('/home/ben/Nextcloud/Python/data/srm-nirs-eeg-1.xlsx','Format','auto');
+BehaviorTable = readtable('C:\Users\benri\Downloads\data\srm-nirs-eeg-1.xlsx','Format','auto');
 
 
 for subind= 1:length(subjID)
     subID=subjID{subind};
-    all_eeg_epoch = load(['/home/ben/Documents/GitHub/SRM-NIRS-EEG/prepro_epoched_data/' subID 'all_epochs.mat']);
-%    all_eeg_epoch = load(['C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\prepro_epoched_data\' subID 'all_epochs.mat']);
+%    all_eeg_epoch = load(['/home/ben/Documents/GitHub/SRM-NIRS-EEG/prepro_epoched_data/' subID 'all_epochs.mat']);
+    all_eeg_epoch = load(['C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\prepro_epoched_data\' subID 'all_epochs.mat']);
     all_eeg_epoch_data=all_eeg_epoch.EEG.data;
     all_eeg_epoch_time=all_eeg_epoch.EEG.times;
 
@@ -65,11 +65,6 @@ for subind= 1:length(subjID)
     samples= epoch_duration*fs;
     [~,index_time0] = min(abs(all_eeg_epoch.EEG.times - (1000)));
     [~,index_time1]=min(abs(all_eeg_epoch.EEG.times - (2000)));
-    %Variable to store Peak alpha and power spectra
-    %peakfreqs=zeros(size(all_eeg_paritealoccipitalchan,3),1); % one row per trial,column for electrode group
-    avgpowerspectra=zeros(size(all_eeg_paritealoccipitalchan,3),1);
-    powerspectra=zeros(size(all_eeg_paritealoccipitalchan,1),1);
-
 
 
     %FFT
@@ -78,16 +73,24 @@ for subind= 1:length(subjID)
     %data_segment=[zero_padding data_segment zero_padding];
     %power_spectrum=abs(fft(data_segment));
     %avgpowerspectra(j)= nanmean(power_spectrum)
-    L=512;
-    y= fft(data_segment);
-    p2=abs(y/L);
-    p1= p2(1:L/2+1);
-    p1(2:end-1)=2*p1(2:end-1);
-    f= fs*(0:(L/2))/L;
+%     L=512;
+%     y= fft(data_segment);
+%     p2=abs(y/L);
+%     p1= p2(1:L/2+1);
+%     p1(2:end-1)=2*p1(2:end-1);
+%     f= fs*(0:(L/2))/L;
+    [p,f] = pspectrum(data_segment);
+    f = (f*fs)/(2*pi);
+%     figure;
+%     hold on
+%     plot(f,p)
+%     xlabel('Frequency')
+%     ylabel('Power')
+%     title(subID)
     [~,low_end_f_index] = min(abs(f - 7)); % index of 7 Hz
     [~,high_end_f_index] = min(abs(f - 14)); % index of 14 Hz
     f_alpha = f(low_end_f_index:high_end_f_index);
-    p_alpha = p1(low_end_f_index:high_end_f_index);
+    p_alpha = p(low_end_f_index:high_end_f_index);
     [ipaf_maxs,ipaf_index] = findpeaks(p_alpha);
     if length(ipaf_index) > 1
         ipaf_index = ipaf_index(ipaf_maxs == max(ipaf_maxs));
@@ -95,17 +98,19 @@ for subind= 1:length(subjID)
     if ~isempty(ipaf_index)
         ipaf = f_alpha(ipaf_index);
     elseif isempty(ipaf_index)
-        ipaf = 10.25;
+        [~,ipaf_index] = max(p_alpha);
+        ipaf = f_alpha(ipaf_index);
     end
     disp("ipaf =")
     disp(ipaf)
+    %xline(ipaf)
 
     %% Extracting alpha
     %% YUQI DENG METHOD
     method = 'Yuq';
     extracted_alpha=[]; % num of channels,num of trials
-    lowpass_cutoff = ((ipaf - 1)/(all_eeg_epoch.EEG.srate/2)); % normalize frequency
-    highpass_cutoff = ((ipaf + 1)/(all_eeg_epoch.EEG.srate/2));
+    lowpass_cutoff = ((ipaf - 0.1)/(all_eeg_epoch.EEG.srate/2)); % normalize frequency
+    highpass_cutoff = ((ipaf + 0.1)/(all_eeg_epoch.EEG.srate/2));
     b = fir1(256,[lowpass_cutoff highpass_cutoff]);
     disp(["Subject: ", subID])
     this_wb = waitbar(0, 'Starting');
@@ -221,11 +226,11 @@ for isubject = 1:length(subjID)
     subID=subjID{isubject};
     if subID == "NDARVX375BR6"
         subID = "NDARVX753BR6";
-        load('/home/ben/Documents/GitHub/SRM-NIRS-EEG/prepro_epoched_data/' +  "NDARVX375BR6" + 'epochs_removed.mat')
-        %        load('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\prepro_epoched_data\' +  "NDARVX375BR6" + 'epochs_removed.mat')
+        %load('/home/ben/Documents/GitHub/SRM-NIRS-EEG/prepro_epoched_data/' +  "NDARVX375BR6" + 'epochs_removed.mat')
+        load('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\prepro_epoched_data\' +  "NDARVX375BR6" + 'epochs_removed.mat')
     else
-        load(append('/home/ben/Documents/GitHub/SRM-NIRS-EEG/prepro_epoched_data/',subID,'epochs_removed.mat'))
-        %   load(append('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\prepro_epoched_data\',subID,'epochs_removed.mat'))
+        %load(append('/home/ben/Documents/GitHub/SRM-NIRS-EEG/prepro_epoched_data/',subID,'epochs_removed.mat'))
+        load(append('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\prepro_epoched_data\',subID,'epochs_removed.mat'))
     end
     rows_this_subject = find(BehaviorTable.S == string(subID));
     conditions = BehaviorTable.Condition(rows_this_subject);
@@ -319,10 +324,10 @@ for i = 1:length(condition_tags)
     end
     spatial_lateralization(i,:) = mean(these_lateralizations,1);
 end
-locs_filename  = '/home/ben/Documents/GitHub/SRM-NIRS-EEG/chan_locs_pol_PO_ONLY.txt';
-%locs_filename = 'C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\chan_locs_pol_PO_ONLY.txt';
-cmin = -0.1;
-cmax = 0.1;
+%locs_filename  = '/home/ben/Documents/GitHub/SRM-NIRS-EEG/chan_locs_pol_PO_ONLY.txt';
+locs_filename = 'C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\chan_locs_pol_PO_ONLY.txt';
+cmin = -0.4;
+cmax = 0.4;
 figure;
 subplot(2,2,1)
 topoplot(spatial_lateralization(1,:),locs_filename,'maplimits',[cmin cmax],'interplimits','head','plotrad',0.6)

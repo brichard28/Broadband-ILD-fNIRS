@@ -33,14 +33,22 @@ all_maskers = {'m_speech__ild_0__itd_500__targ_r__control_0',...
 subjID={'NDARVX375BR6','NDARZD647HJ1','NDARBL382XK5','NDARGF569BF3','NDARBA306US5','NDARFD284ZP3','NDARAS648DT4','NDARLM531OY3','NDARXL287BE1','NDARRF358KO3','NDARGT639XS6','NDARFV472HU7','NDARDC882NK4','NDARWB491KR3','NDARNL224RR9','NDARTT639AB1','NDARAZC45TW3'};
 %all_extracted_alpha= cell(length(subjID),1);
 
-%BehaviorTable = readtable('/home/ben/Nextcloud/Python/data/srm-nirs-eeg-1.xlsx','Format','auto');
-BehaviorTable = readtable('C:\Users\benri\Downloads\data\srm-nirs-eeg-1.xlsx','Format','auto');
 
+user = 'Noptop';
+
+if user == 'Laptop'
+    BehaviorTable = readtable('C:\Users\benri\Downloads\data\srm-nirs-eeg-1.xlsx','Format','auto');
+else
+    BehaviorTable = readtable('/home/ben/Nextcloud/Python/data/srm-nirs-eeg-1.xlsx','Format','auto');
+end
 
 for subind= 1:length(subjID)
     subID=subjID{subind};
-%    all_eeg_epoch = load(['/home/ben/Documents/GitHub/SRM-NIRS-EEG/prepro_epoched_data/' subID 'all_epochs.mat']);
-    all_eeg_epoch = load(['C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\prepro_epoched_data\' subID 'all_epochs.mat']);
+    if user == 'Laptop'
+        all_eeg_epoch = load(['C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\prepro_epoched_data\' subID 'all_epochs.mat']);
+    else
+        all_eeg_epoch = load(['/home/ben/Documents/GitHub/SRM-NIRS-EEG/prepro_epoched_data/' subID 'all_epochs.mat']);
+    end
     all_eeg_epoch_data=all_eeg_epoch.EEG.data;
     all_eeg_epoch_time=all_eeg_epoch.EEG.times;
 
@@ -224,13 +232,20 @@ end
 figure;
 for isubject = 1:length(subjID)
     subID=subjID{isubject};
-    if subID == "NDARVX375BR6"
-        subID = "NDARVX753BR6";
-        %load('/home/ben/Documents/GitHub/SRM-NIRS-EEG/prepro_epoched_data/' +  "NDARVX375BR6" + 'epochs_removed.mat')
-        load('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\prepro_epoched_data\' +  "NDARVX375BR6" + 'epochs_removed.mat')
+    if user == 'Laptop'
+        if subID == "NDARVX375BR6"
+            subID = "NDARVX753BR6";
+            load('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\prepro_epoched_data\' +  "NDARVX375BR6" + 'epochs_removed.mat')
+        else
+            load(append('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\prepro_epoched_data\',subID,'epochs_removed.mat'))
+        end
     else
-        %load(append('/home/ben/Documents/GitHub/SRM-NIRS-EEG/prepro_epoched_data/',subID,'epochs_removed.mat'))
-        load(append('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\prepro_epoched_data\',subID,'epochs_removed.mat'))
+        if subID == "NDARVX375BR6"
+            subID = "NDARVX753BR6";
+            load('/home/ben/Documents/GitHub/SRM-NIRS-EEG/prepro_epoched_data/' +  "NDARVX375BR6" + 'epochs_removed.mat')
+        else
+            load(append('/home/ben/Documents/GitHub/SRM-NIRS-EEG/prepro_epoched_data/',subID,'epochs_removed.mat'))
+        end
     end
     rows_this_subject = find(BehaviorTable.S == string(subID));
     conditions = BehaviorTable.Condition(rows_this_subject);
@@ -254,10 +269,22 @@ for isubject = 1:length(subjID)
         extracted_alpha_for_plotting(isubject,icondition,:,:,:) = (extracted_alpha_for_plotting(isubject,icondition,:,:,:) - nanmean(extracted_alpha_for_plotting(isubject,icondition,:,:,timeindex1:timeindex2),'all'))./nanstd(extracted_alpha_for_plotting(isubject,icondition,:,:,timeindex1:timeindex2),[],'all'); 
     end
         %% PLOT INDIVIDUAL ALPHA TRACES
+        left_hemisphere_channels = [1,2,4,5];
+right_hemisphere_channels = [7,8,9,10];
+    figure(1)
     hold on
-    plot(t,squeeze(nanmean(extracted_alpha_for_plotting(isubject,:,:,:,:),[1,2,3,4])))
+    plot(t,squeeze(nanmean(extracted_alpha_for_plotting(isubject,logical(contains(string(all_maskers),'__ild_0__itd_500__').*contains(string(all_maskers),'__targ_r')),:,right_hemisphere_channels,:),[1,2,3,4])))
     xlabel('Time (ms)','FontSize',18)
-    ylabel('Alpha Power (z-score)')
+    ylabel('Alpha Power JUST ITD500 (z-score)')
+    title('Right Hemisphere Channels Attend Right','FontSize',18)
+
+    figure(2)
+    hold on
+    plot(t,squeeze(nanmean(extracted_alpha_for_plotting(isubject,logical(contains(string(all_maskers),'__ild_0__itd_500__').*contains(string(all_maskers),'__targ_r')),:,left_hemisphere_channels,:),[1,2,3,4])))
+    xlabel('Time (ms)','FontSize',18)
+    ylabel('Alpha Power JUST ITD500 (z-score)')
+    title('Left Hemisphere Channels Attend Right','FontSize',18)
+
 end
 
 
@@ -324,8 +351,11 @@ for i = 1:length(condition_tags)
     end
     spatial_lateralization(i,:) = mean(these_lateralizations,1);
 end
-%locs_filename  = '/home/ben/Documents/GitHub/SRM-NIRS-EEG/chan_locs_pol_PO_ONLY.txt';
-locs_filename = 'C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\chan_locs_pol_PO_ONLY.txt';
+if user == 'Laptop'
+    locs_filename = 'C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\chan_locs_pol_PO_ONLY.txt';
+else
+    locs_filename  = '/home/ben/Documents/GitHub/SRM-NIRS-EEG/chan_locs_pol_PO_ONLY.txt';
+end
 cmin = -0.4;
 cmax = 0.4;
 figure;

@@ -8,11 +8,15 @@ addpath('/home/ben/Documents/MATLAB/eeglab2023.1');
 addpath('/home/ben/Documents/GitHub/SRM-NIRS-EEG/prepro_epoched_data/')
 all_subID = ['NDARVX375BR6','NDARZD647HJ1','NDARBL382XK5','NDARGF569BF3','NDARBA306US5','NDARFD284ZP3','NDARWK546QR2','NDARAS648DT4','NDARLM531OY3','NDARXL287BE1','NDARRF358KO3','NDARGT639XS6',...
                 'NDARDC882NK4','NDARWB491KR3','NDARNL224RR9','NDARTT639AB1','NDARAZC45TW3'];
-subID = 'NDARAZC45TW3';
+subID = 'NDARVX375BR6';
 [ALLEEG EEG CURRENTSET ALLCOM] = eeglab;
 EEG = pop_loadset('filename',[subID, '_ICAdone.set'],'filepath','/home/ben/Documents/GitHub/SRM-NIRS-EEG/prepro_epoched_data/');
 [ALLEEG, EEG, CURRENTSET] = eeg_store( ALLEEG, EEG, 0 );
 EEG = eeg_checkset(EEG);
+
+%% JUST TRYING - REREFERENCE TO COMMON AVERAGE
+EEG = pop_reref(EEG,[]);
+
 % Adjust event latencies to match with audio downsample
 fs = EEG.srate;
 delay = fs/44100;

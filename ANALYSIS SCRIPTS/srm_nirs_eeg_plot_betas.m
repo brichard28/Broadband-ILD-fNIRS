@@ -2,13 +2,15 @@
 user = 'Laptop';
 analysis_type = 'collapsed attend and masker PFC time constant';
 if user == 'Laptop'
-GroupResults = readtable(append('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\Group Results SRM-NIRS-EEG-1 ',analysis_type,'.csv'),'Format','auto');
-addpath('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\errorbar_files\errorbar_files');
+    GroupResults = readtable(append('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\Group Results SRM-NIRS-EEG-1 ',analysis_type,'.csv'),'Format','auto');
+    addpath('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\errorbar_files\errorbar_files');
 else
-GroupResults = readtable(append('/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/Group Results SRM-NIRS-EEG-1 ',analysis_type ,'.csv'),'Format','auto');
-addpath('/home/ben/Documents/GitHub/SRM-NIRS-EEG/errorbar_files/errorbar_files');
+    GroupResults = readtable(append('/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/Group Results SRM-NIRS-EEG-1 ',analysis_type ,'.csv'),'Format','auto');
+    addpath('/home/ben/Documents/GitHub/SRM-NIRS-EEG/errorbar_files/errorbar_files');
 end
 subjects = unique(GroupResults.ID);
+subjects(string(subjects) == 'NDARVX753BR6') = [];
+subjects(string(subjects) == 'NDARLJ58GD7') = [];
 channels = unique(GroupResults.ch_name);
 channels = string(channels);
 channels(contains(channels,'hbr')) = [];
@@ -51,13 +53,17 @@ all_pfc_betas = all_betas(:,dlpfc_channels,:);
 all_block_averages = [];
 for isubject = 1:length(subjects)
     if user == 'Laptop'
-    this_subject_table = readtable('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\' + string(subjects(isubject)) + ' block averages.csv');
-    this_epochs_deleted = readtable('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\' + string(subjects(isubject)) + ' epochs deleted.csv');
+        this_subject_table = readtable('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\' + string(subjects(isubject)) + ' block averages.csv');
+        this_epochs_deleted = readtable('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\' + string(subjects(isubject)) + ' epochs deleted.csv');
     else
-    this_subject_table = readtable('/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/' + string(subjects(isubject)) + ' block averages.csv');
-    this_epochs_deleted = readtable('/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/' + string(subjects(isubject)) + ' epochs deleted.csv');
+        this_subject_table = readtable('/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/' + string(subjects(isubject)) + ' block averages.csv');
+        this_epochs_deleted = readtable('/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/' + string(subjects(isubject)) + ' epochs deleted.csv');
     end
-    this_epochs_deleted = table2array(this_epochs_deleted(2:end,2));
+    if numel(this_epochs_deleted) > 0
+       this_epochs_deleted = table2array(this_epochs_deleted(2:end,2));
+    else
+        this_epochs_deleted = [];
+    end
     all_epochs = this_subject_table.epoch;
     for ichannel = 1:length(channels)
         for icondition = 1:length(conditions)
@@ -90,12 +96,16 @@ for isubject = 1:length(subjects)
     stg_betas_to_plot(isubject,:) = all_stg_betas(isubject,which_channel_stg(isubject),:);
     pfc_betas_to_plot(isubject,:) = all_pfc_betas(isubject,which_channel_pfc(isubject),:);
 
-    % Store block averages 
+    % Store block averages
     stg_block_averages_to_plot(isubject,:,:) = squeeze(all_stg_block_averages(isubject,which_channel_stg(isubject),:,:));
     pfc_block_averages_to_plot(isubject,:,:) = squeeze(all_pfc_block_averages(isubject,which_channel_pfc(isubject),:,:));
     %stg_block_averages_to_plot(isubject,:) = ;
     %
 end
+
+% normalize
+pfc_betas_to_plot = (pfc_betas_to_plot - min(pfc_betas_to_plot,[],'all'))/(max(pfc_betas_to_plot,[],'all') - min(pfc_betas_to_plot,[],'all'));
+stg_betas_to_plot = (stg_betas_to_plot - min(stg_betas_to_plot,[],'all'))/(max(stg_betas_to_plot,[],'all') - min(stg_betas_to_plot,[],'all'));
 
 if contains(analysis_type,'collapsed attend and masker') % compare across condition
     % STG
@@ -103,22 +113,24 @@ if contains(analysis_type,'collapsed attend and masker') % compare across condit
     bar(squeeze(mean(stg_betas_to_plot(:,2:end),1)))
     hold on
     errorbar(1:4,squeeze(mean(stg_betas_to_plot(:,2:end),1)),squeeze(std(stg_betas_to_plot(:,2:end),[],1))./length(subjects),'k','LineWidth',2)
+    plot(pfc_betas_to_plot(:,2:end)','Color',[0.7 0.7 0.7])
     xlabel('Condition','FontSize',18)
     ylabel('Beta (AU)','FontSize',18)
     xticklabels({'ITD 50','ITD 500','ILD 10','ILD Nat'})
     title('STG','FontSize',18)
     ylim([-0.4, 1])
-     % Statistics
+    % Statistics
     [p,tbl,stats] = anova2(stg_betas_to_plot(:,2:end),1,'off');
     c = multcompare(stats,'Display','off');
     tbl = array2table(c,"VariableNames", ...
         ["Group A","Group B","Lower Limit","A-B","Upper Limit","P-value"]);
     p_values = c(:,6);
-    significant_comparisons = find(p_values < 0.5);
+    significant_comparisons = find(p_values < 0.05);
     for i = 1:length(significant_comparisons)
         group_a = c(significant_comparisons(i),1);
         group_b = c(significant_comparisons(i),2);
-        line([group_a,group_b],[max(squeeze(mean(stg_betas_to_plot(:,2:end),1)))+0.1,max(squeeze(mean(stg_betas_to_plot(:,2:end),1)))+0.1],'Color','k')
+        r = 0.05 + (0.1-0.05) .* rand(1,1);
+        line([group_a,group_b],[max(squeeze(mean(stg_betas_to_plot(:,2:end),1)))+r,max(squeeze(mean(stg_betas_to_plot(:,2:end),1)))+r],'Color','k')
         text(mean([group_a,group_b]),max(squeeze(mean(stg_betas_to_plot(:,2:end),1)))+0.15,'*','FontSize',24)
     end
 
@@ -129,22 +141,24 @@ if contains(analysis_type,'collapsed attend and masker') % compare across condit
     bar(squeeze(mean(pfc_betas_to_plot(:,2:end),1)))
     hold on
     errorbar(1:4,squeeze(mean(pfc_betas_to_plot(:,2:end),1)),squeeze(std(pfc_betas_to_plot(:,2:end),[],1))./length(subjects),'k','LineWidth',2)
+    plot(pfc_betas_to_plot(:,2:end)','Color',[0.7 0.7 0.7])
     xlabel('Condition','FontSize',18)
     ylabel('Beta (AU)','FontSize',18)
     xticklabels({'ITD 50','ITD 500','ILD 10','ILD Nat'})
     title('PFC','FontSize',18)
     ylim([-0.4, 1])
-     % Statistics
+    % Statistics
     [p,tbl,stats] = anova2(pfc_betas_to_plot(:,2:end),1,'off');
     c = multcompare(stats,'Display','off');
     tbl = array2table(c,"VariableNames", ...
         ["Group A","Group B","Lower Limit","A-B","Upper Limit","P-value"]);
     p_values = c(:,6);
-    significant_comparisons = find(p_values < 0.5);
+    significant_comparisons = find(p_values < 0.05);
     for i = 1:length(significant_comparisons)
         group_a = c(significant_comparisons(i),1);
         group_b = c(significant_comparisons(i),2);
-        line([group_a,group_b],[max(squeeze(mean(pfc_betas_to_plot(:,2:end),1)))+0.1,max(squeeze(mean(pfc_betas_to_plot(:,2:end),1)))+0.1],'Color','k')
+        r = 0.05 + (0.1-0.05) .* rand(1,1);        
+        line([group_a,group_b],[max(squeeze(mean(pfc_betas_to_plot(:,2:end),1)))+r,max(squeeze(mean(pfc_betas_to_plot(:,2:end),1)))+r],'Color','k')
         text(mean([group_a,group_b]),max(squeeze(mean(pfc_betas_to_plot(:,2:end),1)))+0.15,'*','FontSize',24)
     end
 elseif contains(analysis_type,'collapsed attend and condition')
@@ -153,6 +167,7 @@ elseif contains(analysis_type,'collapsed attend and condition')
     bar(squeeze(mean(stg_betas_to_plot(:,2:end),1)))
     hold on
     errorbar(1:2,squeeze(mean(stg_betas_to_plot(:,2:end),1)),squeeze(std(stg_betas_to_plot(:,2:end),[],1))./length(subjects),'k','LineWidth',2)
+    plot(pfc_betas_to_plot(:,2:end)','Color',[0.7 0.7 0.7])
     xlabel('Condition','FontSize',18)
     ylabel('Beta (AU)','FontSize',18)
     xticklabels({'Noise Masker','Speech Masker'})
@@ -163,11 +178,12 @@ elseif contains(analysis_type,'collapsed attend and condition')
     tbl = array2table(c,"VariableNames", ...
         ["Group A","Group B","Lower Limit","A-B","Upper Limit","P-value"]);
     p_values = c(:,6);
-    significant_comparisons = find(p_values < 0.5);
+    significant_comparisons = find(p_values < 0.05);
     for i = 1:length(significant_comparisons)
         group_a = c(significant_comparisons(i),1);
         group_b = c(significant_comparisons(i),2);
-        line([group_a,group_b],[max(squeeze(mean(stg_betas_to_plot(:,2:end),1)))+0.1,max(squeeze(mean(stg_betas_to_plot(:,2:end),1)))+0.1],'Color','k')
+        r = 0.05 + (0.1-0.05) .* rand(1,1);
+        line([group_a,group_b],[max(squeeze(mean(stg_betas_to_plot(:,2:end),1)))+r,max(squeeze(mean(stg_betas_to_plot(:,2:end),1)))+r],'Color','k')
         text(mean([group_a,group_b]),max(squeeze(mean(stg_betas_to_plot(:,2:end),1)))+0.15,'*','FontSize',24)
     end
 
@@ -176,6 +192,7 @@ elseif contains(analysis_type,'collapsed attend and condition')
     bar(squeeze(mean(pfc_betas_to_plot(:,2:end),1)))
     hold on
     errorbar(1:2,squeeze(mean(pfc_betas_to_plot(:,2:end),1)),squeeze(std(pfc_betas_to_plot(:,2:end),[],1))./length(subjects),'k','LineWidth',2)
+    plot(pfc_betas_to_plot(:,2:end)','Color',[0.7 0.7 0.7])
     xlabel('Condition','FontSize',18)
     ylabel('Beta (AU)','FontSize',18)
     xticklabels({'Noise Masker','Speech Masker'})
@@ -186,11 +203,12 @@ elseif contains(analysis_type,'collapsed attend and condition')
     tbl = array2table(c,"VariableNames", ...
         ["Group A","Group B","Lower Limit","A-B","Upper Limit","P-value"]);
     p_values = c(:,6);
-    significant_comparisons = find(p_values < 0.5);
+    significant_comparisons = find(p_values < 0.05);
     for i = 1:length(significant_comparisons)
         group_a = c(significant_comparisons(i),1);
         group_b = c(significant_comparisons(i),2);
-        line([group_a,group_b],[max(squeeze(mean(pfc_betas_to_plot(:,2:end),1)))+0.1,max(squeeze(mean(pfc_betas_to_plot(:,2:end),1)))+0.1],'Color','k')
+        r = 0.05 + (0.1-0.05) .* rand(1,1);        
+        line([group_a,group_b],[max(squeeze(mean(pfc_betas_to_plot(:,2:end),1)))+r,max(squeeze(mean(pfc_betas_to_plot(:,2:end),1)))+r],'Color','k')
         text(mean([group_a,group_b]),max(squeeze(mean(pfc_betas_to_plot(:,2:end),1)))+0.15,'*','FontSize',24)
     end
 end
@@ -209,7 +227,7 @@ if contains(analysis_type,'collapsed attend and masker') % compare across condit
     legend({'ITD50','ITD500','ILD10','ILD70n'})
     title('STG Block Averages','FontSize',18)
     ylim([-4e5,7e5])
-    
+
     % PFC
     figure;
     for icondition = 2:length(conditions)
@@ -235,12 +253,12 @@ end
 
 
 %% OLD CODE
-% % plot speech attend left vs. speech attend right 
+% % plot speech attend left vs. speech attend right
 % all_stg_noise_betas = all_betas(:,stg_channels,4:9);
 % all_stg_speech_betas = all_betas(:,stg_channels,10:15);
 
 
-% 
+%
 % %% INCLUDING ALL CHANNELS
 % % Speech plot Left Hemisphere (attend left vs. attend right)
 % upper_ylim = 1;
@@ -260,9 +278,9 @@ end
 % xlabel('Condition','FontSize',18)
 % ylabel('Beta','FontSize',18)
 % ylim([lower_ylim upper_ylim])
-% 
-% 
-% 
+%
+%
+%
 % % Speech plot Right Hemisphere (attend_left vs. attend_right)
 % subplot(2,2,2)
 % attend_left_betas = all_betas(:,right_stg_channels,intersect(speech_conditions,attend_left_conditions));
@@ -276,8 +294,8 @@ end
 % xlabel('Condition','FontSize',18)
 % ylabel('Beta','FontSize',18)
 % ylim([lower_ylim upper_ylim])
-% 
-% 
+%
+%
 % % Noise plot Left Hemisphere (attend left vs. attend right)
 % subplot(2,2,3)
 % attend_left_betas = all_betas(:,left_stg_channels,intersect(noise_conditions,attend_left_conditions));
@@ -291,8 +309,8 @@ end
 % xlabel('Condition','FontSize',18)
 % ylabel('Beta','FontSize',18)
 % ylim([lower_ylim upper_ylim])
-% 
-% 
+%
+%
 % % Noise plot Right hemisphere (attend left vs. attend right)
 % subplot(2,2,4)
 % attend_left_betas = all_betas(:,right_stg_channels,intersect(noise_conditions,attend_left_conditions));
@@ -306,23 +324,23 @@ end
 % xlabel('Condition','FontSize',18)
 % ylabel('Beta','FontSize',18)
 % ylim([lower_ylim upper_ylim])
-% 
-% 
+%
+%
 % sgtitle('REGULAR DONT TOUCH ALL CHANNELS REPRESENTED HERE')
-% 
-% 
-% 
-% 
-% 
-% 
+%
+%
+%
+%
+%
+%
 % %% CHOOSING CHANNEL ON EACH SIDE BASED ON ATTEND LEFT or ATTEND RIGHT ITD 500 SPEECH NOISE CONTRAST
-% 
+%
 % left_stg_control_conditions = all_betas(:,left_stg_channels,speech_control_conditions(1)) - all_betas(:,left_stg_channels,noise_control_conditions(1));
 % right_stg_control_conditions = all_betas(:,right_stg_channels,speech_control_conditions(1)) - all_betas(:,right_stg_channels,noise_control_conditions(1));
-% 
+%
 % [~,channels_to_choose_by_subject_left_stg] = max(left_stg_control_conditions,[],2);
 % [~,channels_to_choose_by_subject_right_stg] = max(right_stg_control_conditions,[],2);
-% 
+%
 % % Speech plot Left Hemisphere (attend left vs. attend right)
 % figure;
 % subplot(2,2,1)
@@ -343,14 +361,14 @@ end
 % xlabel('Condition','FontSize',18)
 % ylabel('Beta','FontSize',18)
 % ylim([lower_ylim upper_ylim])
-% 
-% 
+%
+%
 % % Speech plot Right Hemisphere (attend_left vs. attend_right)
 % subplot(2,2,2)
 % attend_left_betas = [];
 % attend_right_betas = [];
 % for isubject = 1:length(subjects)
-% 
+%
 % attend_left_betas(isubject,:,:) = all_betas(isubject,right_stg_channels(channels_to_choose_by_subject_right_stg(isubject)),intersect(speech_conditions,attend_left_conditions));
 % attend_right_betas(isubject,:,:) = all_betas(isubject,right_stg_channels(channels_to_choose_by_subject_right_stg(isubject)),intersect(speech_conditions,attend_right_conditions));
 % end
@@ -363,13 +381,13 @@ end
 % xlabel('Condition','FontSize',18)
 % ylabel('Beta','FontSize',18)
 % ylim([lower_ylim upper_ylim])
-% 
+%
 % % Noise plot Left Hemisphere (attend left vs. attend right)
 % subplot(2,2,3)
 % attend_left_betas = [];
 % attend_right_betas = [];
 % for isubject = 1:length(subjects)
-% 
+%
 % attend_left_betas(isubject,:,:) = all_betas(isubject,left_stg_channels(channels_to_choose_by_subject_left_stg(isubject)),intersect(noise_conditions,attend_left_conditions));
 % attend_right_betas(isubject,:,:) = all_betas(isubject,left_stg_channels(channels_to_choose_by_subject_left_stg(isubject)),intersect(noise_conditions,attend_right_conditions));
 % end
@@ -382,13 +400,13 @@ end
 % xlabel('Condition','FontSize',18)
 % ylabel('Beta','FontSize',18)
 % ylim([lower_ylim upper_ylim])
-% 
+%
 % % Noise plot Right hemisphere (attend left vs. attend right)
 % subplot(2,2,4)
 % attend_left_betas = [];
 % attend_right_betas = [];
 % for isubject = 1:length(subjects)
-% 
+%
 % attend_left_betas(isubject,:,:) = all_betas(isubject,right_stg_channels(channels_to_choose_by_subject_right_stg(isubject)),intersect(noise_conditions,attend_left_conditions));
 % attend_right_betas(isubject,:,:) = all_betas(isubject,right_stg_channels(channels_to_choose_by_subject_right_stg(isubject)),intersect(noise_conditions,attend_right_conditions));
 % end
@@ -401,10 +419,10 @@ end
 % xlabel('Condition','FontSize',18)
 % ylabel('Beta','FontSize',18)
 % ylim([lower_ylim upper_ylim])
-% 
-% 
+%
+%
 % sgtitle('Channel Chosen from ITD500 Control Condition Speech vs. Noise ATTEND LEFT')
-% 
+%
 % %% COLLAPSED ACROSS LEFT AND RIGHT ATTEND LEFT CHANNEL CHOICE STG
 % % Left Hemisphere Speech
 % figure;
@@ -467,17 +485,17 @@ end
 % xlabel('Condition','FontSize',18)
 % ylabel('Beta','FontSize',18)
 % ylim([lower_ylim upper_ylim])
-% 
+%
 % sgtitle('ATTEND RIGHT Channel Choice, collapsed attend left and right')
-% 
+%
 % %% CHOOSING CHANNEL ON EACH SIDE BASED ON ATTEND LEFT or ATTEND RIGHT ITD 500 SPEECH NOISE CONTRAST
-% 
+%
 % left_stg_control_conditions = all_betas(:,left_stg_channels,speech_control_conditions(2)) - all_betas(:,left_stg_channels,noise_control_conditions(2));
 % right_stg_control_conditions = all_betas(:,right_stg_channels,speech_control_conditions(2)) - all_betas(:,right_stg_channels,noise_control_conditions(2));
-% 
+%
 % [~,channels_to_choose_by_subject_left_stg] = max(left_stg_control_conditions,[],2);
 % [~,channels_to_choose_by_subject_right_stg] = max(right_stg_control_conditions,[],2);
-% 
+%
 % % Speech plot Left Hemisphere (attend left vs. attend right)
 % figure;
 % subplot(2,2,1)
@@ -498,14 +516,14 @@ end
 % xlabel('Condition','FontSize',18)
 % ylabel('Beta','FontSize',18)
 % ylim([lower_ylim upper_ylim])
-% 
-% 
+%
+%
 % % Speech plot Right Hemisphere (attend_left vs. attend_right)
 % subplot(2,2,2)
 % attend_left_betas = [];
 % attend_right_betas = [];
 % for isubject = 1:length(subjects)
-% 
+%
 % attend_left_betas(isubject,:,:) = all_betas(isubject,right_stg_channels(channels_to_choose_by_subject_right_stg(isubject)),intersect(speech_conditions,attend_left_conditions));
 % attend_right_betas(isubject,:,:) = all_betas(isubject,right_stg_channels(channels_to_choose_by_subject_right_stg(isubject)),intersect(speech_conditions,attend_right_conditions));
 % end
@@ -518,13 +536,13 @@ end
 % xlabel('Condition','FontSize',18)
 % ylabel('Beta','FontSize',18)
 % ylim([lower_ylim upper_ylim])
-% 
+%
 % % Noise plot Left Hemisphere (attend left vs. attend right)
 % subplot(2,2,3)
 % attend_left_betas = [];
 % attend_right_betas = [];
 % for isubject = 1:length(subjects)
-% 
+%
 % attend_left_betas(isubject,:,:) = all_betas(isubject,left_stg_channels(channels_to_choose_by_subject_left_stg(isubject)),intersect(noise_conditions,attend_left_conditions));
 % attend_right_betas(isubject,:,:) = all_betas(isubject,left_stg_channels(channels_to_choose_by_subject_left_stg(isubject)),intersect(noise_conditions,attend_right_conditions));
 % end
@@ -537,13 +555,13 @@ end
 % xlabel('Condition','FontSize',18)
 % ylabel('Beta','FontSize',18)
 % ylim([lower_ylim upper_ylim])
-% 
+%
 % % Noise plot Right hemisphere (attend left vs. attend right)
 % subplot(2,2,4)
 % attend_left_betas = [];
 % attend_right_betas = [];
 % for isubject = 1:length(subjects)
-% 
+%
 % attend_left_betas(isubject,:,:) = all_betas(isubject,right_stg_channels(channels_to_choose_by_subject_right_stg(isubject)),intersect(noise_conditions,attend_left_conditions));
 % attend_right_betas(isubject,:,:) = all_betas(isubject,right_stg_channels(channels_to_choose_by_subject_right_stg(isubject)),intersect(noise_conditions,attend_right_conditions));
 % end
@@ -556,10 +574,10 @@ end
 % xlabel('Condition','FontSize',18)
 % ylabel('Beta','FontSize',18)
 % ylim([lower_ylim upper_ylim])
-% 
-% 
+%
+%
 % sgtitle('Channel Chosen from ITD500 Control Condition Speech vs. Noise ATTEND RIGHT')
-% 
+%
 % %% COLLAPSED ACROSS LEFT AND RIGHT ATTEND RIGHT CHANNEL CHOICE STG
 % % Left Hemisphere Speech
 % figure;
@@ -622,10 +640,10 @@ end
 % xlabel('Condition','FontSize',18)
 % ylabel('Beta','FontSize',18)
 % ylim([lower_ylim upper_ylim])
-% 
+%
 % sgtitle('ATTEND RIGHT Channel Choice, collapsed attend left and right')
-% 
-% 
+%
+%
 % %% Prefrontal Cortex
 % %% INCLUDING ALL CHANNELS
 % % Speech plot (attend left vs. attend right)
@@ -646,9 +664,9 @@ end
 % xlabel('Condition','FontSize',18)
 % ylabel('Beta','FontSize',18)
 % ylim([lower_ylim upper_ylim])
-% 
-% 
-% 
+%
+%
+%
 % % Noise plot (attend_left vs. attend_right)
 % subplot(2,1,2)
 % attend_left_betas = all_betas(:,dlpfc_channels,intersect(noise_conditions,attend_left_conditions));
@@ -662,16 +680,16 @@ end
 % xlabel('Condition','FontSize',18)
 % ylabel('Beta','FontSize',18)
 % ylim([lower_ylim upper_ylim])
-% 
-% 
+%
+%
 % sgtitle('PFC All Channels')
-% 
-% 
+%
+%
 % %% CHOOSE CHANNELS BASED ON ITD500 CONTROL CONDITIONS
 % dlpfc_control_conditions = all_betas(:,dlpfc_channels,speech_control_conditions(2)) - all_betas(:,dlpfc_channels,noise_control_conditions(2));
-% 
+%
 % [~,channels_to_choose_by_subject_pfc] = max(dlpfc_control_conditions,[],2);
-% 
+%
 % % Speech plot (attend left vs. attend right)
 % upper_ylim = 0.3;
 % lower_ylim = -0.3;
@@ -694,9 +712,9 @@ end
 % xlabel('Condition','FontSize',18)
 % ylabel('Beta','FontSize',18)
 % ylim([lower_ylim upper_ylim])
-% 
-% 
-% 
+%
+%
+%
 % % Noise plot (attend_left vs. attend_right)
 % subplot(2,1,2)
 % attend_left_betas = [];
@@ -714,10 +732,10 @@ end
 % xlabel('Condition','FontSize',18)
 % ylabel('Beta','FontSize',18)
 % ylim([lower_ylim upper_ylim])
-% 
+%
 % sgtitle('PFC Channel Choice')
-% 
-% 
+%
+%
 % %% COLLAPSED ACROSS LEFT AND RIGHT CHANNEL CHOICE PFC
 % %% COLLAPSED ACROSS LEFT AND RIGHT ATTEND RIGHT CHANNEL CHOICE STG
 % % Left Hemisphere Speech
@@ -781,5 +799,5 @@ end
 % xlabel('Condition','FontSize',18)
 % ylabel('Beta','FontSize',18)
 % ylim([lower_ylim upper_ylim])
-% 
+%
 % sgtitle('ATTEND RIGHT Channel Choice, collapsed attend left and right')

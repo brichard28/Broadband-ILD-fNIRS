@@ -56,8 +56,9 @@ from obspy.signal.detrend import polynomial
 
 
 
+# Define Subject Files
 root = ''
-user = 'Noptop'
+user = 'Laptop'
 if user == 'Laptop':
     all_fnirs_data_folders = ['C:/Users/benri/Downloads/2023-09-21/2023-09-21_001',
     'C:/Users/benri/Downloads/2023-09-25/2023-09-25_001',
@@ -71,11 +72,17 @@ if user == 'Laptop':
     'C:/Users/benri/Downloads/2023-10-17/2023-10-17_001',
     'C:/Users/benri/Downloads/2023-10-19/2023-10-19_001',
     'C:/Users/benri/Downloads/2023-10-19/2023-10-19_002',
+    'C:/Users/benri/Downloads/2023-10-24/2023-10-24_001',
     'C:/Users/benri/Downloads/2023-10-26/2023-10-26_001',
     'C:/Users/benri/Downloads/2023-11-06/2023-11-06_001',
     'C:/Users/benri/Downloads/2023-11-09/2023-11-09_001',
     'C:/Users/benri/Downloads/2023-11-13/2023-11-13_001',
-    'C:/Users/benri/Downloads/2023-11-16/2023-11-16_001']
+    'C:/Users/benri/Downloads/2023-11-16/2023-11-16_001',
+    'C:/Users/benri/Downloads/2023-11-20/2023-11-20_001',
+    'C:/Users/benri/Downloads/2023-11-27/2023-11-27_001',
+    'C:/Users/benri/Downloads/2023-12-04/2023-12-04_001',
+    'C:/Users/benri/Downloads/2024-01-30/2024-01-30_001',
+    'C:/Users/benri/Downloads/2024-02-01/2024-02-01_001']
 else:
     all_fnirs_data_folders = ['/home/ben/Nextcloud/data/nirs/data/2023-09-21/2023-09-21_001',
     '/home/ben/Nextcloud/data/nirs/data/2023-09-25/2023-09-25_001',
@@ -94,7 +101,12 @@ else:
     '/home/ben/Nextcloud/data/nirs/data/2023-11-06/2023-11-06_001',
     '/home/ben/Nextcloud/data/nirs/data/2023-11-09/2023-11-09_001',
     '/home/ben/Nextcloud/data/nirs/data/2023-11-13/2023-11-13_001',
-    '/home/ben/Nextcloud/data/nirs/data/2023-11-16/2023-11-16_001']
+    '/home/ben/Nextcloud/data/nirs/data/2023-11-16/2023-11-16_001',
+    '/home/ben/Nextcloud/data/nirs/data/2023-11-20/2023-11-20_001',
+    '/home/ben/Nextcloud/data/nirs/data/2023-11-27/2023-11-27_001',
+    '/home/ben/Nextcloud/data/nirs/data/2023-12-04/2023-12-04_001',
+    '/home/ben/Nextcloud/data/nirs/data/2024-01-30/2024-01-30_001',
+    '/home/ben/Nextcloud/data/nirs/data/2024-02-01/2024-02-01_001']
 
 
 # Before Control Condition: 'NDARYZ656HJ9','NDARCD778KPR','NDARMY829TKN','NDARLU426TBZ',
@@ -104,9 +116,11 @@ else:
                             #'/home/ben/Nextcloud/data/nirs/data/2023-08-02/2023-08-02_001',
 
 # After ITD500 Control Condition added
+# All subject IDs
 subject_ID = ['NDARVX753BR6','NDARZD647HJ1','NDARBL382XK5','NDARGF569BF3','NDARBA306US5','NDARFD284ZP3','NDARWK546QR2','NDARAS648DT4','NDARLM531OY3','NDARXL287BE1','NDARRF358KO3','NDARGT639XS6','NDARFV472HU7',
-                'NDARDC882NK4','NDARWB491KR3','NDARNL224RR9','NDARTT639AB1','NDARAZC45TW3']
-curr_subject_ID = ['NDARVX753BR6','NDARZD647HJ1','NDARBL382XK5','NDARGF569BF3','NDARBA306US5','NDARFD284ZP3','NDARAS648DT4','NDARLM531OY3','NDARXL287BE1','NDARRF358KO3','NDARGT639XS6','NDARDC882NK4','NDARWB491KR3','NDARNL224RR9','NDARTT639AB1','NDARAZC45TW3']
+                'NDARDC882NK4','NDARWB491KR3','NDARNL224RR9','NDARTT639AB1','NDARAZC45TW3','NDARNS784LM2','NDARLB144ZM4','NDARTP38XC8','NDARLJ58GD7','NDARGS28RM9']
+# The subjects we would like to run right now
+curr_subject_ID = ['NDARVX753BR6','NDARZD647HJ1','NDARBL382XK5','NDARGF569BF3','NDARBA306US5','NDARFD284ZP3','NDARAS648DT4','NDARLM531OY3','NDARXL287BE1','NDARRF358KO3','NDARGT639XS6','NDARDC882NK4','NDARWB491KR3','NDARNL224RR9','NDARTT639AB1','NDARAZC45TW3','NDARNS784LM2','NDARLB144ZM4','NDARTP38XC8','NDARLJ58GD7','NDARGS28RM9']
 
 
 
@@ -114,6 +128,7 @@ def individual_analysis(fnirs_data_folder, ID):
     
     os.environ["OMP_NUM_THREADS"] = "1"
 
+    # Read in the raw nirs file
     raw_intensity = read_raw_nirx(fnirs_data_folder, verbose=False, preload=True)
     
     # Before Control Condition
@@ -212,42 +227,44 @@ def individual_analysis(fnirs_data_folder, ID):
     #                                    '22.0':'noise',
     #                                    '23.0':'speech'})
 
+    # Convert to optical density
     raw_od = optical_density(raw_intensity)
     
     # Scalp Coupling Index, label bad channels
     sci = scalp_coupling_index(raw_od)
 
+    # Add 'bads' to info
     raw_od.info['bads'] = list(compress(raw_od.ch_names,sci < 0.8))
 
    # raw_od = short_channel_regression(raw_od, max_dist=0.01)
+   
+    # Apply TDDR
     raw_od = temporal_derivative_distribution_repair(raw_od, verbose=False)
-
+    
+    # Interpolate bad channels
     raw_od.interpolate_bads(verbose=False)
 
+    # Resample to 10 Hz
     raw_od.resample(10)
-
+    
+    # Create separate object for block averages (will run short channel on these, but use short channels as a regressor in the GLM for betas)
     raw_od_for_block_averages = short_channel_regression(raw_od, max_dist=0.01)
-    raw_haemo_for_block_averages = beer_lambert_law(raw_od_for_block_averages, ppf=0.1)
-
+    
     raw_haemo = beer_lambert_law(raw_od, ppf=0.1)
+    raw_haemo_for_block_averages = beer_lambert_law(raw_od_for_block_averages, ppf=0.1)
     
     # Cut out just the short channels for creating a GLM repressor
     sht_chans = get_short_channels(raw_haemo)
     raw_haemo = get_long_channels(raw_haemo)
+    raw_haemo_for_block_averages = get_long_channels(raw_haemo_for_block_averages)
     
-    #raw_haemo._data = scipy.signal.detrend(raw_haemo._data, axis=-1, type='linear')
-
     # Filter data
     #iir_params = dict({"order":3,"ftype":"butter","padlen":10000})
     #raw_haemo = raw_haemo.filter(0.03, 0.7, iir_params=iir_params, method='iir', verbose=False)
-    raw_haemo.filter(0.05, 0.7, h_trans_bandwidth=0.2, l_trans_bandwidth=0.02)
-    raw_haemo_for_block_averages.filter(0.05, 0.7, h_trans_bandwidth=0.2, l_trans_bandwidth=0.02)
+    raw_haemo.filter(0.01, 0.3, h_trans_bandwidth=0.2, l_trans_bandwidth=0.005) # 0.05, 0.7, l_trans_bandwidth = 0.02
+    raw_haemo_for_block_averages.filter(0.01, 0.3, h_trans_bandwidth=0.2, l_trans_bandwidth=0.005)
     
-
-    # # Plot events
-    
-
-    # Pause to decide which events to remove
+    # Pause to manually decide which events to remove (if any)
     if ID == 'NDARBA306US5' or ID == 'NDARDC882NK4' or ID == 'NDARAZC45TW3':
         events, event_dict = mne.events_from_annotations(raw_haemo, verbose=False)
         mne.viz.plot_events(events, event_id=event_dict,sfreq=raw_haemo.info['sfreq'])
@@ -260,14 +277,16 @@ def individual_analysis(fnirs_data_folder, ID):
             raw_haemo.annotations.delete(events_to_remove)
             raw_haemo_for_block_averages.annotations.delete(events_to_remove)
     
-    tmin, tmax = -5, 12
+    tmin, tmax = -5, 12 # timings for block averages
     
-    # Shift events by 1 second (because of cue)
+    # Shift events by 1.5 seconds (because of cue)
     raw_haemo.annotations.onset += 1.5
     
     
     # Redefine events
     events, event_dict = mne.events_from_annotations(raw_haemo, verbose=False)
+    
+    # Define epochs
     epochs = mne.Epochs(raw_haemo, events, event_id=event_dict,
                            tmin=tmin, tmax=tmax,reject_by_annotation=True,
                            proj=True, baseline=(-5, 0), preload=False,
@@ -296,24 +315,10 @@ def individual_analysis(fnirs_data_folder, ID):
                            proj=True, baseline=(-5, 0), preload=False,
                            detrend=None, verbose=False)
 
-    #epochs["control"].plot_image(picks=12,
-    #    combine=None,
-    #    vmin=-30/max_during_breathing,
-    #    vmax=30/max_during_breathing,
-    #    ts_args=dict(ylim=dict(hbo=[-15/max_during_breathing, 15/max_during_breathing], hbr=[-15/max_during_breathing, 15/max_during_breathing])),
-    #)
-    # View Consistency across channels
-    #fig2, axes = plt.subplots(nrows=2, ncols=2, figsize=(15, 6))
-    #clims = dict(hbo=[-10, 10], hbr=[-10, 10])% 
-    #epochs["m_noise__ild_0__itd_500__targ_l__control_1"].average().plot_image(axes=axes[:, 0], clim=clims)
-    #epochs["m_noise__ild_0__itd_500__targ_r__control_1"].average().plot_image(axes=axes[:, 1], clim=clims)
-    #for column, condition in enumerate(["m_noise__ild_0__itd_500__targ_l__control_1", "m_noise__ild_0__itd_500__targ_r__control_1"]):
-    #    for ax in axes[:, column]:
-    #        ax.set_title("{}: {}".format(condition, ax.get_title()))
     # Remove rejected epochs from design matrix
     epochs_to_remove = []
     for iepoch in range(len(epochs.drop_log)):
-        z = np.std(epochs[iepoch].get_data(),axis=2) > 2
+        z = np.std(epochs[iepoch].get_data(),axis=2) > 1.5e6 #z = np.max(epochs[iepoch].get_data(),axis=2) - np.min(epochs[iepoch].get_data(),axis=2) > 10e6 #z = np.max(epochs[iepoch].get_data(),axis=2) > 2
         if np.size(epochs.drop_log[iepoch]) > 0:
             epochs_to_remove.append(iepoch)
             print(f"deleted epoch: {iepoch}")
@@ -322,13 +327,15 @@ def individual_analysis(fnirs_data_folder, ID):
             epochs_to_remove.append(iepoch)
             print(f"deleted epoch: {iepoch}")
     raw_haemo.annotations.delete(epochs_to_remove)
-
+    raw_haemo_for_block_averages.annotations.delete(epochs_to_remove)
+    
     # Save Block Averages
     epochs_for_block_averages = mne.Epochs(raw_haemo_for_block_averages, events, event_id=event_dict,
                            tmin=tmin, tmax=tmax,reject=reject_criteria,reject_by_annotation=True,
                            proj=True, baseline=(-5, 0), preload=False,
                            detrend=None, verbose=False)
     epochs_this_subject = epochs_for_block_averages.to_data_frame()
+    
     if user == 'Laptop':
         epochs_this_subject.to_csv("C:/Users/benri/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/" + sub + " block averages.csv")
         pandas.DataFrame(epochs_to_remove).to_csv("C:/Users/benri/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/" + sub + " epochs deleted.csv")
@@ -340,7 +347,6 @@ def individual_analysis(fnirs_data_folder, ID):
     # Create a design matrix
     design_matrix = make_first_level_design_matrix(raw_haemo, stim_dur=1.0, hrf_model='glover', drift_model='cosine'); #, drift_model= 'cosine')
     # For PFC, stim_dur = 1.0
-    # Exclude bad epochs from design matrix
     
     # Append short channels mean to design matrix
     design_matrix["ShortHbO"] = np.mean(sht_chans.copy().pick(picks="hbo").get_data(), axis=0)
@@ -351,13 +357,6 @@ def individual_analysis(fnirs_data_folder, ID):
 
     # Extract channel metrics
     cha = glm_est.to_dataframe()
-
-    # Compute region of interest results from channel data
-    #roi = glm_est.to_dataframe_region_of_interest(groups,
-    #                                              design_matrix.columns,
-    #                                              demographic_info=True)
-
-
 
     # Add the participant ID to the dataframes
     cha["ID"] = ID
@@ -379,7 +378,8 @@ all_hold_max = []
 all_evokeds = defaultdict(list)    
     
 
-for sub in curr_subject_ID:
+for sub in curr_subject_ID: # For each subject...
+    # Print subject ID
     print("Subject:")  
     print(sub)
 
@@ -392,7 +392,6 @@ for sub in curr_subject_ID:
     raw_haemo, channel, epochs = individual_analysis(fnirs_data_folder, sub)
 
     # Append individual results to all participants
-    #df_roi = pd.concat([df_roi, roi], ignore_index=True)
     df_cha = pd.concat([df_cha, channel], ignore_index=True)
 
 
@@ -404,10 +403,6 @@ grp_results = df_cha.query("Condition in ['Inhale','Exhale','Hold','control','il
 #grp_results = df_cha.query("Condition in ['Inhale','Exhale','Hold','control','speech','noise']")
 grp_results = grp_results.query("Chroma in ['hbo']")
 
-
-#roi_model = smf.mixedlm("theta ~ Condition:ID",
-#                        grp_results, groups=grp_results["ID"]).fit(method='nm')
-#print(roi_model.summary())
 if user == 'Laptop':
     
     grp_results.to_csv("C:/Users/benri/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/Group Results SRM-NIRS-EEG-1 collapsed attend and masker PFC time constant.csv")

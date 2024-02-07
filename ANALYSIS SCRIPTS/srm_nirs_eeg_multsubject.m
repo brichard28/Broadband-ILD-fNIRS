@@ -224,7 +224,7 @@ for subind= 1:length(subjID)
     %% DOUBLE CHECK BASELINE AND LOOK AT RAW SPECTROGRAMS
     extracted_alpha_data{subind}= current_alpha_power; %permute(current_alpha_power,[2 1 3]);
 
-
+    
 end
 
 % subject loop ends
@@ -284,6 +284,59 @@ right_hemisphere_channels = [7,8,9,10];
     xlabel('Time (ms)','FontSize',18)
     ylabel('Alpha Power JUST ITD500 (z-score)')
     title('Left Hemisphere Channels Attend Right','FontSize',18)
+
+    %% PLOT TOPOPLOTS FOR THIS SUBJECT
+    % [~,timeindex2] = min(abs(t - 0));
+    % [~,timeindex3] = min(abs(t - 500));
+    % 
+    % spatial_lateralization = []; % 4 x 32 vector (condition order: itd50, itd500, ild10, ild70n)
+    % 
+    % condition_tags = {'__ild_0__itd_50__','__ild_0__itd_500__','__ild_10__itd_0__','__ild_70n__itd_0__'};
+    % for i = 1:length(condition_tags)
+    %     these_lateralizations = [];
+    %     this_condition_tag = string(condition_tags(i));
+    %     pow_attend_left = squeeze(nanmean(extracted_alpha_for_plotting(isubject,logical(contains(string(all_maskers),this_condition_tag).*contains(string(all_maskers),'__targ_l').*contains(string(all_maskers),'__control_0')),:,:,timeindex2:timeindex3),[1,2,3,5]));
+    %     pow_attend_right = squeeze(nanmean(extracted_alpha_for_plotting(isubject,logical(contains(string(all_maskers),this_condition_tag).*contains(string(all_maskers),'__targ_r').*contains(string(all_maskers),'__control_0')),:,:,timeindex2:timeindex3),[1,2,3,5]));
+    %     these_lateralizations = pow_attend_left; %(pow_attend_left - pow_attend_right);%./(pow_attend_left + pow_attend_right);
+    %     spatial_lateralization(i,:) = these_lateralizations;
+    % end
+    % if user == 'Laptop'
+    %     locs_filename = 'C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\chan_locs_pol_PO_ONLY.txt';
+    % else
+    %     locs_filename  = '/home/ben/Documents/GitHub/SRM-NIRS-EEG/chan_locs_pol_PO_ONLY.txt';
+    % end
+    % cmin = -1;
+    % cmax = 1;
+    % figure;
+    % subplot(2,2,1)
+    % topoplot(spatial_lateralization(1,:),locs_filename,'maplimits',[cmin cmax],'interplimits','head','plotrad',0.6)
+    % colorbar
+    % ax = gca;
+    % ax.CLim = [cmin cmax];
+    % title('ITD50 ATTEND LEFT')
+    % 
+    % subplot(2,2,2)
+    % topoplot(spatial_lateralization(2,:),locs_filename,'maplimits',[cmin cmax],'interplimits','head','plotrad',0.6)
+    % colorbar
+    % ax = gca;
+    % ax.CLim = [cmin cmax];
+    % title('ITD500 ATTEND LEFT')
+    % 
+    % subplot(2,2,3)
+    % topoplot(spatial_lateralization(3,:),locs_filename,'maplimits',[cmin cmax],'interplimits','head','plotrad',0.6)
+    % colorbar
+    % ax = gca;
+    % ax.CLim = [cmin cmax];
+    % title('ILD10 ATTEND LEFT')
+    % 
+    % subplot(2,2,4)
+    % topoplot(spatial_lateralization(4,:),locs_filename,'maplimits',[cmin cmax],'interplimits','head','plotrad',0.6)
+    % colorbar
+    % ax = gca;
+    % ax.CLim = [cmin cmax];
+    % title('ILD70n ATTEND LEFT')
+    % 
+    % sgtitle(subID)
 
 end
 

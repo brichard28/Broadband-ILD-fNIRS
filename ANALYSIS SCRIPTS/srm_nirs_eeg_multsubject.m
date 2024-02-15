@@ -3,11 +3,11 @@
 % Benjamin Richardson, Maanasa Guru Adimurthy
 % script to analyze group averages for SRM-NIRS-EEG-1
  
-addpath("/home/ben/Documents/GitHub/SRM-NIRS-EEG/errorbar_files/errorbar_files/");
-addpath(genpath('/home/ben/Documents/MATLAB/eeglab2023.1/functions/'));
+%addpath("/home/ben/Documents/GitHub/SRM-NIRS-EEG/errorbar_files/errorbar_files/");
+%addpath(genpath('/home/ben/Documents/MATLAB/eeglab2023.1/functions/'));
 
-%addpath("C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\errorbar_files\errorbar_files");
-%addpath(genpath('C:\Users\benri\Documents\eeglab2023.0\functions'));
+addpath("C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\errorbar_files\errorbar_files");
+addpath(genpath('C:\Users\benri\Documents\eeglab2023.0\functions'));
 
 all_maskers = {'m_speech__ild_0__itd_500__targ_r__control_0',...
     'm_noise__ild_0__itd_50__targ_l__control_0',...
@@ -34,7 +34,7 @@ subjID={'NDARVX375BR6','NDARZD647HJ1','NDARBL382XK5','NDARGF569BF3','NDARBA306US
 %all_extracted_alpha= cell(length(subjID),1);
 
 
-user = 'Noptop';
+user = 'Laptop';
 
 if user == 'Laptop'
     BehaviorTable = readtable('C:\Users\benri\Downloads\data\srm-nirs-eeg-1.xlsx','Format','auto');
@@ -65,14 +65,12 @@ for subind= 1:length(subjID)
 
     %% Analysis of peak alpha power
 
-    epoch_duration=1;
 
     alpha_band=[7 14];
     %min_peak_width=0.6;
     % Time vector for power spectrum for each epoch
-    samples= epoch_duration*fs;
-    [~,index_time0] = min(abs(all_eeg_epoch.EEG.times - (1000)));
-    [~,index_time1]=min(abs(all_eeg_epoch.EEG.times - (2000)));
+    [~,index_time0] = min(abs(all_eeg_epoch.EEG.times + (3000)));
+    [~,index_time1]=min(abs(all_eeg_epoch.EEG.times - (12000)));
 
 
     %FFT
@@ -117,8 +115,8 @@ for subind= 1:length(subjID)
     %% YUQI DENG METHOD
     method = 'Yuq';
     extracted_alpha=[]; % num of channels,num of trials
-    lowpass_cutoff = ((ipaf - 0.1)/(all_eeg_epoch.EEG.srate/2)); % normalize frequency
-    highpass_cutoff = ((ipaf + 0.1)/(all_eeg_epoch.EEG.srate/2));
+    lowpass_cutoff = (ipaf - 1)/(all_eeg_epoch.EEG.srate/2); % normalize frequency
+    highpass_cutoff = (ipaf + 1)/(all_eeg_epoch.EEG.srate/2);
     b = fir1(256,[lowpass_cutoff highpass_cutoff]);
     disp(["Subject: ", subID])
     this_wb = waitbar(0, 'Starting');
@@ -209,12 +207,12 @@ for subind= 1:length(subjID)
     elseif method == 'Yuq'
         % no need to take average over frequency here
         current_alpha_power = power;
-        [~,timeindex1] = min(abs(t + 1000));
-        [~,timeindex2] = min(abs(t + 0));
+        [~,timeindex1] = min(abs(t + 500));
+        [~,timeindex2] = min(abs(t - 0));
         for ichannel = 1:numchannels
             baseline_mean = nanmean(current_alpha_power(:,ichannel,timeindex1:timeindex2),'all');
             baseline_std = std(current_alpha_power(:,ichannel,timeindex1:timeindex2),[],'all');
-            current_alpha_power(:,ichannel,:) = (current_alpha_power(:,ichannel,:) - baseline_mean)./baseline_std;
+            current_alpha_power(:,ichannel,:) = (current_alpha_power(:,ichannel,:) - baseline_mean);%./baseline_std;
             %current_alpha_power(:,ichannel,:) = log10(current_alpha_power(:,ichannel,:)./baseline_mean);
         end
     end
@@ -354,8 +352,8 @@ end
 %     end
 % end
 
-[~,timeindex2] = min(abs(t - 0));
-[~,timeindex3] = min(abs(t - 1000));
+[~,timeindex2] = min(abs(t - 1500));
+[~,timeindex3] = min(abs(t - 2500));
 
 
 %% Total Amount of Alpha Power during Cue period in each condition
@@ -409,8 +407,8 @@ if user == 'Laptop'
 else
     locs_filename  = '/home/ben/Documents/GitHub/SRM-NIRS-EEG/chan_locs_pol_PO_ONLY.txt';
 end
-cmin = -0.4;
-cmax = 0.4;
+cmin = -0.7;
+cmax = 0.7;
 figure;
 subplot(2,2,1)
 topoplot(spatial_lateralization(1,:),locs_filename,'maplimits',[cmin cmax],'interplimits','head','plotrad',0.6)

@@ -161,29 +161,30 @@ def individual_analysis(fnirs_data_folder, ID):
     #                                   '23.0':'m_speech__ild_70n__itd_0__targ_l__control_0'})
     
     # CHANGED HERE TO COLLAPSE ACROSS ATTEND LEFT AND RIGHT, SPEECH VS. NOISE FOR PFC PURPOSES
-    # raw_intensity.annotations.rename({'1.0':'Inhale',
-    #                                   '2.0':'Exhale',
-    #                                   '3.0':'Hold',
-    #                                   '4.0':'ild_0__itd_500',
-    #                                   '5.0':'ild_0__itd_50',
-    #                                   '6.0':'ild_0__itd_50',
-    #                                   '7.0':'ild_70n__itd_0',
-    #                                   '8.0':'ild_0__itd_50',
-    #                                   '9.0':'ild_10__itd_0',
-    #                                   '10.0':'ild_0__itd_500',
-    #                                   '11.0':'control',
-    #                                   '12.0':'control',
-    #                                   '13.0':'ild_0__itd_500',
-    #                                   '14.0':'ild_70n__itd_0',
-    #                                   '15.0':'ild_10__itd_0',
-    #                                   '16.0':'ild_10__itd_0',
-    #                                   '17.0':'ild_10__itd_0',
-    #                                   '18.0':'ild_0__itd_50',
-    #                                     '19.0':'control',
-    #                                   '20.0':'ild_70n__itd_0',
-    #                                   '21.0':'control',
-    #                                   '22.0':'ild_0__itd_500',
-    #                                   '23.0':'ild_70n__itd_0'})
+    raw_intensity.annotations.rename({'1.0':'Inhale',
+                                      '2.0':'Exhale',
+                                      '3.0':'Hold',
+                                      '4.0':'ild_0__itd_500',
+                                      '5.0':'ild_0__itd_50',
+                                      '6.0':'ild_0__itd_50',
+                                      '7.0':'ild_70n__itd_0',
+                                      '8.0':'ild_0__itd_50',
+                                      '9.0':'ild_10__itd_0',
+                                      '10.0':'ild_0__itd_500',
+                                      '11.0':'control',
+                                      '12.0':'control',
+                                      '13.0':'ild_0__itd_500',
+                                      '14.0':'ild_70n__itd_0',
+                                      '15.0':'ild_10__itd_0',
+                                      '16.0':'ild_10__itd_0',
+                                      '17.0':'ild_10__itd_0',
+                                      '18.0':'ild_0__itd_50',
+                                        '19.0':'control',
+                                      '20.0':'ild_70n__itd_0',
+                                      '21.0':'control',
+                                      '22.0':'ild_0__itd_500',
+                                      '23.0':'ild_70n__itd_0'})
+    
     # raw_intensity.annotations.rename({'1.0':'Inhale',
     #                                   '2.0':'Exhale',
     #                                   '3.0':'Hold',
@@ -207,29 +208,30 @@ def individual_analysis(fnirs_data_folder, ID):
     #                                   '21.0':'control',
     #                                   '22.0':'noise',
     #                                   '23.0':'ild_70n__itd_0'})
-    raw_intensity.annotations.rename({'1.0':'Inhale',
-                                      '2.0':'Exhale',
-                                      '3.0':'Hold',
-                                      '4.0':'speech',
-                                      '5.0':'ild_0__itd_50',
-                                      '6.0':'ild_0__itd_50',
-                                      '7.0':'speech',
-                                      '8.0':'speech',
-                                      '9.0':'speech',
-                                      '10.0':'speech',
-                                      '11.0':'control',
-                                      '12.0':'control',
-                                      '13.0':'ild_0__itd_500',
-                                      '14.0':'ild_70n__itd_0',
-                                      '15.0':'ild_10__itd_0',
-                                      '16.0':'speech',
-                                      '17.0':'ild_10__itd_0',
-                                      '18.0':'speech',
-                                        '19.0':'control',
-                                      '20.0':'ild_70n__itd_0',
-                                      '21.0':'control',
-                                      '22.0':'ild_0__itd_500',
-                                      '23.0':'speech'})
+    
+    # raw_intensity.annotations.rename({'1.0':'Inhale',
+    #                                   '2.0':'Exhale',
+    #                                   '3.0':'Hold',
+    #                                   '4.0':'speech',
+    #                                   '5.0':'ild_0__itd_50',
+    #                                   '6.0':'ild_0__itd_50',
+    #                                   '7.0':'speech',
+    #                                   '8.0':'speech',
+    #                                   '9.0':'speech',
+    #                                   '10.0':'speech',
+    #                                   '11.0':'control',
+    #                                   '12.0':'control',
+    #                                   '13.0':'ild_0__itd_500',
+    #                                   '14.0':'ild_70n__itd_0',
+    #                                   '15.0':'ild_10__itd_0',
+    #                                   '16.0':'speech',
+    #                                   '17.0':'ild_10__itd_0',
+    #                                   '18.0':'speech',
+    #                                     '19.0':'control',
+    #                                   '20.0':'ild_70n__itd_0',
+    #                                   '21.0':'control',
+    #                                   '22.0':'ild_0__itd_500',
+    #                                   '23.0':'speech'})
     
     # raw_intensity.annotations.rename({'1.0':'Inhale',
     #                                     '2.0':'Exhale',
@@ -341,8 +343,8 @@ def individual_analysis(fnirs_data_folder, ID):
     max_during_breathing = np.max(hold_data)
     z = raw_haemo.get_data()
     zz = raw_haemo_for_block_averages.get_data()
-    raw_haemo._data = z/max_during_breathing
-    raw_haemo_for_block_averages._data = zz/max_during_breathing
+    #raw_haemo._data = z/max_during_breathing
+    #raw_haemo_for_block_averages._data = zz/max_during_breathing
     print(f"Max During Breathing = {max_during_breathing}")
     
     # Redefine epochs
@@ -354,8 +356,9 @@ def individual_analysis(fnirs_data_folder, ID):
 
     # Remove rejected epochs from design matrix
     epochs_to_remove = []
+    peak_to_peak_threshold = 10
     for iepoch in range(len(epochs.drop_log)):
-        z = np.max(epochs[iepoch].get_data(),axis=2) - np.min(epochs[iepoch].get_data(),axis=2) > 20 #z = np.std(epochs[iepoch].get_data(),axis=2) > 3  #z = np.max(epochs[iepoch].get_data(),axis=2) > 2
+        z = np.max(epochs[iepoch].get_data(),axis=2) - np.min(epochs[iepoch].get_data(),axis=2) > peak_to_peak_threshold #z = np.std(epochs[iepoch].get_data(),axis=2) > 3  #z = np.max(epochs[iepoch].get_data(),axis=2) > 2
         if np.size(epochs.drop_log[iepoch]) > 0:
             epochs_to_remove.append(iepoch)
             print(f"deleted epoch: {iepoch}")
@@ -374,11 +377,11 @@ def individual_analysis(fnirs_data_folder, ID):
     epochs_this_subject = epochs_for_block_averages.to_data_frame()
     
     if user == 'Laptop':
-        epochs_this_subject.to_csv("C:/Users/benri/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/" + sub + " block averages NOISE.csv")
-        pandas.DataFrame(epochs_to_remove).to_csv("C:/Users/benri/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/" + sub + " epochs deleted.csv")
+        epochs_this_subject.to_csv("C:/Users/benri/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/" + sub + " block averages BOTH NO BREATH.csv")
+        pandas.DataFrame(epochs_to_remove).to_csv("C:/Users/benri/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/" + sub + " epochs deleted BOTH NO BREATH.csv")
     else:
-        epochs_this_subject.to_csv("/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/" + sub + " block averages NOISE.csv")
-        pandas.DataFrame(epochs_to_remove).to_csv("/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/" + sub + " epochs deleted.csv")
+        epochs_this_subject.to_csv("/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/" + sub + " block averages BOTH NO BREATH.csv")
+        pandas.DataFrame(epochs_to_remove).to_csv("/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/" + sub + " epochs deleted BOTH NO BREATH.csv")
 
     
     # Create a design matrix
@@ -445,9 +448,9 @@ grp_results = grp_results.query("Chroma in ['hbo']")
 
 if user == 'Laptop':
     
-    grp_results.to_csv("C:/Users/benri/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/Group Results SRM-NIRS-EEG-1 collapsed attend and masker PFC time constant NOISE.csv")
+    grp_results.to_csv("C:/Users/benri/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/Group Results SRM-NIRS-EEG-1 collapsed attend and masker PFC time constant BOTH NO BREATH.csv")
 else:
 
-    grp_results.to_csv("/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/Group Results SRM-NIRS-EEG-1 collapsed attend and masker PFC time constant NOISE.csv")
+    grp_results.to_csv("/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/Group Results SRM-NIRS-EEG-1 collapsed attend and masker PFC time constant BOTH NO BREATH.csv")
 
 

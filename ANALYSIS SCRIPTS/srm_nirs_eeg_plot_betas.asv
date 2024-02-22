@@ -1,19 +1,19 @@
 %% srm_nirs_eeg_plot_betas.m
 user = 'Laptop';
 method = 'weight'; % 'choose' or 'weight'
-analysis_type = 'collapsed attend and masker PFC time constant';
+mode = ''; % 'SPEECH', 'NOISE', or 'BOTH' (add 'NO BREATH' for no breath)
+analysis_type = 'collapsed attend and condition PFC time constant';
 if user == 'Laptop'
-    GroupResults = readtable(append('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\Group Results SRM-NIRS-EEG-1 ',analysis_type,' NOISE.csv'),'Format','auto');
+    GroupResults = readtable(append('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\Group Results SRM-NIRS-EEG-1 ',analysis_type,mode, '.csv'),'Format','auto');
     addpath('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\errorbar_files\errorbar_files');
 else
-    GroupResults = readtable(append('/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/Group Results SRM-NIRS-EEG-1 ',analysis_type ,' NOISE.csv'),'Format','auto');
+    GroupResults = readtable(append('/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/Group Results SRM-NIRS-EEG-1 ',analysis_type,mode, '.csv'),'Format','auto');
     addpath('/home/ben/Documents/GitHub/SRM-NIRS-EEG/errorbar_files/errorbar_files');
 end
 subjects = unique(GroupResults.ID);
-%subjects(string(subjects) == 'NDARVX753BR6') = [];
-%subjects(string(subjects) == 'NDARLJ581GD7') = [];
-%subjects(string(subjects) == 'NDARTP382XC8') = [];
-%subjects(string(subjects) == 'NDARWB491KR3') = [];
+subjects(string(subjects) == 'NDARLM531OY3') = [];
+subjects(string(subjects) == 'NDARGT639XS6') = [];
+
 channels = unique(GroupResults.ch_name);
 channels = string(channels);
 channels(contains(channels,'hbr')) = [];
@@ -40,7 +40,7 @@ noise_control_conditions = [2,4]; % target left, target right
 speech_control_conditions = [12,14]; % target left, target right
 
 % time
-epoch_time_limits = [-5,20];
+epoch_time_limits = [-5,35];
 
 all_betas = [];
 all_ses = [];
@@ -63,11 +63,11 @@ all_pfc_ses = all_ses(:,dlpfc_channels,:);
 all_block_averages = [];
 for isubject = 1:length(subjects)
     if user == 'Laptop'
-        this_subject_table = readtable('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\' + string(subjects(isubject)) + ' block averages NOISE.csv');
-        this_epochs_deleted = readtable('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\' + string(subjects(isubject)) + ' epochs deleted.csv');
+        this_subject_table = readtable('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\' + string(subjects(isubject)) + ' block averages SVN' + mode +'.csv');
+        this_epochs_deleted = readtable('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\' + string(subjects(isubject)) + ' epochs deleted SVN' + mode +'.csv');
     else
-        this_subject_table = readtable('/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/' + string(subjects(isubject)) + ' block averages NOISE.csv');
-        this_epochs_deleted = readtable('/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/' + string(subjects(isubject)) + ' epochs deleted.csv');
+        this_subject_table = readtable('/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/' + string(subjects(isubject)) + ' block averages SVN' + mode +'.csv');
+        this_epochs_deleted = readtable('/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/' + string(subjects(isubject)) + ' epochs deleted SVN' + mode +'.csv');
     end
     if numel(this_epochs_deleted) > 0
         this_epochs_deleted = table2array(this_epochs_deleted(2:end,2));
@@ -86,7 +86,7 @@ for isubject = 1:length(subjects)
                 if ~ismember(i,this_epochs_deleted)% is not rejected
                     z(i,:) = curr_hbo(all_epochs == unique_epochs(i));
                 else
-                    z(i,:) = nan*ones(76,1);
+                    z(i,:) = nan*ones(121,1);
                 end
             end
             all_block_averages(isubject,ichannel,icondition,:) = nanmean(z,1);
@@ -108,7 +108,7 @@ if method == 'choose'
         % Store beta values
         stg_betas_to_plot(isubject,:) = all_stg_betas(isubject,which_channel_stg(isubject),:);
         pfc_betas_to_plot(isubject,:) = all_pfc_betas(isubject,which_channel_pfc(isubject),:);
-    
+
         % Store block averages
         stg_block_averages_to_plot(isubject,:,:) = squeeze(all_stg_block_averages(isubject,which_channel_stg(isubject),:,:));
         pfc_block_averages_to_plot(isubject,:,:) = squeeze(all_pfc_block_averages(isubject,which_channel_pfc(isubject),:,:));
@@ -120,14 +120,18 @@ elseif method == 'weight'
     % GLM fit, and include all channels in the analysis
     for isubject = 1:length(subjects)
         % Calculate beta values
-        stg_betas_to_plot(isubject,:,:) = mean(all_stg_betas(isubject,:,:),[1,2]);
-%         for ichannelstg = 1:size(all_stg_betas,2)
-%             stg_betas_to_plot(isubject,:,:) = stg_betas_to_plot(isubject,:,:) + all_stg_betas(isubject,ichannelstg,:).*(1/all_stg_ses(isubject,ichannelstg,:));
-%         end
-        pfc_betas_to_plot(isubject,:,:) = mean(all_pfc_betas(isubject,:,:),[1,2]);
-%         for ichannelpfc = 1:size(all_pfc_betas,2)
-%             pfc_betas_to_plot(isubject,:,:) = pfc_betas_to_plot(isubject,:,:) + all_pfc_betas(isubject,which_channel_pfc(isubject),:).*(1/all_pfc_ses(isubject,ichannelpfc,:));
-%         end
+        %stg_betas_to_plot(isubject,:) = mean(all_stg_betas(isubject,:,:),[1,2]);
+        these_stg_betas = [];
+        for ichannelstg = 1:size(all_stg_betas,2)
+            these_stg_betas = cat(2,these_stg_betas, squeeze(all_stg_betas(isubject,ichannelstg,:).*(1/all_stg_ses(isubject,ichannelstg,:))));
+        end
+        stg_betas_to_plot(isubject,:) = mean(these_stg_betas,2);
+        %pfc_betas_to_plot(isubject,:,:) = mean(all_pfc_betas(isubject,:,:),[1,2]);
+        these_pfc_betas = [];
+        for ichannelpfc = 1:size(all_pfc_betas,2)
+            these_pfc_betas = cat(2,these_pfc_betas, squeeze(all_pfc_betas(isubject,ichannelpfc,:).*(1/all_pfc_ses(isubject,ichannelpfc,:))));
+        end
+        pfc_betas_to_plot(isubject,:) = mean(these_pfc_betas,2);
 
         % Store block averages
         stg_block_averages_to_plot(isubject,:,:) = squeeze(nanmean(all_stg_block_averages(isubject,:,:,:),2));
@@ -151,7 +155,7 @@ if contains(analysis_type,'collapsed attend and masker') % compare across condit
     xlabel('Condition','FontSize',18)
     ylabel('Beta (AU)','FontSize',18)
     xticklabels({'Small ITD','Large ITD','Natural ILD','Broadband ILD'})
-    title('STG','FontSize',18)
+    title(['STG ', mode, ' Masker'],'FontSize',18)
     ax = gca;
     ax.LineWidth = 2;
     ylim([-0.4, 1])
@@ -181,7 +185,7 @@ if contains(analysis_type,'collapsed attend and masker') % compare across condit
     xlabel('Condition','FontSize',18)
     ylabel('Beta (AU)','FontSize',18)
     xticklabels({'Small ITD','Large ITD','Natural ILD','Broadband ILD'})
-    title('PFC','FontSize',18)
+    title(['PFC ', mode, ' Masker'],'FontSize',18)
     ax = gca;
     ax.LineWidth = 2;
     ylim([-0.4, 1])
@@ -267,16 +271,16 @@ if contains(analysis_type,'collapsed attend and masker') % compare across condit
     xlabel('Time re stimulus onset (s)','FontSize',18)
     ylabel('\Delta HbO (AU)','FontSize',18)
     legend({'Small ITD','Large ITD','Natural ILD','Broadband ILD'},'AutoUpdate','off')
-    title('STG Block Averages','FontSize',18)
-    ylim([-4e5,10e5])
+    title(['STG Block Averages ', mode, ' Masker'],'FontSize',18)
+    ylim([-10e5,15e5])
     xline(0,'LineWidth',1.5)
     xline(10,'LineWidth',1.5)
     % STG individual
     figure;
     for icondition = 2:length(conditions)
         for isubject = 1:length(subjects)
-        plot(time,squeeze(stg_block_averages_to_plot(isubject,icondition,:)),string(lineprop_list(icondition)));
-        hold on
+            plot(time,squeeze(stg_block_averages_to_plot(isubject,icondition,:)),string(lineprop_list(icondition)));
+            hold on
         end
     end
     xlabel('Time re stimulus onset (s)','FontSize',18)
@@ -288,28 +292,28 @@ if contains(analysis_type,'collapsed attend and masker') % compare across condit
     % PFC
     figure;
     for icondition = 2:length(conditions)
-%         if icondition == 2
-%             shadedErrorBar(time,squeeze(nanmean(0.3*pfc_block_averages_to_plot(:,icondition,:),1)),squeeze(nanstd(0.3*pfc_block_averages_to_plot(:,icondition,:),[],1))./(sqrt(length(subjects))-1),'lineProps',lineprop_list(icondition));
-% 
-%         else
-            shadedErrorBar(time,squeeze(nanmean(pfc_block_averages_to_plot(:,icondition,:),1)),squeeze(nanstd(pfc_block_averages_to_plot(:,icondition,:),[],1))./(sqrt(length(subjects))-1),'lineProps',lineprop_list(icondition));
+        %         if icondition == 2
+        %             shadedErrorBar(time,squeeze(nanmean(0.3*pfc_block_averages_to_plot(:,icondition,:),1)),squeeze(nanstd(0.3*pfc_block_averages_to_plot(:,icondition,:),[],1))./(sqrt(length(subjects))-1),'lineProps',lineprop_list(icondition));
+        %
+        %         else
+        shadedErrorBar(time,squeeze(nanmean(pfc_block_averages_to_plot(:,icondition,:),1)),squeeze(nanstd(pfc_block_averages_to_plot(:,icondition,:),[],1))./(sqrt(length(subjects))-1),'lineProps',lineprop_list(icondition));
 
-%         end
+        %         end
         hold on
     end
     xlabel('Time re stimulus onset (s)','FontSize',18)
     ylabel('\Delta HbO (AU)','FontSize',18)
     legend({'Small ITD','Large ITD','Natural ILD','Broadband ILD'},'AutoUpdate','off')
-    title('PFC Block Averages','FontSize',18)
-    ylim([-4e5,10e5])
+    title(['PFC Block Averages ', mode, ' Masker'],'FontSize',18)
+    ylim([-10e5,15e5])
     xline(0,'LineWidth',1.5)
     xline(10,'LineWidth',1.5)
     % PFC individual
     figure;
     for icondition = 2:length(conditions)
         for isubject = 1:length(subjects)
-        plot(time,squeeze(pfc_block_averages_to_plot(isubject,icondition,:)),string(lineprop_list(icondition)));
-        hold on
+            plot(time,squeeze(pfc_block_averages_to_plot(isubject,icondition,:)),string(lineprop_list(icondition)));
+            hold on
         end
     end
     xlabel('Time re stimulus onset (s)','FontSize',18)
@@ -318,6 +322,70 @@ if contains(analysis_type,'collapsed attend and masker') % compare across condit
     title('Individual PFC Block Averages','FontSize',18)
     ylim([-4e5,10e5])
 
+elseif contains(analysis_type,'collapsed attend and condition') % compare speech masker vs. noise masker
+    ymin = -1e6;
+    ymax = 1e6;
+    time = linspace(epoch_time_limits(1),epoch_time_limits(2),size(all_block_averages,4));
+    lineprop_list = {'-k','-r','-g','-b','-m'};
+    % STG
+    figure;
+    for icondition = 2:length(conditions)
+        shadedErrorBar(time,squeeze(nanmean(stg_block_averages_to_plot(:,icondition,:),1)),squeeze(nanstd(stg_block_averages_to_plot(:,icondition,:),[],1))./(sqrt(length(subjects))-1),'lineProps',lineprop_list(icondition));
+        hold on
+    end
+    xlabel('Time re stimulus onset (s)','FontSize',18)
+    ylabel('\Delta HbO (AU)','FontSize',18)
+    legend({'Noise Masker','Speech Masker'},'AutoUpdate','off')
+    title(['STG Block Averages'],'FontSize',18)
+    ylim([-1e6,1e6])
+    xline(0,'LineWidth',1.5)
+    xline(10,'LineWidth',1.5)
+    % STG individual
+    figure;
+    for icondition = 2:length(conditions)
+        for isubject = 1:length(subjects)
+            plot(time,squeeze(stg_block_averages_to_plot(isubject,icondition,:)),string(lineprop_list(icondition)));
+            hold on
+        end
+    end
+    xlabel('Time re stimulus onset (s)','FontSize',18)
+    ylabel('\Delta HbO (AU)','FontSize',18)
+    %legend({'ITD50','ITD500','ILD10','ILD70n'})
+    title('Individual STG Block Averages','FontSize',18)
+    ylim([-1e6,1e6])
+
+    % PFC
+    figure;
+    for icondition = 2:length(conditions)
+        %         if icondition == 2
+        %             shadedErrorBar(time,squeeze(nanmean(0.3*pfc_block_averages_to_plot(:,icondition,:),1)),squeeze(nanstd(0.3*pfc_block_averages_to_plot(:,icondition,:),[],1))./(sqrt(length(subjects))-1),'lineProps',lineprop_list(icondition));
+        %
+        %         else
+        shadedErrorBar(time,squeeze(nanmean(pfc_block_averages_to_plot(:,icondition,:),1)),squeeze(nanstd(pfc_block_averages_to_plot(:,icondition,:),[],1))./(sqrt(length(subjects))-1),'lineProps',lineprop_list(icondition));
+
+        %         end
+        hold on
+    end
+    xlabel('Time re stimulus onset (s)','FontSize',18)
+    ylabel('\Delta HbO (AU)','FontSize',18)
+    legend({'Speech Masker','Noise Masker'},'AutoUpdate','off')
+    title(['PFC Block Averages'],'FontSize',18)
+    ylim([-1e6,1e6])
+    xline(0,'LineWidth',1.5)
+    xline(10,'LineWidth',1.5)
+    % PFC individual
+    figure;
+    for icondition = 2:length(conditions)
+        for isubject = 1:length(subjects)
+            plot(time,squeeze(pfc_block_averages_to_plot(isubject,icondition,:)),string(lineprop_list(icondition)));
+            hold on
+        end
+    end
+    xlabel('Time re stimulus onset (s)','FontSize',18)
+    ylabel('\Delta HbO (AU)','FontSize',18)
+    %legend({'ITD50','ITD500','ILD10','ILD70n'})
+    title('Individual PFC Block Averages','FontSize',18)
+    ylim([-1e6,1e6])
 end
 
 %% Area Under the Curve
@@ -325,8 +393,8 @@ if contains(analysis_type,'collapsed attend and masker') % compare across condit
     for icondition = 2:length(conditions)
         for isubject = 1:length(subjects)
             % calculate AUC for all blocks
-            time_index_0 = min(abs(time - 0));
-            time_index_10 = min(abs(time - 10));
+            [~,time_index_0] = min(abs(time - 0));
+            [~,time_index_10] = min(abs(time - 10.8));
             this_response_STG = stg_block_averages_to_plot(isubject,icondition,time_index_0:time_index_10);
             this_response_PFC = pfc_block_averages_to_plot(isubject,icondition,time_index_0:time_index_10);
             x = time(time_index_0:time_index_10);
@@ -335,13 +403,32 @@ if contains(analysis_type,'collapsed attend and masker') % compare across condit
         end
     end
     figure;
+
+    bar(squeeze(mean(all_AUC_stg(:,2:end),1)))
+    hold on
+    errorbar(1:2,squeeze(mean(all_AUC_stg(:,2:3),1)),squeeze(std(all_AUC_stg(:,2:3),[],1))./(sqrt(length(subjects))-1),'k','LineWidth',2)
+    errorbar(3:4,squeeze(mean(all_AUC_stg(:,4:end),1)),squeeze(std(all_AUC_stg(:,4:end),[],1))./(sqrt(length(subjects))-1),'k','LineWidth',2)
+    xlabel('Condition','FontSize',18)
+    ylabel('AUC (AU)','FontSize',18)
+    xticklabels({'Small ITD','Large ITD','Natural ILD','Broadband ILD'})
+    title('Area Under the Curve STG')
+    figure;
+    bar(squeeze(mean(all_AUC_pfc(:,2:end),1)))
+    hold on
+    errorbar(1:2,squeeze(mean(all_AUC_pfc(:,2:3),1)),squeeze(std(all_AUC_pfc(:,2:3),[],1))./(sqrt(length(subjects))-1),'k','LineWidth',2)
+    errorbar(3:4,squeeze(mean(all_AUC_pfc(:,4:end),1)),squeeze(std(all_AUC_pfc(:,4:end),[],1))./(sqrt(length(subjects))-1),'k','LineWidth',2)
+    xlabel('Condition','FontSize',18)
+    ylabel('AUC (AU)','FontSize',18)
+    xticklabels({'Small ITD','Large ITD','Natural ILD','Broadband ILD'})
+    title('Area Under the Curve PFC')
+
 end
-figure;
 
 
 % save
-save(['C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\',analysis_type,' SPEECH results.mat'],'stg_betas_to_plot','pfc_betas_to_plot');
-
+if contains(analysis_type,'collapsed attend and masker')
+    save(['C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\',analysis_type,' ',mode,' results.mat'],'stg_betas_to_plot','pfc_betas_to_plot','all_AUC_stg','all_AUC_pfc');
+end
 
 %% STG vs. PFC
 

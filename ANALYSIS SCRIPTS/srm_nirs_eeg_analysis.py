@@ -54,6 +54,7 @@ import os
 import obspy
 from obspy.signal.detrend import polynomial
 
+from mne_modified_beer_lambert_law import mne_modified_beer_lambert_law
 
 
 # Define Subject Files
@@ -161,29 +162,29 @@ def individual_analysis(fnirs_data_folder, ID):
     #                                   '23.0':'m_speech__ild_70n__itd_0__targ_l__control_0'})
     
     # CHANGED HERE TO COLLAPSE ACROSS ATTEND LEFT AND RIGHT, SPEECH VS. NOISE FOR PFC PURPOSES
-    raw_intensity.annotations.rename({'1.0':'Inhale',
-                                      '2.0':'Exhale',
-                                      '3.0':'Hold',
-                                      '4.0':'ild_0__itd_500',
-                                      '5.0':'ild_0__itd_50',
-                                      '6.0':'ild_0__itd_50',
-                                      '7.0':'ild_70n__itd_0',
-                                      '8.0':'ild_0__itd_50',
-                                      '9.0':'ild_10__itd_0',
-                                      '10.0':'ild_0__itd_500',
-                                      '11.0':'control',
-                                      '12.0':'control',
-                                      '13.0':'ild_0__itd_500',
-                                      '14.0':'ild_70n__itd_0',
-                                      '15.0':'ild_10__itd_0',
-                                      '16.0':'ild_10__itd_0',
-                                      '17.0':'ild_10__itd_0',
-                                      '18.0':'ild_0__itd_50',
-                                        '19.0':'control',
-                                      '20.0':'ild_70n__itd_0',
-                                      '21.0':'control',
-                                      '22.0':'ild_0__itd_500',
-                                      '23.0':'ild_70n__itd_0'})
+    # raw_intensity.annotations.rename({'1.0':'Inhale',
+    #                                   '2.0':'Exhale',
+    #                                   '3.0':'Hold',
+    #                                   '4.0':'ild_0__itd_500',
+    #                                   '5.0':'ild_0__itd_50',
+    #                                   '6.0':'ild_0__itd_50',
+    #                                   '7.0':'ild_70n__itd_0',
+    #                                   '8.0':'ild_0__itd_50',
+    #                                   '9.0':'ild_10__itd_0',
+    #                                   '10.0':'ild_0__itd_500',
+    #                                   '11.0':'control',
+    #                                   '12.0':'control',
+    #                                   '13.0':'ild_0__itd_500',
+    #                                   '14.0':'ild_70n__itd_0',
+    #                                   '15.0':'ild_10__itd_0',
+    #                                   '16.0':'ild_10__itd_0',
+    #                                   '17.0':'ild_10__itd_0',
+    #                                   '18.0':'ild_0__itd_50',
+    #                                     '19.0':'control',
+    #                                   '20.0':'ild_70n__itd_0',
+    #                                   '21.0':'control',
+    #                                   '22.0':'ild_0__itd_500',
+    #                                   '23.0':'ild_70n__itd_0'})
     
     # raw_intensity.annotations.rename({'1.0':'Inhale',
     #                                   '2.0':'Exhale',
@@ -209,29 +210,29 @@ def individual_analysis(fnirs_data_folder, ID):
     #                                   '22.0':'noise',
     #                                   '23.0':'ild_70n__itd_0'})
     
-    # raw_intensity.annotations.rename({'1.0':'Inhale',
-    #                                   '2.0':'Exhale',
-    #                                   '3.0':'Hold',
-    #                                   '4.0':'speech',
-    #                                   '5.0':'ild_0__itd_50',
-    #                                   '6.0':'ild_0__itd_50',
-    #                                   '7.0':'speech',
-    #                                   '8.0':'speech',
-    #                                   '9.0':'speech',
-    #                                   '10.0':'speech',
-    #                                   '11.0':'control',
-    #                                   '12.0':'control',
-    #                                   '13.0':'ild_0__itd_500',
-    #                                   '14.0':'ild_70n__itd_0',
-    #                                   '15.0':'ild_10__itd_0',
-    #                                   '16.0':'speech',
-    #                                   '17.0':'ild_10__itd_0',
-    #                                   '18.0':'speech',
-    #                                     '19.0':'control',
-    #                                   '20.0':'ild_70n__itd_0',
-    #                                   '21.0':'control',
-    #                                   '22.0':'ild_0__itd_500',
-    #                                   '23.0':'speech'})
+    raw_intensity.annotations.rename({'1.0':'Inhale',
+                                      '2.0':'Exhale',
+                                      '3.0':'Hold',
+                                      '4.0':'speech',
+                                      '5.0':'ild_0__itd_50',
+                                      '6.0':'ild_0__itd_50',
+                                      '7.0':'speech',
+                                      '8.0':'speech',
+                                      '9.0':'speech',
+                                      '10.0':'speech',
+                                      '11.0':'control',
+                                      '12.0':'control',
+                                      '13.0':'ild_0__itd_500',
+                                      '14.0':'ild_70n__itd_0',
+                                      '15.0':'ild_10__itd_0',
+                                      '16.0':'speech',
+                                      '17.0':'ild_10__itd_0',
+                                      '18.0':'speech',
+                                        '19.0':'control',
+                                      '20.0':'ild_70n__itd_0',
+                                      '21.0':'control',
+                                      '22.0':'ild_0__itd_500',
+                                      '23.0':'speech'})
     
     # raw_intensity.annotations.rename({'1.0':'Inhale',
     #                                     '2.0':'Exhale',
@@ -271,7 +272,7 @@ def individual_analysis(fnirs_data_folder, ID):
     # Apply TDDR
     raw_od = temporal_derivative_distribution_repair(raw_od, verbose=False)
     
-    # Interpolate bad channels
+    # # Interpolate bad channels
     raw_od.interpolate_bads(verbose=False)
 
     # Resample to 3 Hz
@@ -280,8 +281,10 @@ def individual_analysis(fnirs_data_folder, ID):
     # Create separate object for block averages (will run short channel on these, but use short channels as a regressor in the GLM for betas)
     raw_od_for_block_averages = short_channel_regression(raw_od, max_dist=0.01)
     
-    raw_haemo = beer_lambert_law(raw_od, ppf=0.1)
-    raw_haemo_for_block_averages = beer_lambert_law(raw_od_for_block_averages, ppf=0.1)
+    #raw_haemo = beer_lambert_law(raw_od, ppf=0.1)
+    #raw_haemo_for_block_averages = beer_lambert_law(raw_od_for_block_averages, ppf=0.1)
+    raw_haemo = mne_modified_beer_lambert_law(raw_od) # TRYING ELIS FUNCTION
+    raw_haemo_for_block_averages = mne_modified_beer_lambert_law(raw_od_for_block_averages)
     
     # Cut out just the short channels for creating a GLM repressor
     sht_chans = get_short_channels(raw_haemo)
@@ -291,8 +294,8 @@ def individual_analysis(fnirs_data_folder, ID):
     # Filter data
     #iir_params = dict({"order":3,"ftype":"butter","padlen":10000})
     #raw_haemo = raw_haemo.filter(0.03, 0.7, iir_params=iir_params, method='iir', verbose=False)
-    raw_haemo.filter(0.01, 0.3, h_trans_bandwidth=0.2, l_trans_bandwidth=0.005) # 0.01, 0.3, 0.2, 0.005
-    raw_haemo_for_block_averages.filter(0.01, 0.3, h_trans_bandwidth=0.2, l_trans_bandwidth=0.005)
+    raw_haemo.filter(0.01, 0.2, h_trans_bandwidth=0.2, l_trans_bandwidth=0.005) # 0.01, 0.3, 0.2, 0.005
+    raw_haemo_for_block_averages.filter(0.01, 0.2, h_trans_bandwidth=0.2, l_trans_bandwidth=0.005)
     
     # Pause to manually decide which events to remove (if any)
     # if ID == 'NDARBA306US5' or ID == 'NDARDC882NK4' or ID == 'NDARAZC45TW3':
@@ -332,19 +335,20 @@ def individual_analysis(fnirs_data_folder, ID):
                            detrend=None, verbose=False)
     # APPLY BREATH HOLD NORMALIZATION
     # Get data from first inhale to end of hold
-    hold_length = 15
-    paced_breathing_length = 30
+    hold_length = 30
     epochs_for_hold = mne.Epochs(raw_haemo, events, event_id=event_dict,
-                           tmin=-1*paced_breathing_length, tmax=hold_length,reject_by_annotation=True,
+                           tmin=0, tmax=hold_length,reject_by_annotation=True,
                            proj=True, baseline=None, preload=False,
                            detrend=None, verbose=False)
-    hold_data = epochs_for_hold["Hold"].get_data()
-    hold_data = np.mean(hold_data,axis=(0,1))
-    max_during_breathing = np.max(hold_data)
-    z = raw_haemo.get_data()
+    hold_data = epochs_for_hold["Hold"].get_data(picks='hbo')
+    hold_data = np.mean(hold_data,axis=(0))
+    max_during_breathing = np.max(hold_data[:,45:91], axis=1) * 1e6
+    max_during_breathing = np.repeat(max_during_breathing,2,axis=0)
+    z = raw_haemo.get_data() 
     zz = raw_haemo_for_block_averages.get_data()
-    #raw_haemo._data = z/max_during_breathing
-    #raw_haemo_for_block_averages._data = zz/max_during_breathing
+    #raw_haemo._data = np.divide(z,max_during_breathing[:, None])
+    #raw_haemo_for_block_averages._data = np.divide(zz,max_during_breathing[:, None])
+    # BREATH HOLD IS NOT CHANNEL SPECIFIC RIGHT NOW NEEDS TO CHANGE
     print(f"Max During Breathing = {max_during_breathing}")
     
     # Redefine epochs
@@ -377,11 +381,11 @@ def individual_analysis(fnirs_data_folder, ID):
     epochs_this_subject = epochs_for_block_averages.to_data_frame()
     
     if user == 'Laptop':
-        epochs_this_subject.to_csv("C:/Users/benri/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/" + sub + " block averages BOTH NO BREATH.csv")
-        pandas.DataFrame(epochs_to_remove).to_csv("C:/Users/benri/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/" + sub + " epochs deleted BOTH NO BREATH.csv")
+        epochs_this_subject.to_csv("C:/Users/benri/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/" + sub + " block averages NOISE NO BREATH.csv")
+        pandas.DataFrame(epochs_to_remove).to_csv("C:/Users/benri/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/" + sub + " epochs NOISE NO BREATH.csv")
     else:
-        epochs_this_subject.to_csv("/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/" + sub + " block averages BOTH NO BREATH.csv")
-        pandas.DataFrame(epochs_to_remove).to_csv("/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/" + sub + " epochs deleted BOTH NO BREATH.csv")
+        epochs_this_subject.to_csv("/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/" + sub + " block averages NOISE NO BREATH.csv")
+        pandas.DataFrame(epochs_to_remove).to_csv("/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/" + sub + " epochs NOISE NO BREATH.csv")
 
     
     # Create a design matrix
@@ -448,9 +452,9 @@ grp_results = grp_results.query("Chroma in ['hbo']")
 
 if user == 'Laptop':
     
-    grp_results.to_csv("C:/Users/benri/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/Group Results SRM-NIRS-EEG-1 collapsed attend and masker PFC time constant BOTH NO BREATH.csv")
+    grp_results.to_csv("C:/Users/benri/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/Group Results SRM-NIRS-EEG-1 collapsed attend and masker PFC time constant NOISE NO BREATH.csv")
 else:
 
-    grp_results.to_csv("/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/Group Results SRM-NIRS-EEG-1 collapsed attend and masker PFC time constant BOTH NO BREATH.csv")
+    grp_results.to_csv("/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/Group Results SRM-NIRS-EEG-1 collapsed attend and masker PFC time constant NOISE NO BREATH.csv")
 
 

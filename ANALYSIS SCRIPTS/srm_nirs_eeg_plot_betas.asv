@@ -1,13 +1,13 @@
 %% srm_nirs_eeg_plot_betas.m
 user = 'Laptop';
 method = 'weight'; % 'choose' or 'weight'
-mode = ''; % 'SPEECH', 'NOISE', or 'BOTH' (add 'NO BREATH' for no breath)
-analysis_type = 'collapsed attend and condition PFC time constant';
+mode = 'SPEECH NO BREATH'; % 'SPEECH', 'NOISE', or 'BOTH' (add 'NO BREATH' for no breath)
+analysis_type = 'collapsed attend and masker PFC time constant';
 if user == 'Laptop'
-    GroupResults = readtable(append('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\Group Results SRM-NIRS-EEG-1 ',analysis_type,mode, '.csv'),'Format','auto');
+    GroupResults = readtable(append('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\Group Results SRM-NIRS-EEG-1 ',analysis_type,' ',mode, '.csv'),'Format','auto');
     addpath('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\errorbar_files\errorbar_files');
 else
-    GroupResults = readtable(append('/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/Group Results SRM-NIRS-EEG-1 ',analysis_type,mode, '.csv'),'Format','auto');
+    GroupResults = readtable(append('/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/Group Results SRM-NIRS-EEG-1 ',analysis_type,' ',mode, '.csv'),'Format','auto');
     addpath('/home/ben/Documents/GitHub/SRM-NIRS-EEG/errorbar_files/errorbar_files');
 end
 subjects = unique(GroupResults.ID);
@@ -63,11 +63,11 @@ all_pfc_ses = all_ses(:,dlpfc_channels,:);
 all_block_averages = [];
 for isubject = 1:length(subjects)
     if user == 'Laptop'
-        this_subject_table = readtable('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\' + string(subjects(isubject)) + ' block averages SVN' + mode +'.csv');
-        this_epochs_deleted = readtable('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\' + string(subjects(isubject)) + ' epochs deleted SVN' + mode +'.csv');
+        this_subject_table = readtable('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\' + string(subjects(isubject)) + ' block averages ' + mode +'.csv');
+        this_epochs_deleted = readtable('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\' + string(subjects(isubject)) + ' epochs deleted ' + mode +'.csv');
     else
-        this_subject_table = readtable('/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/' + string(subjects(isubject)) + ' block averages SVN' + mode +'.csv');
-        this_epochs_deleted = readtable('/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/' + string(subjects(isubject)) + ' epochs deleted SVN' + mode +'.csv');
+        this_subject_table = readtable('/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/' + string(subjects(isubject)) + ' block averages ' + mode +'.csv');
+        this_epochs_deleted = readtable('/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/' + string(subjects(isubject)) + ' epochs deleted ' + mode +'.csv');
     end
     if numel(this_epochs_deleted) > 0
         this_epochs_deleted = table2array(this_epochs_deleted(2:end,2));
@@ -260,6 +260,8 @@ elseif contains(analysis_type,'collapsed attend and condition')
 end
 %% Block Averages
 if contains(analysis_type,'collapsed attend and masker') % compare across condition
+    ymin = -0.1;
+    ymax = 0.15;
     time = linspace(epoch_time_limits(1),epoch_time_limits(2),size(all_block_averages,4));
     lineprop_list = {'-k','-r','-g','-b','-m'};
     % STG
@@ -272,7 +274,7 @@ if contains(analysis_type,'collapsed attend and masker') % compare across condit
     ylabel('\Delta HbO (AU)','FontSize',18)
     legend({'Small ITD','Large ITD','Natural ILD','Broadband ILD'},'AutoUpdate','off')
     title(['STG Block Averages ', mode, ' Masker'],'FontSize',18)
-    ylim([-10e5,15e5])
+    ylim([ymin,ymax])
     xline(0,'LineWidth',1.5)
     xline(10,'LineWidth',1.5)
     % STG individual
@@ -284,10 +286,13 @@ if contains(analysis_type,'collapsed attend and masker') % compare across condit
         end
     end
     xlabel('Time re stimulus onset (s)','FontSize',18)
+    if contains(mode, 'NO BREATH')
+        ylabel('\Delta HbO (\mu M)','FontSize',18)
+    else
     ylabel('\Delta HbO (AU)','FontSize',18)
     %legend({'ITD50','ITD500','ILD10','ILD70n'})
     title('Individual STG Block Averages','FontSize',18)
-    ylim([-4e5,10e5])
+    ylim([ymin,ymax])
 
     % PFC
     figure;
@@ -305,7 +310,7 @@ if contains(analysis_type,'collapsed attend and masker') % compare across condit
     ylabel('\Delta HbO (AU)','FontSize',18)
     legend({'Small ITD','Large ITD','Natural ILD','Broadband ILD'},'AutoUpdate','off')
     title(['PFC Block Averages ', mode, ' Masker'],'FontSize',18)
-    ylim([-10e5,15e5])
+    ylim([ymin,ymax])
     xline(0,'LineWidth',1.5)
     xline(10,'LineWidth',1.5)
     % PFC individual
@@ -320,11 +325,11 @@ if contains(analysis_type,'collapsed attend and masker') % compare across condit
     ylabel('\Delta HbO (AU)','FontSize',18)
     %legend({'ITD50','ITD500','ILD10','ILD70n'})
     title('Individual PFC Block Averages','FontSize',18)
-    ylim([-4e5,10e5])
+    ylim([ymin,ymax])
 
 elseif contains(analysis_type,'collapsed attend and condition') % compare speech masker vs. noise masker
-    ymin = -1e6;
-    ymax = 1e6;
+    ymin = -0.1;
+    ymax = 0.15;
     time = linspace(epoch_time_limits(1),epoch_time_limits(2),size(all_block_averages,4));
     lineprop_list = {'-k','-r','-g','-b','-m'};
     % STG
@@ -337,7 +342,7 @@ elseif contains(analysis_type,'collapsed attend and condition') % compare speech
     ylabel('\Delta HbO (AU)','FontSize',18)
     legend({'Noise Masker','Speech Masker'},'AutoUpdate','off')
     title(['STG Block Averages'],'FontSize',18)
-    ylim([-1e6,1e6])
+    ylim([ymin,ymax])
     xline(0,'LineWidth',1.5)
     xline(10,'LineWidth',1.5)
     % STG individual
@@ -352,7 +357,7 @@ elseif contains(analysis_type,'collapsed attend and condition') % compare speech
     ylabel('\Delta HbO (AU)','FontSize',18)
     %legend({'ITD50','ITD500','ILD10','ILD70n'})
     title('Individual STG Block Averages','FontSize',18)
-    ylim([-1e6,1e6])
+    ylim([ymin,ymax])
 
     % PFC
     figure;
@@ -370,7 +375,7 @@ elseif contains(analysis_type,'collapsed attend and condition') % compare speech
     ylabel('\Delta HbO (AU)','FontSize',18)
     legend({'Speech Masker','Noise Masker'},'AutoUpdate','off')
     title(['PFC Block Averages'],'FontSize',18)
-    ylim([-1e6,1e6])
+    ylim([ymin,ymax])
     xline(0,'LineWidth',1.5)
     xline(10,'LineWidth',1.5)
     % PFC individual
@@ -385,7 +390,7 @@ elseif contains(analysis_type,'collapsed attend and condition') % compare speech
     ylabel('\Delta HbO (AU)','FontSize',18)
     %legend({'ITD50','ITD500','ILD10','ILD70n'})
     title('Individual PFC Block Averages','FontSize',18)
-    ylim([-1e6,1e6])
+    ylim([ymin,ymax])
 end
 
 %% Area Under the Curve

@@ -1,7 +1,7 @@
 %% srm_nirs_eeg_plot_betas.m
 user = 'Laptop';
 method = 'weight'; % 'choose' or 'weight'
-mode = 'BOTH NO BREATH'; % 'SPEECH', 'NOISE', or 'BOTH' (add 'NO BREATH' for no breath)
+mode = 'NOISE NO BREATH'; % 'SPEECH', 'NOISE', or 'BOTH' (add 'NO BREATH' for no breath)
 analysis_type = 'collapsed attend and masker PFC time constant';
 if user == 'Laptop'
     GroupResults = readtable(append('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\Group Results SRM-NIRS-EEG-1 ',analysis_type,' ',mode, '.csv'),'Format','auto');
@@ -140,10 +140,6 @@ elseif method == 'weight'
     end
 end
 
-% normalize
-%pfc_betas_to_plot = (pfc_betas_to_plot - min(pfc_betas_to_plot,[],'all'))/(max(pfc_betas_to_plot,[],'all') - min(pfc_betas_to_plot,[],'all'));
-%stg_betas_to_plot = (stg_betas_to_plot - min(stg_betas_to_plot,[],'all'))/(max(stg_betas_to_plot,[],'all') - min(stg_betas_to_plot,[],'all'));
-
 if contains(analysis_type,'collapsed attend and masker') % compare across condition
     % STG
     figure;
@@ -260,8 +256,8 @@ elseif contains(analysis_type,'collapsed attend and condition')
 end
 %% Block Averages
 if contains(analysis_type,'collapsed attend and masker') % compare across condition
-    ymin = -5;
-    ymax = 6;
+    ymin = -0.2;
+    ymax = 0.2;
     time = linspace(epoch_time_limits(1),epoch_time_limits(2),size(all_block_averages,4));
     lineprop_list = {'-k','-r','-g','-b','-m'};
     % STG
@@ -271,7 +267,11 @@ if contains(analysis_type,'collapsed attend and masker') % compare across condit
         hold on
     end
     xlabel('Time re stimulus onset (s)','FontSize',18)
-    ylabel('\Delta HbO (AU)','FontSize',18)
+    if contains(mode, 'NO BREATH')
+        ylabel('\Delta HbO (\mu M)','FontSize',18)
+    else
+        ylabel('\Delta HbO (AU)','FontSize',18)
+    end
     legend({'Small ITD','Large ITD','Natural ILD','Broadband ILD'},'AutoUpdate','off')
     title(['STG Block Averages ', mode, ' Masker'],'FontSize',18)
     ylim([ymin,ymax])
@@ -286,7 +286,11 @@ if contains(analysis_type,'collapsed attend and masker') % compare across condit
         end
     end
     xlabel('Time re stimulus onset (s)','FontSize',18)
-    ylabel('\Delta HbO (AU)','FontSize',18)
+    if contains(mode, 'NO BREATH')
+        ylabel('\Delta HbO (\mu M)','FontSize',18)
+    else
+        ylabel('\Delta HbO (AU)','FontSize',18)
+    end
     %legend({'ITD50','ITD500','ILD10','ILD70n'})
     title('Individual STG Block Averages','FontSize',18)
     ylim([ymin,ymax])
@@ -304,7 +308,11 @@ if contains(analysis_type,'collapsed attend and masker') % compare across condit
         hold on
     end
     xlabel('Time re stimulus onset (s)','FontSize',18)
-    ylabel('\Delta HbO (AU)','FontSize',18)
+    if contains(mode, 'NO BREATH')
+        ylabel('\Delta HbO (\mu M)','FontSize',18)
+    else
+        ylabel('\Delta HbO (AU)','FontSize',18)
+    end
     legend({'Small ITD','Large ITD','Natural ILD','Broadband ILD'},'AutoUpdate','off')
     title(['PFC Block Averages ', mode, ' Masker'],'FontSize',18)
     ylim([ymin,ymax])
@@ -319,14 +327,17 @@ if contains(analysis_type,'collapsed attend and masker') % compare across condit
         end
     end
     xlabel('Time re stimulus onset (s)','FontSize',18)
-    ylabel('\Delta HbO (AU)','FontSize',18)
-    %legend({'ITD50','ITD500','ILD10','ILD70n'})
+    if contains(mode, 'NO BREATH')
+        ylabel('\Delta HbO (\mu M)','FontSize',18)
+    else
+        ylabel('\Delta HbO (AU)','FontSize',18)
+    end   
     title('Individual PFC Block Averages','FontSize',18)
     ylim([ymin,ymax])
 
 elseif contains(analysis_type,'collapsed attend and condition') % compare speech masker vs. noise masker
-    ymin = -2;
-    ymax = 2;
+    ymin = -0.2;
+    ymax = 0.2;
     time = linspace(epoch_time_limits(1),epoch_time_limits(2),size(all_block_averages,4));
     lineprop_list = {'-k','-r','-g','-b','-m'};
     % STG
@@ -336,7 +347,11 @@ elseif contains(analysis_type,'collapsed attend and condition') % compare speech
         hold on
     end
     xlabel('Time re stimulus onset (s)','FontSize',18)
-    ylabel('\Delta HbO (AU)','FontSize',18)
+    if contains(mode, 'NO BREATH')
+        ylabel('\Delta HbO (\mu M)','FontSize',18)
+    else
+        ylabel('\Delta HbO (AU)','FontSize',18)
+    end
     legend({'Noise Masker','Speech Masker'},'AutoUpdate','off')
     title(['STG Block Averages'],'FontSize',18)
     ylim([ymin,ymax])
@@ -351,7 +366,11 @@ elseif contains(analysis_type,'collapsed attend and condition') % compare speech
         end
     end
     xlabel('Time re stimulus onset (s)','FontSize',18)
-    ylabel('\Delta HbO (AU)','FontSize',18)
+    if contains(mode, 'NO BREATH')
+        ylabel('\Delta HbO (\mu M)','FontSize',18)
+    else
+        ylabel('\Delta HbO (AU)','FontSize',18)
+    end
     %legend({'ITD50','ITD500','ILD10','ILD70n'})
     title('Individual STG Block Averages','FontSize',18)
     ylim([ymin,ymax])
@@ -369,7 +388,11 @@ elseif contains(analysis_type,'collapsed attend and condition') % compare speech
         hold on
     end
     xlabel('Time re stimulus onset (s)','FontSize',18)
-    ylabel('\Delta HbO (AU)','FontSize',18)
+    if contains(mode, 'NO BREATH')
+        ylabel('\Delta HbO (\mu M)','FontSize',18)
+    else
+        ylabel('\Delta HbO (AU)','FontSize',18)
+    end
     legend({'Speech Masker','Noise Masker'},'AutoUpdate','off')
     title(['PFC Block Averages'],'FontSize',18)
     ylim([ymin,ymax])
@@ -384,7 +407,11 @@ elseif contains(analysis_type,'collapsed attend and condition') % compare speech
         end
     end
     xlabel('Time re stimulus onset (s)','FontSize',18)
-    ylabel('\Delta HbO (AU)','FontSize',18)
+    if contains(mode, 'NO BREATH')
+        ylabel('\Delta HbO (\mu M)','FontSize',18)
+    else
+        ylabel('\Delta HbO (AU)','FontSize',18)
+    end
     %legend({'ITD50','ITD500','ILD10','ILD70n'})
     title('Individual PFC Block Averages','FontSize',18)
     ylim([ymin,ymax])

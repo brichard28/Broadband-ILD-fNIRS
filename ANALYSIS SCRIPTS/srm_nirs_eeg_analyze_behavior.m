@@ -225,7 +225,7 @@ ylabel("Behavioral Sensitivity (d')",'FontSize',18,'FontWeight','bold')
 xlabel('Condition','FontSize',18,'FontWeight','bold')
 title('Speech Masker Behavior','FontSize',18,'FontWeight','bold')
 % Statistics
-[p,tbl,stats] = anova2(d_primes_speech_masker',1,'off');
+[p,tbl,stats] = anova1(d_primes_speech_masker');
 c = multcompare(stats,'Display','off');
 tbl = array2table(c,"VariableNames", ...
     ["Group A","Group B","Lower Limit","A-B","Upper Limit","P-value"]);

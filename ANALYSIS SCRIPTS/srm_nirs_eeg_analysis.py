@@ -409,7 +409,7 @@ def individual_analysis(fnirs_data_folder, ID):
     cha["ID"] = ID
 
     # Convert to uM for nicer plotting below.
-    #cha["theta"] = [t * 1.e6 for t in cha["theta"]]
+    cha["theta"] = [t * 1.e6 for t in cha["theta"]]
     #roi["theta"] = [t * 1.e6 for t in roi["theta"]]
     #con["effect"] = [t * 1.e6 for t in con["effect"]]
     

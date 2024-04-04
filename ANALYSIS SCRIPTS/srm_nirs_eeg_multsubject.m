@@ -226,7 +226,7 @@ for subind= 1:length(subjID)
 end
 
 % subject loop ends
-
+extracted_alpha_for_plotting = nan(length(subjID),length(all_maskers),size(current_alpha_power,1),size(current_alpha_power,2),size(current_alpha_power,3));
 figure;
 for isubject = 1:length(subjID)
     subID=subjID{isubject};
@@ -266,9 +266,9 @@ for isubject = 1:length(subjID)
         % take mean over presentations, baseline
         extracted_alpha_for_plotting(isubject,icondition,:,:,:) = (extracted_alpha_for_plotting(isubject,icondition,:,:,:) - nanmean(extracted_alpha_for_plotting(isubject,icondition,:,:,timeindex1:timeindex2),'all'))./nanstd(extracted_alpha_for_plotting(isubject,icondition,:,:,timeindex1:timeindex2),[],'all'); 
     end
-        %% PLOT INDIVIDUAL ALPHA TRACES
-        left_hemisphere_channels = [1,2,4,5];
-right_hemisphere_channels = [7,8,9,10];
+    %% PLOT INDIVIDUAL ALPHA TRACES
+    left_hemisphere_channels = [1,2,4,5];
+    right_hemisphere_channels = [7,8,9,10];
     figure(1)
     hold on
     plot(t,squeeze(nanmean(extracted_alpha_for_plotting(isubject,logical(contains(string(all_maskers),'__ild_0__itd_500__').*contains(string(all_maskers),'__targ_r')),:,right_hemisphere_channels,:),[1,2,3,4])))
@@ -286,9 +286,9 @@ right_hemisphere_channels = [7,8,9,10];
     %% PLOT TOPOPLOTS FOR THIS SUBJECT
     % [~,timeindex2] = min(abs(t - 0));
     % [~,timeindex3] = min(abs(t - 500));
-    % 
+    %
     % spatial_lateralization = []; % 4 x 32 vector (condition order: itd50, itd500, ild10, ild70n)
-    % 
+    %
     % condition_tags = {'__ild_0__itd_50__','__ild_0__itd_500__','__ild_10__itd_0__','__ild_70n__itd_0__'};
     % for i = 1:length(condition_tags)
     %     these_lateralizations = [];

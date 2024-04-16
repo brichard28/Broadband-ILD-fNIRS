@@ -4,7 +4,7 @@
 
 %% Behavior (top two panels)
 % load behavior data
-user = 'Ben';
+user = 'Bon';
 if user == 'Ben'
     load('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\SRM-NIRS-EEG-1_Behavior_Results.mat')
 elseif user == 'Bon'

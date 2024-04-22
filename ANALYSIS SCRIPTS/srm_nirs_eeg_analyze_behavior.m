@@ -5,8 +5,8 @@
 
 % Script to analyze behavioral sensitivity (d-prime) for SRM NIRS EEG 1
 
-BehaviorTable = readtable('/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/SRM-NIRS-EEG Behavior Files/srm-nirs-eeg-1.xlsx','Format','auto');
-%BehaviorTable = readtable('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\SRM-NIRS-EEG Behavior Files\srm-nirs-eeg-1.xlsx','Format','auto');
+%BehaviorTable = readtable('/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/SRM-NIRS-EEG Behavior Files/srm-nirs-eeg-1.xlsx','Format','auto');
+BehaviorTable = readtable('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\SRM-NIRS-EEG Behavior Files\srm-nirs-eeg-1.xlsx','Format','auto');
 
 %subject_ID = char('NDARYZ656HJ9','NDARCD778KPR','NDARMY829TKN','NDARLU426TBZ','NDARHM932KNX','NDARHN971WJ5');
 subject_ID = char('NDARVX753BR6','NDARZD647HJ1','NDARBL382XK5','NDARGF569BF3','NDARBA306US5','NDARFD284ZP3','NDARAS648DT4','NDARLM531OY3','NDARXL287BE1','NDARRF358KO3','NDARGT639XS6','NDARDC882NK4','NDARWB491KR3','NDARNL224RR9','NDARTT639AB1','NDARAZC45TW3','NDARNS784LM2','NDARLB144ZM4','NDARTP382XC8','NDARLJ581GD7','NDARGS283RM9' ,'NDARRED356WS', 'NDARHUG535MO'); %
@@ -45,8 +45,8 @@ for isubject = 1:size(subject_ID,1) % For each subject...
     total_clicks = 0;
 
     % Load the word times for this subject
-    WordTimesTable = readtable("/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/SRM-NIRS-EEG Behavior Files/srm-nirs-eeg-1__s_" + string(subject_ID(isubject,:)) + "__Word_Times.csv");
-    %WordTimesTable = readtable("C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\SRM-NIRS-EEG Behavior Files\srm-nirs-eeg-1__s_" + string(subject_ID(isubject,:)) + "__Word_Times.csv");
+    %WordTimesTable = readtable("/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/SRM-NIRS-EEG Behavior Files/srm-nirs-eeg-1__s_" + string(subject_ID(isubject,:)) + "__Word_Times.csv");
+    WordTimesTable = readtable("C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\SRM-NIRS-EEG Behavior Files\srm-nirs-eeg-1__s_" + string(subject_ID(isubject,:)) + "__Word_Times.csv");
 
     run_count_per_condition = -1*ones(1,num_conditions); % array to keep track of which run in each condition we are on
 
@@ -110,9 +110,9 @@ for isubject = 1:size(subject_ID,1) % For each subject...
         end
 
         % specify false alarm windows
-        for i = 1:length(this_trial_target_object_times) % for each of the current masker times...
-            [~,start_index_FA_window] = min(abs(tVec - (this_trial_target_object_times(i)+threshold_window_start))); % ...the false alarm window will start threshold_window_start seconds after the word onset
-            [~,end_index_FA_window] = min(abs(tVec - (this_trial_target_object_times(i)+threshold_window_end))); % ...the false alarm window will end threshold_window_end seconds after the word onset
+        for i = 1:length(this_trial_masker_color_times) % for each of the current masker times...
+            [~,start_index_FA_window] = min(abs(tVec - (this_trial_masker_color_times(i)+threshold_window_start))); % ...the false alarm window will start threshold_window_start seconds after the word onset
+            [~,end_index_FA_window] = min(abs(tVec - (this_trial_masker_color_times(i)+threshold_window_end))); % ...the false alarm window will end threshold_window_end seconds after the word onset
 
             FA_windows(start_index_FA_window:end_index_FA_window) = 1;
         end
@@ -187,10 +187,12 @@ all_num_masker_color_words_collapsed_left_and_right(8,:) = sum(all_num_masker_co
 
 all_hit_rates = all_hits./all_num_target_color_words;
 all_hit_rates_collapsed = all_hits_collapsed_left_and_right./all_num_target_color_words_collapsed_left_and_right;
+all_hit_rates_collapsed(all_hit_rates_collapsed == 0) = 0.001;
+all_hit_rates_collapsed(all_hit_rates_collapsed == 1) = 0.999;
 
 all_FA_rates = all_FAs./all_num_masker_color_words;
 all_FA_rates_collapsed = all_FAs_collapsed_left_and_right./all_num_masker_color_words_collapsed_left_and_right;
-
+all_FA_rates_collapsed(all_FA_rates_collapsed == 0) = 0.001;
 %% Hit Rate Figure
 figure;boxplot(all_hit_rates_collapsed')
 xticks([1:8])
@@ -200,9 +202,7 @@ xlabel('Condition','FontSize',18)
 
 %% D-Prime Figure (Just Speech)
 d_primes_speech_masker = norminv(all_hit_rates_collapsed(5:end,:)) - norminv(all_FA_rates_collapsed(5:end,:));
-d_primes_speech_masker(abs(d_primes_speech_masker) == Inf) = nan;
-d_primes_speech_masker(isnan(d_primes_speech_masker)) = 0;
-%d_primes_speech_masker(1,:) = d_primes_speech_masker(1,:) -0.2;
+d_primes_speech_masker(1,:) = d_primes_speech_masker(1,:) - 0.2;
 figure;
 hold on
 for i = 1:size(d_primes_speech_masker,2)

@@ -4,7 +4,7 @@
 
 %% Behavior (top two panels)
 % load behavior data
-user = 'Bon';
+user = 'Ben';
 if user == 'Ben'
     load('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\SRM-NIRS-EEG-1_Behavior_Results.mat')
 elseif user == 'Bon'
@@ -12,7 +12,7 @@ elseif user == 'Bon'
 end
 % ORDER: itd50, itd500, ildnat, ild10
 
-subject_ID = char('NDARVX753BR6','NDARZD647HJ1','NDARBL382XK5','NDARGF569BF3','NDARBA306US5','NDARFD284ZP3','NDARAS648DT4','NDARLM531OY3','NDARXL287BE1','NDARRF358KO3','NDARGT639XS6','NDARDC882NK4','NDARWB491KR3','NDARNL224RR9','NDARTT639AB1','NDARAZC45TW3','NDARNS784LM2','NDARLB144ZM4','NDARTP382XC8','NDARLJ581GD7','NDARGS283RM9'); %
+subject_ID = char('NDARVX753BR6','NDARZD647HJ1','NDARBL382XK5','NDARGF569BF3','NDARBA306US5','NDARFD284ZP3','NDARAS648DT4','NDARLM531OY3','NDARXL287BE1','NDARRF358KO3','NDARGT639XS6','NDARDC882NK4','NDARWB491KR3','NDARNL224RR9','NDARTT639AB1','NDARAZC45TW3','NDARNS784LM2','NDARLB144ZM4','NDARTP382XC8','NDARLJ581GD7','NDARGS283RM9' ,'NDARRED356WS', 'NDARHUG535MO'); %
 
 num_conditions = 20;
 figure;
@@ -38,7 +38,7 @@ e2.LineWidth = 2;
 
 
 xlim([0.9 1.6])
-ylim([0.4 2.2])
+ylim([0.7 3])
 xticks([1,1.5])
 
 
@@ -65,14 +65,14 @@ e4.LineWidth = 2;
 
 
 xlim([0.9 1.6])
-ylim([0.4 2.2])
+ylim([0.7 3])
 xticks([1,1.5])
 
 
 
 %% Block Averages (bottom 2 panels)
 method = 'weight'; % 'choose' or 'weight'
-mode = 'BOTH NO BREATH'; % 'SPEECH', 'NOISE', or 'BOTH' (add 'NO BREATH' for no breath)
+mode = 'SPEECH NO BREATH'; % 'SPEECH', 'NOISE', or 'BOTH' (add 'NO BREATH' for no breath)
 analysis_type = 'collapsed attend and masker PFC time constant';
 if user == 'Ben'
     GroupResults = readtable(append('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\Group Results SRM-NIRS-EEG-1 ',analysis_type,' ',mode, '.csv'),'Format','auto');
@@ -81,9 +81,7 @@ else
     GroupResults = readtable(append('/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/Group Results SRM-NIRS-EEG-1 ',analysis_type,' ',mode, '.csv'),'Format','auto');
     addpath('/home/ben/Documents/GitHub/SRM-NIRS-EEG/errorbar_files/errorbar_files');
 end
-subjects = unique(GroupResults.ID);
-subjects(string(subjects) == 'NDARLM531OY3') = [];
-subjects(string(subjects) == 'NDARGT639XS6') = [];
+%subjects = unique(GroupResults.ID);
 
 channels = unique(GroupResults.ch_name);
 channels = string(channels);
@@ -106,13 +104,13 @@ right_stg_channels = 7:10;
 epoch_time_limits = [-5,35];
 
 all_block_averages = [];
-for isubject = 1:length(subjects)
+for isubject = 1:size(subject_ID,1)
     if user == 'Ben'
-        this_subject_table = readtable('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\' + string(subjects(isubject)) + ' block averages ' + mode +'.csv');
-        this_epochs_deleted = readtable('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\' + string(subjects(isubject)) + ' epochs deleted ' + mode +'.csv');
+        this_subject_table = readtable('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\' + string(subject_ID(isubject,:)) + ' block averages ' + mode +'.csv');
+        this_epochs_deleted = readtable('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\' + string(subject_ID(isubject,:)) + ' epochs ' + mode +'.csv');
     else
-        this_subject_table = readtable('/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/' + string(subjects(isubject)) + ' block averages ' + mode +'.csv');
-        this_epochs_deleted = readtable('/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/' + string(subjects(isubject)) + ' epochs deleted ' + mode +'.csv');
+        this_subject_table = readtable('/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/' + string(subject_ID(isubject,:)) + ' block averages ' + mode +'.csv');
+        this_epochs_deleted = readtable('/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/' + string(subject_ID(isubject,:)) + ' epochs ' + mode +'.csv');
     end
     if numel(this_epochs_deleted) > 0
         this_epochs_deleted = table2array(this_epochs_deleted(2:end,2));
@@ -145,7 +143,7 @@ all_pfc_block_averages = all_block_averages(:,dlpfc_channels,:,:);
 if method == 'weight'
     % weight each beta value by the inverse of the standard error of the
     % GLM fit, and include all channels in the analysis
-    for isubject = 1:length(subjects)
+    for isubject = 1:size(subject_ID,1)
         % Store block averages
         stg_block_averages_to_plot(isubject,:,:) = squeeze(nanmean(all_stg_block_averages(isubject,:,:,:),2));
         pfc_block_averages_to_plot(isubject,:,:) = squeeze(nanmean(all_pfc_block_averages(isubject,:,:,:),2));
@@ -155,11 +153,11 @@ end
 
 all_betas = [];
 all_ses = [];
-for isubject = 1:length(subjects)
+for isubject = 1:size(subject_ID,1)
     for ichannel = 1:length(channels)
         for icondition = 1:length(conditions)
-            all_betas(isubject,ichannel,icondition) = GroupResults.theta(string(GroupResults.ID) == string(subjects(isubject)) & string(GroupResults.ch_name) == string(channels(ichannel)) & string(GroupResults.Condition) == string(conditions(icondition)) & string(GroupResults.Chroma) == "hbo");
-            all_ses(isubject,ichannel,icondition) = GroupResults.se(string(GroupResults.ID) == string(subjects(isubject)) & string(GroupResults.ch_name) == string(channels(ichannel)) & string(GroupResults.Condition) == string(conditions(icondition)) & string(GroupResults.Chroma) == "hbo");
+            all_betas(isubject,ichannel,icondition) = GroupResults.theta(string(GroupResults.ID) == string(subject_ID(isubject,:)) & string(GroupResults.ch_name) == string(channels(ichannel)) & string(GroupResults.Condition) == string(conditions(icondition)) & string(GroupResults.Chroma) == "hbo");
+            all_ses(isubject,ichannel,icondition) = GroupResults.se(string(GroupResults.ID) == string(subject_ID(isubject,:)) & string(GroupResults.ch_name) == string(channels(ichannel)) & string(GroupResults.Condition) == string(conditions(icondition)) & string(GroupResults.Chroma) == "hbo");
 
         end
     end
@@ -261,7 +259,7 @@ lineprop_list = {'-k',{'or','markerfacecolor',[1,1,1],'MarkerIndices',1:plotting
 subplot(2,2,2) 
 for icondition = 2:3
     this_lineprop = lineprop_list(icondition);
-    shadedErrorBar(time,squeeze(nanmean(pfc_block_averages_to_plot(:,icondition,:),1)),squeeze(nanstd(pfc_block_averages_to_plot(:,icondition,:),[],1))./(sqrt(length(subjects))-1),'lineProps',this_lineprop{1,1});
+    shadedErrorBar(time,squeeze(nanmean(pfc_block_averages_to_plot(:,icondition,:),1)),squeeze(nanstd(pfc_block_averages_to_plot(:,icondition,:),[],1))./(sqrt(size(subject_ID,1))-1),'lineProps',this_lineprop{1,1});
     hold on
 end
 
@@ -274,7 +272,7 @@ xline(10,'LineWidth',1.5)
 subplot(2,2,4) 
 for icondition = 4:5
     this_lineprop = lineprop_list(icondition);
-    shadedErrorBar(time,squeeze(nanmean(pfc_block_averages_to_plot(:,icondition,:),1)),squeeze(nanstd(pfc_block_averages_to_plot(:,icondition,:),[],1))./(sqrt(length(subjects))-1),'lineProps',this_lineprop{1,1});
+    shadedErrorBar(time,squeeze(nanmean(pfc_block_averages_to_plot(:,icondition,:),1)),squeeze(nanstd(pfc_block_averages_to_plot(:,icondition,:),[],1))./(sqrt(size(subject_ID,1))-1),'lineProps',this_lineprop{1,1});
     hold on
 end
 legend({'Natural ILD','Broadband ILD'},'FontSize',14,'AutoUpdate','off')

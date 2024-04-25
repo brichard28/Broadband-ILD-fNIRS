@@ -12,9 +12,19 @@ elseif user == 'Bon'
 end
 % ORDER: itd50, itd500, ildnat, ild10
 
-subject_ID = char('NDARVX753BR6','NDARZD647HJ1','NDARBL382XK5','NDARGF569BF3','NDARBA306US5','NDARFD284ZP3','NDARAS648DT4','NDARLM531OY3','NDARXL287BE1','NDARRF358KO3','NDARGT639XS6','NDARDC882NK4','NDARWB491KR3','NDARNL224RR9','NDARTT639AB1','NDARAZC45TW3','NDARNS784LM2','NDARLB144ZM4','NDARTP382XC8','NDARLJ581GD7','NDARGS283RM9' ,'NDARRED356WS', 'NDARHUG535MO'); %
+subject_ID = char('NDARVX753BR6','NDARZD647HJ1','NDARBL382XK5','NDARGF569BF3','NDARBA306US5','NDARFD284ZP3','NDARAS648DT4','NDARLM531OY3','NDARXL287BE1','NDARRF358KO3','NDARGT639XS6','NDARFV472HU7','NDARDC882NK4','NDARWB491KR3','NDARNL224RR9','NDARTT639AB1','NDARAZC45TW3','NDARNS784LM2','NDARLB144ZM4','NDARTP382XC8','NDARLJ581GD7','NDARGS283RM9','NDARRED356WS', 'NDARHUG535MO'); %
 
 num_conditions = 20;
+
+%% Analysis Parameters
+method = 'weight'; % 'choose' or 'weight'
+mode = 'NOISE NO BREATH'; % 'SPEECH', 'NOISE', or 'BOTH' (add 'NO BREATH' for no breath)
+analysis_type = 'collapsed attend and masker PFC time constant';
+area = 'PFC'; % 'PFC' or 'STG'
+statistic_to_plot = 'mean'; % 'mean' or 'beta'
+
+
+%% Plotting
 figure;
 % ITD Conditions
 subplot(2,2,1)
@@ -71,9 +81,7 @@ xticks([1,1.5])
 
 
 %% Block Averages (bottom 2 panels)
-method = 'weight'; % 'choose' or 'weight'
-mode = 'SPEECH NO BREATH'; % 'SPEECH', 'NOISE', or 'BOTH' (add 'NO BREATH' for no breath)
-analysis_type = 'collapsed attend and masker PFC time constant';
+
 if user == 'Ben'
     GroupResults = readtable(append('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\Group Results SRM-NIRS-EEG-1 ',analysis_type,' ',mode, '.csv'),'Format','auto');
     addpath('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\errorbar_files\errorbar_files');
@@ -140,15 +148,20 @@ end
 all_stg_block_averages = all_block_averages(:,stg_channels,:,:);
 all_pfc_block_averages = all_block_averages(:,dlpfc_channels,:,:);
 
-if method == 'weight'
-    % weight each beta value by the inverse of the standard error of the
-    % GLM fit, and include all channels in the analysis
-    for isubject = 1:size(subject_ID,1)
-        % Store block averages
-        stg_block_averages_to_plot(isubject,:,:) = squeeze(nanmean(all_stg_block_averages(isubject,:,:,:),2));
-        pfc_block_averages_to_plot(isubject,:,:) = squeeze(nanmean(all_pfc_block_averages(isubject,:,:,:),2));
 
-    end
+% weight each beta value by the inverse of the standard error of the
+% GLM fit, and include all channels in the analysis
+for isubject = 1:size(subject_ID,1)
+    % Store block averages
+    stg_block_averages_to_plot(isubject,:,:) = squeeze(nanmean(all_stg_block_averages(isubject,:,:,:),2));
+    pfc_block_averages_to_plot(isubject,:,:) = squeeze(nanmean(all_pfc_block_averages(isubject,:,:,:),2));
+
+end
+
+if area == 'PFC'
+    block_averages_to_plot = pfc_block_averages_to_plot;
+elseif area == 'STG'
+    block_averages_to_plot = stg_block_averages_to_plot;
 end
 
 all_betas = [];
@@ -167,15 +180,14 @@ all_stg_betas = all_betas(:,stg_channels,:);
 all_pfc_betas = all_betas(:,dlpfc_channels,:);
 
 %% Plot summary statistic on same axes as behavior
-statistic_to_plot = 'mean'; % 'mean' or 'beta'
 time = linspace(epoch_time_limits(1),epoch_time_limits(2),size(all_block_averages,4));
 % ITD Conditions
 subplot(2,2,1)
 yyaxis right
 [~,time_index_0] = min(abs(time - 0)); %0
 [~,time_index_10] = min(abs(time - 10.8)); %10.8
-mean_itd_50 = squeeze(mean(pfc_block_averages_to_plot(:,2,time_index_0:time_index_10),3));
-mean_itd_500 = squeeze(mean(pfc_block_averages_to_plot(:,3,time_index_0:time_index_10),3));
+mean_itd_50 = squeeze(mean(block_averages_to_plot(:,2,time_index_0:time_index_10),3));
+mean_itd_500 = squeeze(mean(block_averages_to_plot(:,3,time_index_0:time_index_10),3));
 beta_itd_50 = squeeze(mean(all_pfc_betas(:,:,2),2));
 beta_itd_500 = squeeze(mean(all_pfc_betas(:,:,3),2));
 
@@ -212,8 +224,8 @@ e6.LineWidth = 2;
 subplot(2,2,3)
 yyaxis right
 
-mean_ild_70n = squeeze(mean(pfc_block_averages_to_plot(:,4,time_index_0:time_index_10),3));
-mean_ild_10 = squeeze(mean(pfc_block_averages_to_plot(:,5,time_index_0:time_index_10),3));
+mean_ild_70n = squeeze(mean(block_averages_to_plot(:,4,time_index_0:time_index_10),3));
+mean_ild_10 = squeeze(mean(block_averages_to_plot(:,5,time_index_0:time_index_10),3));
 beta_ild_70n = squeeze(mean(all_pfc_betas(:,:,4),2));
 beta_ild_10 = squeeze(mean(all_pfc_betas(:,:,5),2));
 
@@ -259,7 +271,7 @@ lineprop_list = {'-k',{'or','markerfacecolor',[1,1,1],'MarkerIndices',1:plotting
 subplot(2,2,2) 
 for icondition = 2:3
     this_lineprop = lineprop_list(icondition);
-    shadedErrorBar(time,squeeze(nanmean(pfc_block_averages_to_plot(:,icondition,:),1)),squeeze(nanstd(pfc_block_averages_to_plot(:,icondition,:),[],1))./(sqrt(size(subject_ID,1))-1),'lineProps',this_lineprop{1,1});
+    shadedErrorBar(time,squeeze(nanmean(block_averages_to_plot(:,icondition,:),1)),squeeze(nanstd(block_averages_to_plot(:,icondition,:),[],1))./(sqrt(size(subject_ID,1))-1),'lineProps',this_lineprop{1,1});
     hold on
 end
 
@@ -272,7 +284,7 @@ xline(10,'LineWidth',1.5)
 subplot(2,2,4) 
 for icondition = 4:5
     this_lineprop = lineprop_list(icondition);
-    shadedErrorBar(time,squeeze(nanmean(pfc_block_averages_to_plot(:,icondition,:),1)),squeeze(nanstd(pfc_block_averages_to_plot(:,icondition,:),[],1))./(sqrt(size(subject_ID,1))-1),'lineProps',this_lineprop{1,1});
+    shadedErrorBar(time,squeeze(nanmean(block_averages_to_plot(:,icondition,:),1)),squeeze(nanstd(block_averages_to_plot(:,icondition,:),[],1))./(sqrt(size(subject_ID,1))-1),'lineProps',this_lineprop{1,1});
     hold on
 end
 legend({'Natural ILD','Broadband ILD'},'FontSize',14,'AutoUpdate','off')

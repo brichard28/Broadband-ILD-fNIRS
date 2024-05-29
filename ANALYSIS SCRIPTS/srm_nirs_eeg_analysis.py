@@ -91,7 +91,11 @@ data_root + '2024-01-30/2024-01-30_001',
 data_root + '2024-01-31/2024-01-31_001',
 data_root + '2024-02-01/2024-02-01_001',
 data_root + '2024-04-09/2024-04-09_001',
-data_root + '2024-04-16/2024-04-16_001']
+data_root + '2024-04-16/2024-04-16_001',
+data_root + '2024-04-24/2024-04-24_001',
+data_root + '2024-04-24/2024-04-24_002',
+data_root + '2024-04-25/2024-04-25_001',
+data_root + '2024-04-25/2024-04-25_002']
 
 
 # Before Control Condition: 'NDARYZ656HJ9','NDARCD778KPR','NDARMY829TKN','NDARLU426TBZ',
@@ -103,9 +107,9 @@ data_root + '2024-04-16/2024-04-16_001']
 # After ITD500 Control Condition added
 # All subject IDs
 subject_ID = ['NDARVX753BR6','NDARZD647HJ1','NDARBL382XK5','NDARGF569BF3','NDARBA306US5','NDARFD284ZP3','NDARAS648DT4','NDARLM531OY3','NDARXL287BE1','NDARRF358KO3','NDARGT639XS6','NDARFV472HU7',
-                'NDARDC882NK4','NDARWB491KR3','NDARNL224RR9','NDARTT639AB1','NDARAZC45TW3','NDARNS784LM2','NDARLB144ZM4','NDARTP382XC8','NDARLJ581GD7','NDARSZ622LR8','NDARGS283RM9','NDARRED356WS','NDARHUG535MO']
+                'NDARDC882NK4','NDARWB491KR3','NDARNL224RR9','NDARTT639AB1','NDARAZC45TW3','NDARNS784LM2','NDARLB144ZM4','NDARTP382XC8','NDARLJ581GD7','NDARSZ622LR8','NDARGS283RM9','NDARRED356WS','NDARHUG535MO','NDARFIN244AL','NDARKAI888JU','NDARGRA444CE','NDARBAA679HA']
 # The subjects we would like to run right now
-curr_subject_ID = ['NDARVX753BR6','NDARZD647HJ1','NDARBL382XK5','NDARGF569BF3','NDARBA306US5','NDARFD284ZP3','NDARAS648DT4','NDARLM531OY3','NDARXL287BE1','NDARRF358KO3','NDARGT639XS6','NDARFV472HU7','NDARDC882NK4','NDARWB491KR3','NDARNL224RR9','NDARTT639AB1','NDARAZC45TW3','NDARNS784LM2','NDARLB144ZM4','NDARTP382XC8','NDARLJ581GD7','NDARGS283RM9','NDARRED356WS', 'NDARHUG535MO']
+curr_subject_ID = ['NDARVX753BR6','NDARZD647HJ1','NDARBL382XK5','NDARGF569BF3','NDARBA306US5','NDARFD284ZP3','NDARAS648DT4','NDARLM531OY3','NDARXL287BE1','NDARRF358KO3','NDARGT639XS6','NDARFV472HU7','NDARDC882NK4','NDARWB491KR3','NDARNL224RR9','NDARTT639AB1','NDARAZC45TW3','NDARNS784LM2','NDARLB144ZM4','NDARTP382XC8','NDARLJ581GD7','NDARGS283RM9','NDARRED356WS', 'NDARHUG535MO','NDARFIN244AL','NDARKAI888JU','NDARBAA679HA']
 
 
 def individual_analysis(fnirs_data_folder, ID):
@@ -116,29 +120,29 @@ def individual_analysis(fnirs_data_folder, ID):
     raw_intensity = read_raw_nirx(fnirs_data_folder, verbose=False, preload=True)
     
     # Before Control Condition
-    #raw_intensity.annotations.rename({'1.0':'Inhale',
-                                      # '2.0':'Exhale',
-                                      # '3.0':'Hold',
-                                      # '4.0':'m_speech__ild_0__itd_500__targ_r__control_0',
-                                      # '5.0':'m_noise__ild_0__itd_50__targ_l__control_0',
-                                      # '6.0':'m_noise__ild_0__itd_50__targ_r__control_0',
-                                      # '7.0':'m_speech__ild_70n__itd_0__targ_r__control_0',
-                                      # '8.0':'m_speech__ild_0__itd_50__targ_l__control_0',
-                                      # '9.0':'m_speech__ild_10__itd_0__targ_l__control_0',
-                                      # '10.0':'m_speech__ild_0__itd_500__targ_l__control_0',
-                                      # '11.0':'m_speech__ild_0__itd_500__targ_l__control_1',
-                                      # '12.0':'m_noise__ild_0__itd_500__targ_r__control_1',
-                                      # '13.0':'m_noise__ild_0__itd_500__targ_r__control_0',
-                                      # '14.0':'m_noise__ild_70n__itd_0__targ_l__control_0',
-                                      # '15.0':'m_noise__ild_10__itd_0__targ_l__control_0',
-                                      # '16.0':'m_speech__ild_10__itd_0__targ_r__control_0',
-                                      # '17.0':'m_noise__ild_10__itd_0__targ_r__control_0',
-                                      # '18.0':'m_speech__ild_0__itd_50__targ_r__control_0',
-                                      #  '19.0':'m_speech__ild_0__itd_500__targ_r__control_1',
-                                      # '20.0':'m_noise__ild_70n__itd_0__targ_r__control_0',
-                                      # '21.0':'m_noise__ild_0__itd_500__targ_l__control_1',
-                                      # '22.0':'m_noise__ild_0__itd_500__targ_l__control_0',
-                                      # '23.0':'m_speech__ild_70n__itd_0__targ_l__control_0'})
+    # raw_intensity.annotations.rename({'1.0':'Inhale',
+    #                                    '2.0':'Exhale',
+    #                                    '3.0':'Hold',
+    #                                    '4.0':'m_speech__ild_0__itd_500__targ_r__control_0',
+    #                                    '5.0':'m_noise__ild_0__itd_50__targ_l__control_0',
+    #                                    '6.0':'m_noise__ild_0__itd_50__targ_r__control_0',
+    #                                    '7.0':'m_speech__ild_70n__itd_0__targ_r__control_0',
+    #                                    '8.0':'m_speech__ild_0__itd_50__targ_l__control_0',
+    #                                    '9.0':'m_speech__ild_10__itd_0__targ_l__control_0',
+    #                                    '10.0':'m_speech__ild_0__itd_500__targ_l__control_0',
+    #                                    '11.0':'m_speech__ild_0__itd_500__targ_l__control_1',
+    #                                    '12.0':'m_noise__ild_0__itd_500__targ_r__control_1',
+    #                                    '13.0':'m_noise__ild_0__itd_500__targ_r__control_0',
+    #                                    '14.0':'m_noise__ild_70n__itd_0__targ_l__control_0',
+    #                                    '15.0':'m_noise__ild_10__itd_0__targ_l__control_0',
+    #                                    '16.0':'m_speech__ild_10__itd_0__targ_r__control_0',
+    #                                    '17.0':'m_noise__ild_10__itd_0__targ_r__control_0',
+    #                                    '18.0':'m_speech__ild_0__itd_50__targ_r__control_0',
+    #                                     '19.0':'m_speech__ild_0__itd_500__targ_r__control_1',
+    #                                    '20.0':'m_noise__ild_70n__itd_0__targ_r__control_0',
+    #                                    '21.0':'m_noise__ild_0__itd_500__targ_l__control_1',
+    #                                    '22.0':'m_noise__ild_0__itd_500__targ_l__control_0',
+    #                                    '23.0':'m_speech__ild_70n__itd_0__targ_l__control_0'})
     # raw_intensity.annotations.rename({'1.0':'Inhale',
     #                                   '2.0':'Exhale',
     #                                   '3.0':'Hold',
@@ -374,15 +378,15 @@ def individual_analysis(fnirs_data_folder, ID):
     epochs_this_subject = epochs_for_block_averages.to_data_frame()
     
     # PLOTTING 
-    epochs_for_block_averages["speech"].plot_image(combine="mean",vmin=-1,vmax=1,ts_args=dict(ylim=dict(hbo=[-1, 1], hbr=[-1, 1])))
-    epochs_for_block_averages["noise"].plot_image(combine="mean",vmin=-1,vmax=1,ts_args=dict(ylim=dict(hbo=[-1, 1], hbr=[-1, 1])))
+    # epochs_for_block_averages["speech"].plot_image(combine="mean",vmin=-1,vmax=1,ts_args=dict(ylim=dict(hbo=[-1, 1], hbr=[-1, 1])))
+    # epochs_for_block_averages["noise"].plot_image(combine="mean",vmin=-1,vmax=1,ts_args=dict(ylim=dict(hbo=[-1, 1], hbr=[-1, 1])))
 
     
     if user == 'Laptop':
-        epochs_this_subject.to_csv("C:/Users/benri/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/" + sub + " block averages SPEECH V NOISE.csv")
+        epochs_this_subject.to_csv("C:/Users/benri/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/" + sub + " block averages SPEECH VS NOISE.csv")
         #pandas.DataFrame(epochs_to_remove).to_csv("C:/Users/benri/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/" + sub + " epochs NOISE NO BREATH.csv")
     else:
-        epochs_this_subject.to_csv("/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/" + sub + " block averages SPEECH V NOISE.csv")
+        epochs_this_subject.to_csv("/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/" + sub + " block averages SPEECH VS NOISE.csv")
        # pandas.DataFrame(epochs_to_remove).to_csv("/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/" + sub + " epochs NOISE NO BREATH.csv")
 
     
@@ -449,8 +453,8 @@ for sub in curr_subject_ID: # For each subject...
 
 # Group Results
 #grp_results = df_cha.query("Condition in ['Inhale','Exhale','Hold','m_speech__ild_0__itd_500__targ_r__control_0','m_noise__ild_0__itd_50__targ_l__control_0','m_noise__ild_0__itd_50__targ_r__control_0','m_speech__ild_70n__itd_0__targ_r__control_0','m_speech__ild_0__itd_50__targ_l__control_0','m_speech__ild_10__itd_0__targ_l__control_0','m_speech__ild_0__itd_500__targ_l__control_0','m_speech__ild_0__itd_500__targ_l__control_1','m_noise__ild_0__itd_500__targ_r__control_1','m_noise__ild_0__itd_500__targ_r__control_0','m_noise__ild_70n__itd_0__targ_l__control_0','m_noise__ild_10__itd_0__targ_l__control_0','m_speech__ild_10__itd_0__targ_r__control_0','m_noise__ild_10__itd_0__targ_r__control_0','m_speech__ild_0__itd_50__targ_r__control_0','m_speech__ild_0__itd_500__targ_r__control_1','m_noise__ild_70n__itd_0__targ_r__control_0','m_noise__ild_0__itd_500__targ_l__control_1','m_noise__ild_0__itd_500__targ_l__control_0','m_speech__ild_70n__itd_0__targ_l__control_0']")
-grp_results = df_cha.query("Condition in ['Inhale','Exhale','Hold','control','ild_0__itd_50','ild_0__itd_500','ild_10__itd_0','ild_70n__itd_0']")
-#grp_results = df_cha.query("Condition in ['Inhale','Exhale','Hold','control','speech','noise']")
+#grp_results = df_cha.query("Condition in ['Inhale','Exhale','Hold','control','ild_0__itd_50','ild_0__itd_500','ild_10__itd_0','ild_70n__itd_0']")
+grp_results = df_cha.query("Condition in ['Inhale','Exhale','Hold','control','speech','noise']")
 grp_results = grp_results.query("Chroma in ['hbo']")
 
 if user == 'Laptop':

@@ -20,7 +20,7 @@ num_conditions = 20;
 method = 'weight'; % 'choose' or 'weight'
 mode = 'NOISE NO BREATH'; % 'SPEECH', 'NOISE', or 'BOTH' (add 'NO BREATH' for no breath)
 analysis_type = 'collapsed attend and masker PFC time constant';
-area = 'PFC'; % 'PFC' or 'STG'
+area = 'STG'; % 'PFC' or 'STG'
 statistic_to_plot = 'mean'; % 'mean' or 'beta'
 
 
@@ -28,55 +28,55 @@ statistic_to_plot = 'mean'; % 'mean' or 'beta'
 figure;
 hold on
 % % ITD Conditions
-subplot(2,1,2)
-% % yyaxis left
-% hold on
-% plot([1,1.5],[mean(d_primes_speech_masker(1,:),2,'omitnan'),mean(d_primes_speech_masker(2,:),2,'omitnan')],'-b','LineWidth',2)
-% 
-% %plot([1:2],d_primes_speech_masker(1:2,:),'Color',[0.4 0.4 0.4])
-% e1 = errorbar([1],mean(d_primes_speech_masker(1,:),2,'omitnan'),std(d_primes_speech_masker(1,:),[],2,'omitnan')./(sqrt(size(subject_ID,1))-1),'Color','b');
-% e1.Marker = 'o';
-% e1.MarkerFaceColor = 'w';
-% e1.MarkerSize = 10;
-% e1.CapSize = 15;
-% e1.LineWidth = 2;
-% e2 = errorbar([1.5],mean(d_primes_speech_masker(2,:),2,'omitnan'),std(d_primes_speech_masker(2,:),[],2,'omitnan')./(sqrt(size(subject_ID,1))-1),'Color','b');
-% e2.Marker = 'o';
-% e2.MarkerFaceColor = 'b';
-% e2.MarkerSize = 10;
-% e2.CapSize = 15;
-% e2.LineWidth = 2;
-% 
-% 
+subplot(2,2,1)
+yyaxis left
+hold on
+plot([1,1.5],[mean(d_primes_speech_masker(1,:),2,'omitnan'),mean(d_primes_speech_masker(2,:),2,'omitnan')],'-b','LineWidth',2)
+
+%plot([1:2],d_primes_speech_masker(1:2,:),'Color',[0.4 0.4 0.4])
+e1 = errorbar([1],mean(d_primes_speech_masker(1,:),2,'omitnan'),std(d_primes_speech_masker(1,:),[],2,'omitnan')./(sqrt(size(subject_ID,1))-1),'Color','b');
+e1.Marker = 'o';
+e1.MarkerFaceColor = 'w';
+e1.MarkerSize = 10;
+e1.CapSize = 15;
+e1.LineWidth = 2;
+e2 = errorbar([1.5],mean(d_primes_speech_masker(2,:),2,'omitnan'),std(d_primes_speech_masker(2,:),[],2,'omitnan')./(sqrt(size(subject_ID,1))-1),'Color','b');
+e2.Marker = 'o';
+e2.MarkerFaceColor = 'b';
+e2.MarkerSize = 10;
+e2.CapSize = 15;
+e2.LineWidth = 2;
+
+
 xlim([0.9 1.6])
-%ylim([0.7 3])
+ylim([0.7 3])
 xticks([1,1.5])
-% 
-% 
-% % ILD Conditions
-subplot(2,1,1)
-% % yyaxis left
-% hold on
-% plot([1,1.5],[mean(d_primes_speech_masker(3,:),2,'omitnan'),mean(d_primes_speech_masker(4,:),2,'omitnan')],'-b','LineWidth',2)
-% 
-% %plot([1:2],d_primes_speech_masker(3:4,:),'Color',[0.4 0.4 0.4])
-% e3 = errorbar([1],mean(d_primes_speech_masker(3,:),2,'omitnan'),std(d_primes_speech_masker(3,:),[],2,'omitnan')./(sqrt(size(subject_ID,1))-1),'Color','b');
-% e3.Marker = 'o';
-% e3.MarkerFaceColor = 'w';
-% e3.MarkerSize = 10;
-% e3.CapSize = 15;
-% e3.LineWidth = 2;
-% 
-% e4 = errorbar([1.5],mean(d_primes_speech_masker(4,:),2,'omitnan'),std(d_primes_speech_masker(4,:),[],2,'omitnan')./(sqrt(size(subject_ID,1))-1),'Color','b');
-% e4.Marker = 'o';
-% e4.MarkerFaceColor = 'b';
-% e4.MarkerSize = 10;
-% e4.CapSize = 15;
-% e4.LineWidth = 2;
-% 
-% 
+
+
+% ILD Conditions
+subplot(2,2,3)
+yyaxis left
+hold on
+plot([1,1.5],[mean(d_primes_speech_masker(3,:),2,'omitnan'),mean(d_primes_speech_masker(4,:),2,'omitnan')],'-b','LineWidth',2)
+
+%plot([1:2],d_primes_speech_masker(3:4,:),'Color',[0.4 0.4 0.4])
+e3 = errorbar([1],mean(d_primes_speech_masker(3,:),2,'omitnan'),std(d_primes_speech_masker(3,:),[],2,'omitnan')./(sqrt(size(subject_ID,1))-1),'Color','b');
+e3.Marker = 'o';
+e3.MarkerFaceColor = 'w';
+e3.MarkerSize = 10;
+e3.CapSize = 15;
+e3.LineWidth = 2;
+
+e4 = errorbar([1.5],mean(d_primes_speech_masker(4,:),2,'omitnan'),std(d_primes_speech_masker(4,:),[],2,'omitnan')./(sqrt(size(subject_ID,1))-1),'Color','b');
+e4.Marker = 'o';
+e4.MarkerFaceColor = 'b';
+e4.MarkerSize = 10;
+e4.CapSize = 15;
+e4.LineWidth = 2;
+
+
 xlim([0.9 1.6])
-% ylim([0.7 3])
+ylim([0.7 3])
 xticks([1,1.5])
 
 
@@ -198,9 +198,9 @@ all_pfc_betas = all_betas(:,dlpfc_channels,:);
 %% Plot summary statistic on same axes as behavior
 time = linspace(epoch_time_limits(1),epoch_time_limits(2),size(all_block_averages,4));
 % ITD Conditions
-subplot(2,1,1)
+subplot(2,2,1)
 hold on
-% yyaxis left
+yyaxis right
 ylim([0 0.11])
 
 [~,time_index_0] = min(abs(time - 4)); %0
@@ -211,11 +211,11 @@ beta_itd_50 = squeeze(mean(all_pfc_betas(:,:,2),2));
 beta_itd_500 = squeeze(mean(all_pfc_betas(:,:,3),2));
 
 if statistic_to_plot == 'mean'
-    plot([1,1.5],[mean(mean_itd_50),mean(mean_itd_500)],'-k','LineWidth',2)
+    plot([1,1.5],[mean(mean_itd_50),mean(mean_itd_500)],'-r','LineWidth',2)
 
     e5 = errorbar([1],mean(mean_itd_50),std(mean_itd_50,[],1,'omitnan')./(sqrt(size(subject_ID,1))-1),'Color','r');
 elseif statistic_to_plot == 'beta'
-    plot([1,1.5],[mean(beta_itd_50),mean(beta_itd_500)],'-k','LineWidth',2)
+    plot([1,1.5],[mean(beta_itd_50),mean(beta_itd_500)],'-r','LineWidth',2)
 
     e5 = errorbar([1],mean(beta_itd_50),std(beta_itd_50,[],1,'omitnan')./(sqrt(size(subject_ID,1))-1),'Color','r');
 
@@ -226,22 +226,22 @@ e5.MarkerSize = 10;
 e5.CapSize = 15;
 e5.LineWidth = 2;
 if statistic_to_plot == 'mean'
-    e6 = errorbar([1.5],mean(mean_itd_500),std(mean_itd_500,[],1,'omitnan')./(sqrt(size(subject_ID,1))-1),'Color','b');
+    e6 = errorbar([1.5],mean(mean_itd_500),std(mean_itd_500,[],1,'omitnan')./(sqrt(size(subject_ID,1))-1),'Color','r');
 elseif statistic_to_plot == 'beta'
-    e6 = errorbar([1.5],mean(beta_itd_500),std(beta_itd_500,[],1,'omitnan')./(sqrt(size(subject_ID,1))-1),'Color','b');
+    e6 = errorbar([1.5],mean(beta_itd_500),std(beta_itd_500,[],1,'omitnan')./(sqrt(size(subject_ID,1))-1),'Color','r');
 
 end
 e6.Marker = '^';
-e6.MarkerFaceColor = 'b';
+e6.MarkerFaceColor = 'r';
 e6.MarkerSize = 10;
 e6.CapSize = 15;
 e6.LineWidth = 2;
 
 
 % ILD Conditions
-subplot(2,1,2)
+subplot(2,2,3)
 hold on
-% yyaxis left
+yyaxis right
 ylim([0 0.11])
 
 mean_ild_70n = squeeze(mean(block_averages_to_plot(:,4,time_index_0:time_index_10),3));
@@ -250,11 +250,11 @@ beta_ild_70n = squeeze(mean(all_pfc_betas(:,:,4),2));
 beta_ild_10 = squeeze(mean(all_pfc_betas(:,:,5),2));
 
 if statistic_to_plot == 'mean'
-    plot([1,1.5],[mean(mean_ild_70n),mean(mean_ild_10)],'-k','LineWidth',2)
+    plot([1,1.5],[mean(mean_ild_70n),mean(mean_ild_10)],'-r','LineWidth',2)
 
     e7 = errorbar([1],mean(mean_ild_70n),std(mean_ild_70n,[],1,'omitnan')./(sqrt(size(subject_ID,1))-1),'Color','r','Marker','square');
 elseif statistic_to_plot == 'beta'
-    plot([1,1.5],[mean(beta_ild_70n),mean(beta_ild_10)],'-k','LineWidth',2)
+    plot([1,1.5],[mean(beta_ild_70n),mean(beta_ild_10)],'-r','LineWidth',2)
 
     e7 = errorbar([1],mean(beta_ild_70n),std(beta_ild_70n,[],1,'omitnan')./(sqrt(size(subject_ID,1))-1),'Color','r','Marker','square');
 
@@ -265,13 +265,13 @@ e7.MarkerSize = 10;
 e7.CapSize = 15;
 e7.LineWidth = 2;
 if statistic_to_plot == 'mean'
-e8 = errorbar([1.5],mean(mean_ild_10),std(mean_ild_10,[],1,'omitnan')./(sqrt(size(subject_ID,1))-1),'Color','b','Marker','square');
+e8 = errorbar([1.5],mean(mean_ild_10),std(mean_ild_10,[],1,'omitnan')./(sqrt(size(subject_ID,1))-1),'Color','r','Marker','square');
 elseif statistic_to_plot == 'beta'
-e8 = errorbar([1.5],mean(beta_ild_10),std(beta_ild_10,[],1,'omitnan')./(sqrt(size(subject_ID,1))-1),'Color','b','Marker','square');
+e8 = errorbar([1.5],mean(beta_ild_10),std(beta_ild_10,[],1,'omitnan')./(sqrt(size(subject_ID,1))-1),'Color','r','Marker','square');
 
 end
 e8.Marker = 'square';
-e8.MarkerFaceColor = 'b';
+e8.MarkerFaceColor = 'r';
 e8.MarkerSize = 10;
 e8.CapSize = 15;
 e8.LineWidth = 2;
@@ -283,52 +283,52 @@ save(['C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\', analysis_typ
 
 
 %% Plot block averages
-% ITD Conditions
-% ymin = -0.3;
-% ymax = 0.6;
-% ymin = -0.125;
-% ymax = 0.15;
-% time = linspace(epoch_time_limits(1),epoch_time_limits(2),size(all_block_averages,4));
-% plotting_fs = 5;
-% lineprop_list = {'-k',{'or','markerfacecolor',[1,1,1],'MarkerIndices',1:plotting_fs:length(time)},{'ob','markerfacecolor',[0,0,1],'MarkerIndices',1:plotting_fs:length(time)},{'or','markerfacecolor',[1,1,1],'MarkerIndices',1:plotting_fs:length(time)},{'ob','markerfacecolor',[0,0,1],'MarkerIndices',1:plotting_fs:length(time)}};
-% % ITD conditions
-% subplot(2,1,1)
-% hold on
-% for icondition = 2:3
-%     this_lineprop = lineprop_list(icondition);
-%     shadedErrorBar(time,squeeze(nanmean(block_averages_to_plot(:,icondition,:),1)),squeeze(nanstd(block_averages_to_plot(:,icondition,:),[],1))./(sqrt(size(subject_ID,1))-1),'lineProps',this_lineprop{1,1});
-%     hold on
-% end
-% 
-% legend({'Small ITD','Large ITD'},'FontSize',14,'AutoUpdate','off')
-% ylim([ymin,ymax])
-% xline(0,'LineWidth',2)
-% xline(12.8,'LineWidth',2)
-% 
-% % ILD conditions
-% subplot(2,1,2)
-% hold on
-% for icondition = 4:5
-%     this_lineprop = lineprop_list(icondition);
-%     shadedErrorBar(time,squeeze(nanmean(block_averages_to_plot(:,icondition,:),1)),squeeze(nanstd(block_averages_to_plot(:,icondition,:),[],1))./(sqrt(size(subject_ID,1))-1),'lineProps',this_lineprop{1,1});
-%     hold on
-% end
-% legend({'Natural ILD','Broadband ILD'},'FontSize',14,'AutoUpdate','off')
-% ylim([ymin,ymax])
-% xline(0,'LineWidth',2)
-% xline(12.8,'LineWidth',2)
+%ITD Conditions
+ymin = -0.3;
+ymax = 0.6;
+ymin = -0.125;
+ymax = 0.15;
+time = linspace(epoch_time_limits(1),epoch_time_limits(2),size(all_block_averages,4));
+plotting_fs = 5;
+lineprop_list = {'-k',{'or','markerfacecolor',[1,1,1],'MarkerIndices',1:plotting_fs:length(time)},{'or','markerfacecolor',[1,0,0],'MarkerIndices',1:plotting_fs:length(time)},{'or','markerfacecolor',[1,1,1],'MarkerIndices',1:plotting_fs:length(time)},{'or','markerfacecolor',[1,0,0],'MarkerIndices',1:plotting_fs:length(time)}};
+% ITD conditions
+subplot(2,2,2)
+hold on
+for icondition = 2:3
+    this_lineprop = lineprop_list(icondition);
+    shadedErrorBar(time,squeeze(nanmean(block_averages_to_plot(:,icondition,:),1)),squeeze(nanstd(block_averages_to_plot(:,icondition,:),[],1))./(sqrt(size(subject_ID,1))-1),'lineProps',this_lineprop{1,1});
+    hold on
+end
+
+legend({'Small ITD','Large ITD'},'FontSize',14,'AutoUpdate','off')
+ylim([ymin,ymax])
+xline(0,'LineWidth',2)
+xline(12.8,'LineWidth',2)
+
+% ILD conditions
+subplot(2,2,4)
+hold on
+for icondition = 4:5
+    this_lineprop = lineprop_list(icondition);
+    shadedErrorBar(time,squeeze(nanmean(block_averages_to_plot(:,icondition,:),1)),squeeze(nanstd(block_averages_to_plot(:,icondition,:),[],1))./(sqrt(size(subject_ID,1))-1),'lineProps',this_lineprop{1,1});
+    hold on
+end
+legend({'Natural ILD','Broadband ILD'},'FontSize',14,'AutoUpdate','off')
+ylim([ymin,ymax])
+xline(0,'LineWidth',2)
+xline(12.8,'LineWidth',2)
 
 %% Other axis stuff (figure size, labels, bolding, etc.)
 fig = gcf;
-%fig.Position = [500, 250, 900, 570];
+fig.Position = [500, 250, 900, 570];
 
-%annotation('textbox', [0.01, 1, 0, 0], 'string', 'A','FontSize',36,'FontWeight','bold')
-%annotation('textbox', [0.45, 1, 0, 0], 'string', 'B','FontSize',36,'FontWeight','bold')
+annotation('textbox', [0.01, 1, 0, 0], 'string', 'A','FontSize',36,'FontWeight','bold')
+annotation('textbox', [0.45, 1, 0, 0], 'string', 'B','FontSize',36,'FontWeight','bold')
 
-h1 = subplot(2,1,1);
+h1 = subplot(2,2,1);
 hold on
-% set(h1, 'Units', 'normalized');
-% set(h1, 'Position', [0.15, 0.6, 0.2, 0.3]);
+set(h1, 'Units', 'normalized');
+set(h1, 'Position', [0.15, 0.6, 0.2, 0.3]);
 set(h1, 'XTickLabelRotationMode','manual');
 labelArray = [{'Small','Large'}; {'  ITD ','  ITD '}];
 tickLabels = strtrim(sprintf('%s\\newline%s\n', labelArray{:}));
@@ -337,46 +337,46 @@ ax = gca;
 ax.LineWidth = 2;
 ax.FontSize = 14;
 ax.FontWeight = 'normal';
-% yyaxis left
-% ax = gca;
-% ax.YColor = 'b';
-% ylabel({"Behavioral";"Sensitivity (d')"},'FontSize',18,'FontWeight','bold')
-%yyaxis right
+yyaxis left
+ax = gca;
+ax.YColor = 'b';
+ylabel({"Behavioral";"Sensitivity (d')"},'FontSize',18,'FontWeight','bold')
+yyaxis right
 ylim([0 0.11])
 ax = gca;
 ax.YColor = 'k';
-% if statistic_to_plot == 'mean'
-%     if contains(mode, 'NO BREATH')
-%         ylabel('Mean \DeltaHbO (\muM)','FontSize',18,'FontWeight','bold')
-%     else
-%         ylabel('Mean \DeltaHbO (AU)','FontSize',18,'FontWeight','bold')
-%     end
-% elseif statistic_to_plot == 'beta'
-%     if contains(mode, 'NO BREATH')
-%         ylabel('Mean Beta (\muM)','FontSize',18,'FontWeight','bold')
-%     else
-%         ylabel('Mean Beta (AU)','FontSize',18,'FontWeight','bold')
-%     end
-% end
-% h2 = subplot(2,1,1);
-% set(h2, 'Units', 'normalized');
-% %set(h2, 'Position', [0.55, 0.6, 0.4, 0.3]);
-% set(h2, 'XTickLabelRotationMode','manual');
-% ax = gca;
-% ax.LineWidth = 2;
-% ax.FontSize = 14;
-% ax.FontWeight = 'normal';
-% xlim(epoch_time_limits)
-% if contains(mode, 'NO BREATH')
-%     ylabel('\DeltaHbO (\muM)','FontSize',18,'FontWeight','bold')
-% else
-%     ylabel('\DeltaHbO (AU)','FontSize',18,'FontWeight','bold')
-% end
+if statistic_to_plot == 'mean'
+    if contains(mode, 'NO BREATH')
+        ylabel('Mean \DeltaHbO (\muM)','FontSize',18,'FontWeight','bold')
+    else
+        ylabel('Mean \DeltaHbO (AU)','FontSize',18,'FontWeight','bold')
+    end
+elseif statistic_to_plot == 'beta'
+    if contains(mode, 'NO BREATH')
+        ylabel('Mean Beta (\muM)','FontSize',18,'FontWeight','bold')
+    else
+        ylabel('Mean Beta (AU)','FontSize',18,'FontWeight','bold')
+    end
+end
+h2 = subplot(2,2,2);
+set(h2, 'Units', 'normalized');
+set(h2, 'Position', [0.55, 0.6, 0.4, 0.3]);
+set(h2, 'XTickLabelRotationMode','manual');
+ax = gca;
+ax.LineWidth = 2;
+ax.FontSize = 14;
+ax.FontWeight = 'normal';
+xlim(epoch_time_limits)
+if contains(mode, 'NO BREATH')
+    ylabel('\DeltaHbO (\muM)','FontSize',18,'FontWeight','bold')
+else
+    ylabel('\DeltaHbO (AU)','FontSize',18,'FontWeight','bold')
+end
 
-h3 = subplot(2,1,2);
-% set(h3, 'Units', 'normalized');
-% set(h3, 'Position', [0.15, 0.2, 0.2, 0.3]);
-% set(h3, 'XTickLabelRotationMode','manual');
+h3 = subplot(2,2,3);
+set(h3, 'Units', 'normalized');
+set(h3, 'Position', [0.15, 0.2, 0.2, 0.3]);
+set(h3, 'XTickLabelRotationMode','manual');
 labelArray = [{'Natural','Broadband'}; {'     ILD ','     ILD '}];
 tickLabels = strtrim(sprintf('%s\\newline%s\n', labelArray{:}));
 xticklabels(tickLabels)
@@ -385,44 +385,44 @@ ax.LineWidth = 2;
 ax.FontSize = 14;
 ax.FontWeight = 'normal';
 xlabel('Condition','FontSize',18,'FontWeight','bold')
-%yyaxis left
-% ax = gca;
-% ax.YColor = 'b';
-% ylabel({"Behavioral";"Sensitivity (d')"},'FontSize',18,'FontWeight','bold')
-% yyaxis right
-%ylim([-0.025 0.375])
+yyaxis left
+ax = gca;
+ax.YColor = 'b';
+ylabel({"Behavioral";"Sensitivity (d')"},'FontSize',18,'FontWeight','bold')
+yyaxis right
+ylim([-0.025 0.375])
 ylim([0 0.11])
 ax = gca;
-% ax.YColor = 'k';
-% if statistic_to_plot == 'mean'
-%     if contains(mode, 'NO BREATH')
-%         ylabel('Mean \DeltaHbO (\muM)','FontSize',18,'FontWeight','bold')
-%     else
-%         ylabel('Mean \DeltaHbO (AU)','FontSize',18,'FontWeight','bold')
-%     end
-% elseif statistic_to_plot == 'beta'
-%     if contains(mode, 'NO BREATH')
-%         ylabel('Mean Beta (\muM)','FontSize',18,'FontWeight','bold')
-%     else
-%         ylabel('Mean Beta (AU)','FontSize',18,'FontWeight','bold')
-%     end
-% end
+ax.YColor = 'k';
+if statistic_to_plot == 'mean'
+    if contains(mode, 'NO BREATH')
+        ylabel('Mean \DeltaHbO (\muM)','FontSize',18,'FontWeight','bold')
+    else
+        ylabel('Mean \DeltaHbO (AU)','FontSize',18,'FontWeight','bold')
+    end
+elseif statistic_to_plot == 'beta'
+    if contains(mode, 'NO BREATH')
+        ylabel('Mean Beta (\muM)','FontSize',18,'FontWeight','bold')
+    else
+        ylabel('Mean Beta (AU)','FontSize',18,'FontWeight','bold')
+    end
+end
 
-% h4 = subplot(2,1,2);
-% set(h4, 'Units', 'normalized');
-% %set(h4, 'Position', [0.55, 0.2, 0.4, 0.3]);
-% set(h4, 'XTickLabelRotationMode','manual');
-% ax = gca;
-% ax.LineWidth = 2;
-% ax.FontSize = 14;
-% ax.FontWeight = 'normal';
-% xlim(epoch_time_limits)
-% xlabel('Time re stimulus onset (s)','FontSize',18,'FontWeight','bold')
-% if contains(mode, 'NO BREATH')
-%     ylabel('\DeltaHbO (\muM)','FontSize',18,'FontWeight','bold')
-% else
-%     ylabel('\DeltaHbO (AU)','FontSize',18,'FontWeight','bold')
-% end
+h4 = subplot(2,2,4);
+set(h4, 'Units', 'normalized');
+set(h4, 'Position', [0.55, 0.2, 0.4, 0.3]);
+set(h4, 'XTickLabelRotationMode','manual');
+ax = gca;
+ax.LineWidth = 2;
+ax.FontSize = 14;
+ax.FontWeight = 'normal';
+xlim(epoch_time_limits)
+xlabel('Time re stimulus onset (s)','FontSize',18,'FontWeight','bold')
+if contains(mode, 'NO BREATH')
+    ylabel('\DeltaHbO (\muM)','FontSize',18,'FontWeight','bold')
+else
+    ylabel('\DeltaHbO (AU)','FontSize',18,'FontWeight','bold')
+end
 
-[p,tbl,stats] = anova1(all_means);
-multcompare(stats)
+% [p,tbl,stats] = anova1(all_means);
+% multcompare(stats)

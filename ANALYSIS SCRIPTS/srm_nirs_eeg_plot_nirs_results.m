@@ -12,7 +12,7 @@ elseif user == 'Bon'
 end
 % ORDER: itd50, itd500, ildnat, ild10
 
-subject_ID = char('NDARVX753BR6','NDARZD647HJ1','NDARBL382XK5','NDARGF569BF3','NDARBA306US5','NDARFD284ZP3','NDARAS648DT4','NDARLM531OY3','NDARXL287BE1','NDARRF358KO3','NDARGT639XS6','NDARDC882NK4','NDARWB491KR3','NDARNL224RR9','NDARTT639AB1','NDARAZC45TW3','NDARNS784LM2','NDARLB144ZM4','NDARTP382XC8','NDARLJ581GD7','NDARGS283RM9','NDARRED356WS', 'NDARHUG535MO'); %
+subject_ID = char('NDARVX753BR6','NDARZD647HJ1','NDARBL382XK5','NDARGF569BF3','NDARBA306US5','NDARFD284ZP3','NDARAS648DT4','NDARLM531OY3','NDARXL287BE1','NDARRF358KO3','NDARGT639XS6','NDARDC882NK4','NDARWB491KR3','NDARNL224RR9','NDARTT639AB1','NDARAZC45TW3','NDARNS784LM2','NDARLB144ZM4','NDARTP382XC8','NDARLJ581GD7','NDARGS283RM9','NDARRED356WS', 'NDARHUG535MO','NDARKAI888JU','NDARBAA679HA'); % 
 
 num_conditions = 20;
 
@@ -20,7 +20,7 @@ num_conditions = 20;
 method = 'weight'; % 'choose' or 'weight'
 mode = 'NOISE NO BREATH'; % 'SPEECH', 'NOISE', or 'BOTH' (add 'NO BREATH' for no breath)
 analysis_type = 'collapsed attend and masker PFC time constant';
-area = 'STG'; % 'PFC' or 'STG'
+area = 'PFC'; % 'PFC' or 'STG'
 statistic_to_plot = 'mean'; % 'mean' or 'beta'
 
 
@@ -117,16 +117,16 @@ for isubject = 1:size(subject_ID,1)
     
     if user == 'Ben'
         this_subject_table = readtable('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\' + string(subject_ID(isubject,:)) + ' block averages ' + mode +'.csv');
-        this_epochs_deleted = readtable('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\' + string(subject_ID(isubject,:)) + ' epochs ' + mode +'.csv');
+%        this_epochs_deleted = readtable('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\' + string(subject_ID(isubject,:)) + ' epochs ' + mode +'.csv');
     else
         this_subject_table = readtable('/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/' + string(subject_ID(isubject,:)) + ' block averages ' + mode +'.csv');
-        this_epochs_deleted = readtable('/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/' + string(subject_ID(isubject,:)) + ' epochs ' + mode +'.csv');
+%        this_epochs_deleted = readtable('/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/' + string(subject_ID(isubject,:)) + ' epochs ' + mode +'.csv');
     end
-    if numel(this_epochs_deleted) > 0
-        this_epochs_deleted = table2array(this_epochs_deleted(2:end,2));
-    else
-        this_epochs_deleted = [];
-    end
+%     if numel(this_epochs_deleted) > 0
+%         this_epochs_deleted = table2array(this_epochs_deleted(2:end,2));
+%     else
+%         this_epochs_deleted = [];
+%     end
     all_epochs = this_subject_table.epoch;
     channels = this_subject_table.Properties.VariableNames(5:end); % ADD IN NANS IF CHANNELS IS LESS THAN IT SHOULD BE
     channels(contains(channels,'Hbr')) = [];
@@ -175,10 +175,10 @@ all_ses = [];
 for isubject = 1:size(subject_ID,1)
     if user == 'Ben'
         this_subject_table = readtable('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\' + string(subject_ID(isubject,:)) + ' block averages ' + mode +'.csv');
-        this_epochs_deleted = readtable('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\' + string(subject_ID(isubject,:)) + ' epochs ' + mode +'.csv');
+ %       this_epochs_deleted = readtable('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\' + string(subject_ID(isubject,:)) + ' epochs ' + mode +'.csv');
     else
         this_subject_table = readtable('/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/' + string(subject_ID(isubject,:)) + ' block averages ' + mode +'.csv');
-        this_epochs_deleted = readtable('/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/' + string(subject_ID(isubject,:)) + ' epochs ' + mode +'.csv');
+%        this_epochs_deleted = readtable('/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/' + string(subject_ID(isubject,:)) + ' epochs ' + mode +'.csv');
     end
     channels = this_subject_table.Properties.VariableNames(5:end);
     channels(contains(channels,'Hbr')) = [];
@@ -426,3 +426,23 @@ end
 
 % [p,tbl,stats] = anova1(all_means);
 % multcompare(stats)
+
+%% Separate block averages figure
+figure;
+lineprop_list = {'-k',{'-r'},{'-b'},{'-r'},{'-b'}};
+subplot(1,2,1)
+hold on
+for icondition = 2:3
+    this_lineprop = lineprop_list(icondition);
+    plot(time,squeeze(block_averages_to_plot(:,icondition,:)),string(this_lineprop{1,1}));
+    hold on
+end
+title('Small (red) vs. Large (blue) ITD')
+subplot(1,2,2)
+hold on
+for icondition = 4:5
+    this_lineprop = lineprop_list(icondition);
+    plot(time,squeeze(block_averages_to_plot(:,icondition,:)),string(this_lineprop{1,1}));
+    hold on
+end
+title('Natural (red) vs. Broadband (blue) ILD')

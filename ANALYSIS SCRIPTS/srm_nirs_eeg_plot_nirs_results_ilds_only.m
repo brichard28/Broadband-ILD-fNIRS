@@ -29,7 +29,7 @@ figure;
 hold on
 
 % ILD Conditions
-subplot(2,2,1)
+subplot(1,2,1)
 yyaxis left
 hold on
 plot([1,1.5],[mean(d_primes_speech_masker(3,:),2,'omitnan'),mean(d_primes_speech_masker(4,:),2,'omitnan')],'-b','LineWidth',2)
@@ -85,7 +85,7 @@ left_stg_channels = 11:14;
 right_stg_channels = 7:10;
 
 % time
-epoch_time_limits = [-5,20];
+epoch_time_limits = [-10,20];
 
 all_block_averages = [];
 for isubject = 1:size(subject_ID,1)
@@ -172,10 +172,10 @@ all_pfc_betas = all_betas(:,dlpfc_channels,:);
 
 %% Plot summary statistic on same axes as behavior
 time = linspace(epoch_time_limits(1),epoch_time_limits(2),size(all_block_averages,4));
-[~,time_index_0] = min(abs(time - 4)); %0
-[~,time_index_10] = min(abs(time - 7)); %10.8
+[~,time_index_0] = min(abs(time - 0)); %0
+[~,time_index_10] = min(abs(time - 5)); %10.8
 % ILD Conditions
-subplot(2,2,1)
+subplot(1,2,1)
 hold on
 yyaxis right
 ylim([0 0.11])
@@ -220,17 +220,18 @@ ymin = -0.125;
 ymax = 0.15;
 time = linspace(epoch_time_limits(1),epoch_time_limits(2),size(all_block_averages,4));
 plotting_fs = 5;
-lineprop_list = {'-k',{'or','markerfacecolor',[1,1,1],'MarkerIndices',1:plotting_fs:length(time)},{'or','markerfacecolor',[1,0,0],'MarkerIndices',1:plotting_fs:length(time)},{'or','markerfacecolor',[1,1,1],'MarkerIndices',1:plotting_fs:length(time)},{'or','markerfacecolor',[1,0,0],'MarkerIndices',1:plotting_fs:length(time)}};
+lineprop_list = {'-k',{'r','markerfacecolor',[1,1,1],'MarkerIndices',1:plotting_fs:length(time)},{'or','markerfacecolor',[1,0,0],'MarkerIndices',1:plotting_fs:length(time)},{'or','Marker','square','markerfacecolor',[1,1,1],'MarkerIndices',1:plotting_fs:length(time)},{'or','Marker','square','markerfacecolor',[1,0,0],'MarkerIndices',1:plotting_fs:length(time)}};
 
 
 % ILD conditions
-subplot(2,2,2)
+subplot(1,2,2)
 hold on
 for icondition = 4:5
     this_lineprop = lineprop_list(icondition);
     shadedErrorBar(time,squeeze(nanmean(block_averages_to_plot(:,icondition,:),1)),squeeze(nanstd(block_averages_to_plot(:,icondition,:),[],1))./(sqrt(size(subject_ID,1))-1),'lineProps',this_lineprop{1,1});
     hold on
 end
+xlabel('Time re: cue onset (s)','FontSize',18,'FontWeight','bold')
 legend({'Natural ILD','Broadband ILD'},'FontSize',14,'AutoUpdate','off')
 ylim([ymin,ymax])
 xline(0,'LineWidth',2)
@@ -238,17 +239,17 @@ xline(12.8,'LineWidth',2)
 
 %% Other axis stuff (figure size, labels, bolding, etc.)
 fig = gcf;
-fig.Position = [500, 250, 900, 350];
+%fig.Position = [500, 250, 900, 350];
 
 annotation('textbox', [0.01, 1, 0, 0], 'string', 'A','FontSize',36,'FontWeight','bold')
 annotation('textbox', [0.45, 1, 0, 0], 'string', 'B','FontSize',36,'FontWeight','bold')
 
-h1 = subplot(2,2,1);
+h1 = subplot(1,2,1);
 hold on
 set(h1, 'Units', 'normalized');
-set(h1, 'Position', [0.15, 0.6, 0.2, 0.3]);
+%set(h1, 'Position', [0.15, 0.2, 0.2, 0.3]);
 set(h1, 'XTickLabelRotationMode','manual');
-labelArray = [{'Small','Large'}; {'  ITD ','  ITD '}];
+labelArray = [{'Natural','Broadband'}; {'     ILD ','     ILD '}];
 tickLabels = strtrim(sprintf('%s\\newline%s\n', labelArray{:}));
 xticklabels(tickLabels)
 ax = gca;
@@ -262,7 +263,7 @@ ylabel({"Behavioral";"Sensitivity (d')"},'FontSize',18,'FontWeight','bold')
 yyaxis right
 ylim([0 0.11])
 ax = gca;
-ax.YColor = 'k';
+ax.YColor = 'r';
 if statistic_to_plot == 'mean'
     if contains(mode, 'NO BREATH')
         ylabel('Mean \DeltaHbO (\muM)','FontSize',18,'FontWeight','bold')
@@ -276,9 +277,9 @@ elseif statistic_to_plot == 'beta'
         ylabel('Mean Beta (AU)','FontSize',18,'FontWeight','bold')
     end
 end
-h2 = subplot(2,2,2);
+h2 = subplot(1,2,2);
 set(h2, 'Units', 'normalized');
-set(h2, 'Position', [0.55, 0.6, 0.4, 0.3]);
+%set(h2, 'Position', [0.55, 0.2, 0.4, 0.3]);
 set(h2, 'XTickLabelRotationMode','manual');
 ax = gca;
 ax.LineWidth = 2;

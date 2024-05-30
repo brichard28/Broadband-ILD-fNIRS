@@ -84,22 +84,26 @@ n_timepoints = 561
 # set up the arrays to hold all subject data
 subject_data_hold = np.full((n_subjects, n_long_channels, n_timepoints), np.nan)
 subject_data_itd50 = np.full((n_subjects, n_long_channels, n_timepoints), np.nan)
-subject_data_noise = np.full((n_subjects, n_long_channels, n_timepoints), np.nan)
-subject_data_control = np.full((n_subjects, n_long_channels, n_timepoints), np.nan)
+subject_data_itd500 = np.full((n_subjects, n_long_channels, n_timepoints), np.nan)
+subject_data_ild70n = np.full((n_subjects, n_long_channels, n_timepoints), np.nan)
+subject_data_ild10 = np.full((n_subjects, n_long_channels, n_timepoints), np.nan)
 
 subject_data_hold_bh_corr = np.full((n_subjects, n_long_channels, n_timepoints), np.nan)
-subject_data_speech_bh_corr = np.full((n_subjects, n_long_channels, n_timepoints), np.nan)
-subject_data_noise_bh_corr = np.full((n_subjects, n_long_channels, n_timepoints), np.nan)
-subject_data_control_bh_corr = np.full((n_subjects, n_long_channels, n_timepoints), np.nan)
+subject_data_itd50_bh_corr = np.full((n_subjects, n_long_channels, n_timepoints), np.nan)
+subject_data_itd500_bh_corr = np.full((n_subjects, n_long_channels, n_timepoints), np.nan)
+subject_data_ild70n_bh_corr = np.full((n_subjects, n_long_channels, n_timepoints), np.nan)
+subject_data_ild10_bh_corr = np.full((n_subjects, n_long_channels, n_timepoints), np.nan)
 
-subject_data_speech_GLM = np.full((n_subjects, n_long_channels), np.nan)
-subject_data_noise_GLM = np.full((n_subjects, n_long_channels), np.nan)
-subject_data_control_GLM = np.full((n_subjects, n_long_channels), np.nan)
+subject_data_itd50_GLM = np.full((n_subjects, n_long_channels), np.nan)
+subject_data_itd500_GLM = np.full((n_subjects, n_long_channels), np.nan)
+subject_data_ild70n_GLM = np.full((n_subjects, n_long_channels), np.nan)
+subject_data_ild10_GLM = np.full((n_subjects, n_long_channels), np.nan)
 
 # put into a larger array with all subjects data!
-subject_data_speech_GLM_bh_corr = np.full((n_subjects, n_long_channels), np.nan)
-subject_data_noise_GLM_bh_corr = np.full((n_subjects, n_long_channels), np.nan)
-subject_data_control_GLM_bh_corr = np.full((n_subjects, n_long_channels), np.nan)
+subject_data_itd50_GLM_bh_corr = np.full((n_subjects, n_long_channels), np.nan)
+subject_data_itd500_GLM_bh_corr = np.full((n_subjects, n_long_channels), np.nan)
+subject_data_ild70n_GLM_bh_corr = np.full((n_subjects, n_long_channels), np.nan)
+subject_data_ild10_GLM_bh_corr = np.full((n_subjects, n_long_channels), np.nan)
 
 range_BH_response = np.zeros((n_subjects, n_long_channels))
 
@@ -215,7 +219,7 @@ for ii, subject_num in enumerate(range(n_subjects)):
     plt.show()
 
     n_conditions = 5
-    conditions = ['Hold','ild_0__itd_500','ild_0__itd_50','ild_70n__itd_0','ild_10__itd_0']
+    conditions = ['Hold','ild_0__itd_50','ild_0__itd_500','ild_70n__itd_0','ild_10__itd_0']
 
     # mark where the bad channels are
     chan_hbo = epochs.copy().pick('hbo').info['ch_names']
@@ -226,16 +230,18 @@ for ii, subject_num in enumerate(range(n_subjects)):
 
     # split the data into speech, noise, control,
     data_hold = epochs["Hold"].get_data(picks='hbo')
-    data_speech = epochs["speech"].get_data(picks='hbo')
-    data_noise = epochs["noise"].get_data(picks='hbo')
-    data_control = epochs["control"].get_data(picks='hbo')
-
+    data_itd50 = epochs["ild_0__itd_50"].get_data(picks='hbo')
+    data_itd500 = epochs["ild_0__itd_500"].get_data(picks='hbo')
+    data_ild70n = epochs["ild_70n__itd_0"].get_data(picks='hbo')
+    data_ild10 = epochs["ild_10__itd_0"].get_data(picks='hbo')
+    
     # get averages for all of the signals
     data_hold_avg = np.mean(data_hold, axis=0)
-    data_speech_avg = np.mean(data_speech, axis=0)
-    data_noise_avg = np.mean(data_noise, axis=0)
-    data_control_avg = np.mean(data_control, axis=0)
-
+    data_itd50_avg = np.mean(data_itd50, axis=0)
+    data_itd500_avg = np.mean(data_itd500, axis=0)
+    data_ild70n_avg = np.mean(data_ild70n, axis=0)
+    data_ild10_avg = np.mean(data_ild10, axis=0)
+    
     # need to mark the indices where the good channels are!
 
     # for BH normalization, look at the effective range in response to a BH
@@ -250,20 +256,23 @@ for ii, subject_num in enumerate(range(n_subjects)):
     # get value for which we should do BH normalization
     range_BH_response[ii, chan_indices_good] = max_during_breathing - min_during_breathing
 
-    data_speech_avg_bh_corr = (data_speech_avg.T / range_BH_response[ii, chan_indices_good]).T
-    data_noise_avg_bh_corr = (data_noise_avg.T / range_BH_response[ii, chan_indices_good]).T
-    data_control_avg_bh_corr = (data_control_avg.T / range_BH_response[ii, chan_indices_good]).T
+    data_itd50_avg_bh_corr = (data_itd50_avg.T / range_BH_response[ii, chan_indices_good]).T
+    data_itd500_avg_bh_corr = (data_itd500_avg.T / range_BH_response[ii, chan_indices_good]).T
+    data_ild70n_avg_bh_corr = (data_ild70n_avg.T / range_BH_response[ii, chan_indices_good]).T
+    data_ild10_avg_bh_corr = (data_ild10_avg.T / range_BH_response[ii, chan_indices_good]).T
 
     # put into a larger array with all subjects data!
     subject_data_hold[ii, chan_indices_good, :] = data_hold_avg
-    subject_data_speech[ii, chan_indices_good, :] = data_speech_avg
-    subject_data_noise[ii, chan_indices_good, :] = data_noise_avg
-    subject_data_control[ii, chan_indices_good, :] = data_control_avg
+    subject_data_itd50[ii, chan_indices_good, :] = data_itd50_avg
+    subject_data_itd500[ii, chan_indices_good, :] = data_itd500_avg
+    subject_data_ild70n[ii, chan_indices_good, :] = data_ild70n_avg
+    subject_data_ild10[ii, chan_indices_good, :] = data_ild10_avg
 
-    subject_data_speech_bh_corr[ii, chan_indices_good, :] = data_speech_avg_bh_corr
-    subject_data_noise_bh_corr[ii, chan_indices_good, :] = data_noise_avg_bh_corr
-    subject_data_control_bh_corr[ii, chan_indices_good, :] = data_control_avg_bh_corr
-
+    subject_data_itd50_bh_corr[ii, chan_indices_good, :] = data_itd50_avg_bh_corr
+    subject_data_itd500_bh_corr[ii, chan_indices_good, :] = data_itd500_avg_bh_corr
+    subject_data_ild70n_bh_corr[ii, chan_indices_good, :] = data_ild70n_avg_bh_corr
+    subject_data_ild10_bh_corr[ii, chan_indices_good, :] = data_ild10_avg_bh_corr
+    
     # run a GLM to extract beta values for each condition
 
     # ---------------------------------------------------------------
@@ -326,18 +335,20 @@ for ii, subject_num in enumerate(range(n_subjects)):
     glm_est_df = glm_est.pick(picks='data', exclude='bads').to_dataframe()
 
     # put into a larger array with all subjects data!
-    subject_data_speech_GLM[ii, chan_indices_good] = glm_est_df.loc[glm_est_df['Condition'] == 'speech']['theta']
-    subject_data_noise_GLM[ii, chan_indices_good] = glm_est_df.loc[glm_est_df['Condition'] == 'noise']['theta']
-    subject_data_control_GLM[ii, chan_indices_good] = glm_est_df.loc[glm_est_df['Condition'] == 'control']['theta']
+    subject_data_itd50_GLM[ii, chan_indices_good] = glm_est_df.loc[glm_est_df['Condition'] == 'ild_0__itd_50']['theta']
+    subject_data_itd500_GLM[ii, chan_indices_good] = glm_est_df.loc[glm_est_df['Condition'] == 'ild_0__itd_500']['theta']
+    subject_data_ild70n_GLM[ii, chan_indices_good] = glm_est_df.loc[glm_est_df['Condition'] == 'ild_70n__itd_0']['theta']
+    subject_data_ild10_GLM[ii, chan_indices_good] = glm_est_df.loc[glm_est_df['Condition'] == 'ild_10__itd_0']['theta']
 
     # put into a larger array with all subjects data!
-    subject_data_speech_GLM_bh_corr[ii, chan_indices_good] = glm_est_df.loc[glm_est_df['Condition'] == 'speech'][
+    subject_data_itd50_GLM_bh_corr[ii, chan_indices_good] = glm_est_df.loc[glm_est_df['Condition'] == 'ild_0__itd_50'][
                                                                  'theta'] / range_BH_response[ii, chan_indices_good]
-    subject_data_noise_GLM_bh_corr[ii, chan_indices_good] = glm_est_df.loc[glm_est_df['Condition'] == 'noise'][
+    subject_data_itd500_GLM_bh_corr[ii, chan_indices_good] = glm_est_df.loc[glm_est_df['Condition'] == 'ild_0__itd_500'][
                                                                 'theta'] / range_BH_response[ii, chan_indices_good]
-    subject_data_control_GLM_bh_corr[ii, chan_indices_good] = glm_est_df.loc[glm_est_df['Condition'] == 'control'][
+    subject_data_ild70n_GLM_bh_corr[ii, chan_indices_good] = glm_est_df.loc[glm_est_df['Condition'] == 'ild_70n__itd_0'][
                                                                   'theta'] / range_BH_response[ii, chan_indices_good]
-
+    subject_data_ild10_GLM_bh_corr[ii, chan_indices_good] = glm_est_df.loc[glm_est_df['Condition'] == 'ild_10__itd_0'][
+                                                                  'theta'] / range_BH_response[ii, chan_indices_good]
 
 # ---------------------------------------------------------------
 # -----------------    Example Plot               ---------
@@ -369,32 +380,37 @@ plt.show()
 # -----------------     Subject Averaging                ---------
 # ---------------------------------------------------------------
 # for each subject, take the beta values and compute a mean and standard error
-subject_data_speech_GLM_mean = np.nanmean(subject_data_speech_GLM, axis=0)
-subject_data_noise_GLM_mean = np.nanmean(subject_data_noise_GLM, axis=0)
-subject_data_control_GLM_mean = np.nanmean(subject_data_control_GLM, axis=0)
+subject_data_itd50_GLM_mean = np.nanmean(subject_data_itd50_GLM, axis=0)
+subject_data_itd500_GLM_mean = np.nanmean(subject_data_itd500_GLM, axis=0)
+subject_data_ild70n_GLM_mean = np.nanmean(subject_data_ild70n_GLM, axis=0)
+subject_data_ild10_GLM_mean = np.nanmean(subject_data_ild10_GLM, axis=0)
 
-subject_data_speech_GLM_std = np.nanstd(subject_data_speech_GLM, axis=0) / np.sqrt(n_subjects)
-subject_data_noise_GLM_std = np.nanstd(subject_data_noise_GLM, axis=0) / np.sqrt(n_subjects)
-subject_data_control_GLM_std = np.nanstd(subject_data_control_GLM, axis=0) / np.sqrt(n_subjects)
+subject_data_itd50_GLM_std = np.nanstd(subject_data_itd50_GLM, axis=0) / np.sqrt(n_subjects)
+subject_data_itd500_GLM_std = np.nanstd(subject_data_itd500_GLM, axis=0) / np.sqrt(n_subjects)
+subject_data_ild70n_GLM_std = np.nanstd(subject_data_ild70n_GLM, axis=0) / np.sqrt(n_subjects)
+subject_data_ild10_GLM_std = np.nanstd(subject_data_ild10_GLM, axis=0) / np.sqrt(n_subjects)
 
 # do the same for breath hold correction now...
-subject_data_speech_GLM_bh_corr_mean = np.nanmean(subject_data_speech_GLM_bh_corr, axis=0)
-subject_data_noise_GLM_bh_corr_mean = np.nanmean(subject_data_noise_GLM_bh_corr, axis=0)
-subject_data_control_GLM_bh_corr_mean = np.nanmean(subject_data_control_GLM_bh_corr, axis=0)
+subject_data_itd50_GLM_bh_corr_mean = np.nanmean(subject_data_itd50_GLM_bh_corr, axis=0)
+subject_data_itd500_GLM_bh_corr_mean = np.nanmean(subject_data_itd500_GLM_bh_corr, axis=0)
+subject_data_ild70n_GLM_bh_corr_mean = np.nanmean(subject_data_ild70n_GLM_bh_corr, axis=0)
+subject_data_ild10_GLM_bh_corr_mean = np.nanmean(subject_data_ild10_GLM_bh_corr, axis=0)
 
-subject_data_speech_GLM_bh_corr_std = np.nanstd(subject_data_speech_GLM_bh_corr, axis=0) / np.sqrt(n_subjects)
-subject_data_noise_GLM_bh_corr_std = np.nanstd(subject_data_noise_GLM_bh_corr, axis=0) / np.sqrt(n_subjects)
-subject_data_control_GLM_bh_corr_std = np.nanstd(subject_data_control_GLM_bh_corr, axis=0) / np.sqrt(n_subjects)
+subject_data_itd50_GLM_bh_corr_std = np.nanstd(subject_data_itd50_GLM_bh_corr, axis=0) / np.sqrt(n_subjects)
+subject_data_itd500_GLM_bh_corr_std = np.nanstd(subject_data_itd500_GLM_bh_corr, axis=0) / np.sqrt(n_subjects)
+subject_data_ild70n_GLM_bh_corr_std = np.nanstd(subject_data_ild70n_GLM_bh_corr, axis=0) / np.sqrt(n_subjects)
+subject_data_ild10_GLM_bh_corr_std = np.nanstd(subject_data_ild10_GLM_bh_corr, axis=0) / np.sqrt(n_subjects)
 
 # ---------------------------------------------------------------
 # -----------------     PLotting Averages                ---------
 # ---------------------------------------------------------------
-caxis_lim = np.max([np.max(np.abs(subject_data_speech_GLM_mean)),
-            np.max(np.abs(subject_data_noise_GLM_mean)),
-            np.max(np.abs(subject_data_control_GLM_mean))])
+caxis_lim = np.max([np.max(np.abs(subject_data_itd50_GLM_mean)),
+            np.max(np.abs(subject_data_itd500_GLM_mean)),
+            np.max(np.abs(subject_data_ild70n_GLM_mean)),
+            np.max(np.abs(subject_data_ild10_GLM_mean))])
 
 fig, axes = plt.subplots(1, 1)
-im, _ = mne.viz.plot_topomap(subject_data_speech_GLM_mean, epochs.pick('hbo').info,
+im, _ = mne.viz.plot_topomap(subject_data_itd50_GLM_mean, epochs.pick('hbo').info,
                      extrapolate='local', image_interp='linear',
                              vlim=(-caxis_lim, caxis_lim), axes=axes, show=False)
 cbar = fig.colorbar(im, ax=axes)
@@ -403,7 +419,7 @@ axes.set_title('GLM Beta Topography: ITD50')
 plt.show()
 
 fig, axes = plt.subplots(1, 1)
-im, _ = mne.viz.plot_topomap(subject_data_noise_GLM_mean, epochs.pick('hbo').info,
+im, _ = mne.viz.plot_topomap(subject_data_itd500_GLM_mean, epochs.pick('hbo').info,
                      extrapolate='local', image_interp='linear',
                              vlim=(-caxis_lim, caxis_lim), axes=axes, show=False)
 cbar = fig.colorbar(im, ax=axes)
@@ -412,7 +428,7 @@ axes.set_title('GLM Beta Topography: ITD500')
 plt.show()
 
 fig, axes = plt.subplots(1, 1)
-im, _ = mne.viz.plot_topomap(subject_data_control_GLM_mean, epochs.pick('hbo').info,
+im, _ = mne.viz.plot_topomap(subject_data_ild70n_GLM_mean, epochs.pick('hbo').info,
                      extrapolate='local', image_interp='linear',
                              vlim=(-caxis_lim, caxis_lim), axes=axes, show=False)
 cbar = fig.colorbar(im, ax=axes)
@@ -421,7 +437,7 @@ axes.set_title('GLM Beta Topography: ILD70n')
 plt.show()
 
 fig, axes = plt.subplots(1, 1)
-im, _ = mne.viz.plot_topomap(subject_data_control_GLM_mean, epochs.pick('hbo').info,
+im, _ = mne.viz.plot_topomap(subject_data_ild10_GLM_mean, epochs.pick('hbo').info,
                      extrapolate='local', image_interp='linear',
                              vlim=(-caxis_lim, caxis_lim), axes=axes, show=False)
 cbar = fig.colorbar(im, ax=axes)
@@ -431,12 +447,13 @@ plt.show()
 
 # -----------------   BREATH HOLD CORRECTION AVERAGE
 # plotting topo-plots!
-caxis_lim = np.max([np.max(np.abs(subject_data_speech_GLM_bh_corr_mean)),
-            np.max(np.abs(subject_data_noise_GLM_bh_corr_mean)),
-            np.max(np.abs(subject_data_control_GLM_bh_corr_mean))])
+caxis_lim = np.max([np.max(np.abs(subject_data_itd50_GLM_bh_corr_mean)),
+            np.max(np.abs(subject_data_itd500_GLM_bh_corr_mean)),
+            np.max(np.abs(subject_data_ild70n_GLM_bh_corr_mean)),
+            np.max(np.abs(subject_data_ild10_GLM_bh_corr_mean))])
 
 fig, axes = plt.subplots(1, 1)
-im, _ = mne.viz.plot_topomap(subject_data_speech_GLM_bh_corr_mean, epochs.pick('hbo').info,
+im, _ = mne.viz.plot_topomap(subject_data_itd50_GLM_bh_corr_mean, epochs.pick('hbo').info,
                      extrapolate='local', image_interp='linear',
                              vlim=(-caxis_lim, caxis_lim), axes=axes, show=False)
 cbar = fig.colorbar(im, ax=axes)
@@ -445,7 +462,7 @@ axes.set_title('GLM Beta Topography BH Corrected: ITD50')
 plt.show()
 
 fig, axes = plt.subplots(1, 1)
-im, _ = mne.viz.plot_topomap(subject_data_noise_GLM_bh_corr_mean, epochs.pick('hbo').info,
+im, _ = mne.viz.plot_topomap(subject_data_itd500_GLM_bh_corr_mean, epochs.pick('hbo').info,
                      extrapolate='local', image_interp='linear',
                              vlim=(-caxis_lim, caxis_lim), axes=axes, show=False)
 cbar = fig.colorbar(im, ax=axes)
@@ -454,7 +471,7 @@ axes.set_title('GLM Beta Topography BH Corrected: ITD500')
 plt.show()
 
 fig, axes = plt.subplots(1, 1)
-im, _ = mne.viz.plot_topomap(subject_data_control_GLM_bh_corr_mean, epochs.pick('hbo').info,
+im, _ = mne.viz.plot_topomap(subject_data_ild70n_GLM_bh_corr_mean, epochs.pick('hbo').info,
                      extrapolate='local', image_interp='linear',
                              vlim=(-caxis_lim, caxis_lim), axes=axes, show=False)
 cbar = fig.colorbar(im, ax=axes)
@@ -463,7 +480,7 @@ axes.set_title('GLM Beta Topography BH Corrected: ILD70n')
 plt.show()
 
 fig, axes = plt.subplots(1, 1)
-im, _ = mne.viz.plot_topomap(subject_data_control_GLM_bh_corr_mean, epochs.pick('hbo').info,
+im, _ = mne.viz.plot_topomap(subject_data_ild10_GLM_bh_corr_mean, epochs.pick('hbo').info,
                      extrapolate='local', image_interp='linear',
                              vlim=(-caxis_lim, caxis_lim), axes=axes, show=False)
 cbar = fig.colorbar(im, ax=axes)
@@ -475,8 +492,8 @@ plt.show()
 # ---------------------------------------------------------------
 # -----------------     Statistical Testing             ---------
 # ---------------------------------------------------------------
-t_stat_SvN, p_value_SvN = stats.ttest_rel(subject_data_speech_GLM, subject_data_noise_GLM, axis=0, nan_policy='omit')
-t_stat_SvN_bh_corr, p_value_SvN_bh_corr = stats.ttest_rel(subject_data_speech_GLM_bh_corr, subject_data_noise_GLM_bh_corr, axis=0, nan_policy='omit')
+t_stat_SvN, p_value_SvN = stats.ttest_rel(subject_data_itd50_GLM, subject_data_itd500_GLM, axis=0, nan_policy='omit')
+t_stat_SvN_bh_corr, p_value_SvN_bh_corr = stats.ttest_rel(subject_data_itd50_GLM_bh_corr, subject_data_itd500_GLM_bh_corr, axis=0, nan_policy='omit')
 
 sig_chans = np.array(raw_haemo_filt.copy().pick('hbo').info['ch_names'])[np.where(p_value_SvN_bh_corr < 0.05)]
 
@@ -488,7 +505,7 @@ im, _ = mne.viz.plot_topomap(t_stat_SvN, epochs.pick('hbo').info,
                      vlim=(-caxis_SvN*1.1, caxis_SvN*1.1), axes=axes, show=False)
 cbar = fig.colorbar(im, ax=axes)
 cbar.set_label('t-statistic')
-axes.set_title('Speech vs. Noise Contrast: Uncorrected')
+axes.set_title('ITD50 vs ITD500 Contrast: Uncorrected')
 plt.show()
 
 fig, axes = plt.subplots()
@@ -497,7 +514,7 @@ im, _ =mne.viz.plot_topomap(t_stat_SvN_bh_corr, epochs.pick('hbo').info,
                      vlim=(-caxis_SvN*1.1, caxis_SvN*1.1), axes=axes, show=False)
 cbar = fig.colorbar(im, ax=axes)
 cbar.set_label('t-statistic')
-axes.set_title('Speech vs. Noise Contrast: BH Corrected')
+axes.set_title('ITD50 vs. ITD500 Contrast: BH Corrected')
 plt.show()
 
 # ---------------------------------------------------------------
@@ -519,16 +536,16 @@ for i in range(n_iter):
         #   store summary statistics in array maximum value and # of significant channels
         subject_selection = np.random.choice(n_subjects, subject_iter, replace=False)
 
-        t_stat_iter, p_value_iter = stats.ttest_rel(subject_data_speech_GLM[subject_selection, :],
-                                                    subject_data_noise_GLM[subject_selection, :],
+        t_stat_iter, p_value_iter = stats.ttest_rel(subject_data_itd50_GLM[subject_selection, :],
+                                                    subject_data_itd500_GLM[subject_selection, :],
                                                     axis=0, nan_policy='omit')
 
         # store
         t_stat_iter_max[i, j] = np.nanmax(abs(t_stat_iter[np.isfinite(t_stat_iter)]))
         p_stat_below_0p05[i, j] = np.sum(p_value_iter < 0.05)
 
-        t_stat_iter_bh_corr, p_value_iter_bh_corr = stats.ttest_rel(subject_data_speech_GLM_bh_corr[subject_selection, :],
-                                                    subject_data_noise_GLM_bh_corr[subject_selection, :],
+        t_stat_iter_bh_corr, p_value_iter_bh_corr = stats.ttest_rel(subject_data_itd50_GLM_bh_corr[subject_selection, :],
+                                                    subject_data_itd500_GLM_bh_corr[subject_selection, :],
                                                     axis=0, nan_policy='omit')
 
         # store

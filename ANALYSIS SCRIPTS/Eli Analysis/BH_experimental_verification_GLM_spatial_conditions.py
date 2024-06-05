@@ -12,6 +12,8 @@ import matplotlib
 # matplotlib.use('TkAgg')
 from matplotlib import pyplot as plt
 import os
+import pandas as pd
+from collections import defaultdict
 
 mne.set_config('MNE_BROWSER_BACKEND', 'qt')
 #from nirx_movement import mark_aux_movement_bad
@@ -59,14 +61,18 @@ all_fnirs_data_folders = [data_root + '2023-09-21/2023-09-21_001',
                           # data_root + '2024-01-31/2024-01-31_001',
                           data_root + '2024-02-01/2024-02-01_001',
                           data_root + '2024-04-09/2024-04-09_001',
-                          data_root + '2024-04-16/2024-04-16_001']
+                          data_root + '2024-04-16/2024-04-16_001',
+                          data_root + '2024-04-24/2024-04-24_001',
+                          data_root + '2024-04-24/2024-04-24_002',
+                          data_root + '2024-04-25/2024-04-25_002']
 
 subject_ID = ['NDARVX753BR6', 'NDARZD647HJ1', 'NDARBL382XK5', 'NDARGF569BF3', 'NDARBA306US5', 'NDARFD284ZP3',
               'NDARAS648DT4',
               'NDARLM531OY3', 'NDARXL287BE1', 'NDARRF358KO3', 'NDARGT639XS6',
               'NDARDC882NK4', 'NDARWB491KR3', 'NDARNL224RR9', 'NDARTT639AB1', 'NDARAZC45TW3', 'NDARNS784LM2',
               'NDARLB144ZM4',
-              'NDARTP382XC8', 'NDARLJ581GD7', 'NDARGS283RM9', 'NDARRED356WS', 'NDARHUG535MO']  # 'NDARSZ622LR8',
+              'NDARTP382XC8', 'NDARLJ581GD7', 'NDARGS283RM9', 'NDARRED356WS', 'NDARHUG535MO','NDARFIN244AL',
+              'NDARKAI888JU','NDARBAA679HA']  # 'NDARSZ622LR8',
 # The subjects we would like to run right now
 curr_subject_ID = ['NDARVX753BR6', 'NDARZD647HJ1', 'NDARBL382XK5', 'NDARGF569BF3', 'NDARBA306US5', 'NDARFD284ZP3',
                    'NDARAS648DT4',
@@ -74,7 +80,8 @@ curr_subject_ID = ['NDARVX753BR6', 'NDARZD647HJ1', 'NDARBL382XK5', 'NDARGF569BF3
                    'NDARWB491KR3',
                    'NDARNL224RR9', 'NDARTT639AB1', 'NDARAZC45TW3', 'NDARNS784LM2', 'NDARLB144ZM4', 'NDARTP382XC8',
                    'NDARLJ581GD7',
-                   'NDARGS283RM9', 'NDARRED356WS', 'NDARHUG535MO']
+                   'NDARGS283RM9', 'NDARRED356WS', 'NDARHUG535MO','NDARFIN244AL',
+                   'NDARKAI888JU','NDARBAA679HA']
 
 n_subjects = len(all_fnirs_data_folders)
 
@@ -107,6 +114,7 @@ subject_data_ild10_GLM_bh_corr = np.full((n_subjects, n_long_channels), np.nan)
 
 range_BH_response = np.zeros((n_subjects, n_long_channels))
 
+all_evokeds = defaultdict(list)
 # loop through all subjects and all sessions (takes a while)
 for ii, subject_num in enumerate(range(n_subjects)):
     subject = subject_ID[ii]
@@ -134,54 +142,152 @@ for ii, subject_num in enumerate(range(n_subjects)):
     # ---------------------------------------------------------------
     # -----------------      Preprocess the Data            ---------
     # ---------------------------------------------------------------
-    data.annotations.rename({'1.0': 'Inhale',
-                             '2.0': 'Exhale',
-                             '3.0': 'Hold',
-                             '4.0': 'ild_0__itd_500',
-                             '5.0': 'ild_0__itd_50',
-                            '6.0': 'ild_0__itd_50',
-                             '7.0': 'ild_70n__itd_0',
-                             '8.0': 'ild_0__itd_50',
-                             '9.0': 'ild_10__itd_0',
-                             '10.0': 'ild_0__itd_500',
-                             '11.0': 'control',
-                             '12.0': 'control',
-                             '13.0': 'ild_0__itd_500',
-                             '14.0': 'ild_70n__itd_0',
-                             '15.0': 'ild_10__itd_0',
-                             '16.0': 'ild_10__itd_0',
-                             '17.0': 'ild_10__itd_0',
-                             '18.0': 'ild_0__itd_50',
-                             '19.0': 'control',
-                             '20.0': 'ild_70n__itd_0',
-                             '21.0': 'control',
-                             '22.0': 'ild_0__itd_500',
-                             '23.0': 'ild_70n__itd_0'})
+    ################### IF BOTH MASKERS ##########################
+    # data.annotations.rename({'1.0': 'Inhale',
+    #                          '2.0': 'Exhale',
+    #                          '3.0': 'Hold',
+    #                          '4.0': 'ild_0__itd_500',
+    #                          '5.0': 'ild_0__itd_50',
+    #                         '6.0': 'ild_0__itd_50',
+    #                          '7.0': 'ild_70n__itd_0',
+    #                          '8.0': 'ild_0__itd_50',
+    #                          '9.0': 'ild_10__itd_0',
+    #                          '10.0': 'ild_0__itd_500',
+    #                          '11.0': 'control',
+    #                          '12.0': 'control',
+    #                          '13.0': 'ild_0__itd_500',
+    #                          '14.0': 'ild_70n__itd_0',
+    #                          '15.0': 'ild_10__itd_0',
+    #                          '16.0': 'ild_10__itd_0',
+    #                          '17.0': 'ild_10__itd_0',
+    #                          '18.0': 'ild_0__itd_50',
+    #                          '19.0': 'control',
+    #                          '20.0': 'ild_70n__itd_0',
+    #                          '21.0': 'control',
+    #                          '22.0': 'ild_0__itd_500',
+    #                          '23.0': 'ild_70n__itd_0'})
 
-    data_snirf.annotations.rename({'1': 'Inhale',
-                                   '2': 'Exhale',
-                                   '3': 'Hold',
-                                   '4': 'ild_0__itd_500',
-                                   '5': 'ild_0__itd_50',
-                                   '6': 'ild_0__itd_50',
-                                   '7': 'ild_70n__itd_0',
-                                   '8': 'ild_0__itd_50',
-                                   '9': 'ild_10__itd_0',
-                                   '10': 'ild_0__itd_500',
-                                   '11': 'control',
-                                   '12': 'control',
-                                   '13': 'ild_0__itd_500',
-                                   '14': 'ild_70n__itd_0',
-                                   '15': 'ild_10__itd_0',
-                                   '16': 'ild_10__itd_0',
-                                   '17': 'ild_10__itd_0',
-                                   '18': 'ild_0__itd_50',
-                                   '19': 'control',
-                                   '20': 'ild_70n__itd_0',
-                                   '21': 'control',
-                                   '22': 'ild_0__itd_500',
-                                   '23': 'ild_70n__itd_0'})
-
+    # data_snirf.annotations.rename({'1': 'Inhale',
+    #                                '2': 'Exhale',
+    #                                '3': 'Hold',
+    #                                '4': 'ild_0__itd_500',
+    #                                '5': 'ild_0__itd_50',
+    #                                '6': 'ild_0__itd_50',
+    #                                '7': 'ild_70n__itd_0',
+    #                                '8': 'ild_0__itd_50',
+    #                                '9': 'ild_10__itd_0',
+    #                                '10': 'ild_0__itd_500',
+    #                                '11': 'control',
+    #                                '12': 'control',
+    #                                '13': 'ild_0__itd_500',
+    #                                '14': 'ild_70n__itd_0',
+    #                                '15': 'ild_10__itd_0',
+    #                                '16': 'ild_10__itd_0',
+    #                                '17': 'ild_10__itd_0',
+    #                                '18': 'ild_0__itd_50',
+    #                                '19': 'control',
+    #                                '20': 'ild_70n__itd_0',
+    #                                '21': 'control',
+    #                                '22': 'ild_0__itd_500',
+    #                                '23': 'ild_70n__itd_0'})
+    
+    
+    ###################### IF SPEECH MASKER ############################
+    data.annotations.rename({'1.0':'Inhale',
+                                      '2.0':'Exhale',
+                                      '3.0':'Hold',
+                                      '4.0':'speech',
+                                      '5.0':'ild_0__itd_50',
+                                      '6.0':'ild_0__itd_50',
+                                      '7.0':'speech',
+                                      '8.0':'speech',
+                                      '9.0':'speech',
+                                      '10.0':'speech',
+                                      '11.0':'control',
+                                      '12.0':'control',
+                                      '13.0':'ild_0__itd_500',
+                                      '14.0':'ild_70n__itd_0',
+                                      '15.0':'ild_10__itd_0',
+                                      '16.0':'speech',
+                                      '17.0':'ild_10__itd_0',
+                                      '18.0':'speech',
+                                        '19.0':'control',
+                                      '20.0':'ild_70n__itd_0',
+                                      '21.0':'control',
+                                      '22.0':'ild_0__itd_500',
+                                      '23.0':'speech'})
+    data_snirf.annotations.rename({'1':'Inhale',
+                                      '2':'Exhale',
+                                      '3':'Hold',
+                                      '4':'speech',
+                                      '5':'ild_0__itd_50',
+                                      '6':'ild_0__itd_50',
+                                      '7':'speech',
+                                      '8':'speech',
+                                      '9':'speech',
+                                      '10':'speech',
+                                      '11':'control',
+                                      '12':'control',
+                                      '13':'ild_0__itd_500',
+                                      '14':'ild_70n__itd_0',
+                                      '15':'ild_10__itd_0',
+                                      '16':'speech',
+                                      '17':'ild_10__itd_0',
+                                      '18':'speech',
+                                      '19':'control',
+                                      '20':'ild_70n__itd_0',
+                                      '21':'control',
+                                      '22':'ild_0__itd_500',
+                                      '23':'speech'})
+    
+    ###################### IF NOISE MASKER ############################
+    # data.annotations.rename({'1.0':'Inhale',
+    #                                   '2.0':'Exhale',
+    #                                   '3.0':'Hold',
+    #                                   '4.0':'ild_0__itd_500',
+    #                                   '5.0':'noise',
+    #                                   '6.0':'noise',
+    #                                   '7.0':'ild_70n__itd_0',
+    #                                   '8.0':'ild_0__itd_50',
+    #                                   '9.0':'ild_10__itd_0',
+    #                                   '10.0':'ild_0__itd_500',
+    #                                   '11.0':'control',
+    #                                   '12.0':'control',
+    #                                   '13.0':'noise',
+    #                                   '14.0':'noise',
+    #                                   '15.0':'noise',
+    #                                   '16.0':'ild_10__itd_0',
+    #                                   '17.0':'noise',
+    #                                   '18.0':'ild_0__itd_50',
+    #                                   '19.0':'control',
+    #                                   '20.0':'noise',
+    #                                   '21.0':'control',
+    #                                   '22.0':'noise',
+    #                                   '23.0':'ild_70n__itd_0'})
+    # data_snirf.annotations.rename({'1':'Inhale',
+    #                                   '2':'Exhale',
+    #                                   '3':'Hold',
+    #                                   '4':'ild_0__itd_500',
+    #                                   '5':'noise',
+    #                                   '6':'noise',
+    #                                   '7':'ild_70n__itd_0',
+    #                                   '8':'ild_0__itd_50',
+    #                                   '9':'ild_10__itd_0',
+    #                                   '10':'ild_0__itd_500',
+    #                                   '11':'control',
+    #                                   '12':'control',
+    #                                   '13':'noise',
+    #                                   '14':'noise',
+    #                                   '15':'noise',
+    #                                   '16':'ild_10__itd_0',
+    #                                   '17':'noise',
+    #                                   '18':'ild_0__itd_50',
+    #                                   '19':'control',
+    #                                   '20':'noise',
+    #                                   '21':'control',
+    #                                   '22':'noise',
+    #                                   '23':'ild_70n__itd_0'})
+    
     events, event_dict = mne.events_from_annotations(data, verbose=False)
 
     raw_haemo_temp, null = preprocess_NIRX(data, data_snirf, event_dict,
@@ -217,10 +323,14 @@ for ii, subject_num in enumerate(range(n_subjects)):
                         on_missing='warn')
     epochs.plot_drop_log()
     plt.show()
-
+    
     n_conditions = 5
     conditions = ['Hold','ild_0__itd_50','ild_0__itd_500','ild_70n__itd_0','ild_10__itd_0']
 
+    for condition in ['ild_0__itd_50','ild_0__itd_500','ild_70n__itd_0','ild_10__itd_0']:
+        all_evokeds[condition].append(epochs[condition].average())
+
+    
     # mark where the bad channels are
     chan_hbo = epochs.copy().pick('hbo').info['ch_names']
     chan_hbo_bad = list(epochs.copy().pick('hbo').info['bads'])
@@ -402,17 +512,44 @@ subject_data_ild70n_GLM_bh_corr_std = np.nanstd(subject_data_ild70n_GLM_bh_corr,
 subject_data_ild10_GLM_bh_corr_std = np.nanstd(subject_data_ild10_GLM_bh_corr, axis=0) / np.sqrt(n_subjects)
 
 # ---------------------------------------------------------------
-# -----------------     PLotting Averages                ---------
+# -----------------     PLotting Block Averages         ---------
 # ---------------------------------------------------------------
-caxis_lim = np.max([np.max(np.abs(subject_data_itd50_GLM_mean)),
-            np.max(np.abs(subject_data_itd500_GLM_mean)),
-            np.max(np.abs(subject_data_ild70n_GLM_mean)),
-            np.max(np.abs(subject_data_ild10_GLM_mean))])
+
+
+
+# ---------------------------------------------------------------
+# -----------------     PLotting Block Average Means    ---------
+# ---------------------------------------------------------------
+# Use plot_topomap here
+fig, axes = plt.subplots(1, 1)
+im, _ = mne.viz.plot_topomap(np.nanmean(subject_data_itd500,axis=(0,2)),epochs.pick('hbo').info,image_interp='linear', axes = axes, show=False)
+# Note 12:30 on 6/4 --> need to take the correct mean etc. 
+
+fig, axes = plt.subplots(nrows=1, ncols=len(all_evokeds), figsize=(17, 5))
+lims = dict(hbo=[-5, 12], hbr=[-5, 12])
+
+for (pick, color) in zip(['hbo', 'hbr'], ['r', 'b']):
+    for idx, evoked in enumerate(all_evokeds):
+        mne.viz.plot_compare_evokeds({evoked: all_evokeds[evoked]}, combine='mean',
+                             picks=pick, axes=axes[idx], show=False,
+                             colors=[color], legend=False, ylim=lims, ci=0.95,
+                             show_sensors=idx == 2)
+        axes[idx].set_title('{}'.format(evoked))
+axes[0].legend(["Oxyhaemoglobin", "Deoxyhaemoglobin"])
+# ---------------------------------------------------------------
+# -----------------     PLotting GLM Averages           ---------
+# ---------------------------------------------------------------
+caxis_lim = 8e-8
+
+# caxis_lim = np.max([np.max(np.abs(subject_data_itd50_GLM_mean)),
+#             np.max(np.abs(subject_data_itd500_GLM_mean)),
+#             np.max(np.abs(subject_data_ild70n_GLM_mean)),
+#             np.max(np.abs(subject_data_ild10_GLM_mean))])
 
 fig, axes = plt.subplots(1, 1)
 im, _ = mne.viz.plot_topomap(subject_data_itd50_GLM_mean, epochs.pick('hbo').info,
                      extrapolate='local', image_interp='linear',
-                             vlim=(-caxis_lim, caxis_lim), axes=axes, show=False)
+                             vlim=(-caxis_lim, caxis_lim), cmap ='RdBu_r', axes=axes, show=False)
 cbar = fig.colorbar(im, ax=axes)
 cbar.set_label('Beta (a.u.)')
 axes.set_title('GLM Beta Topography: ITD50')
@@ -421,7 +558,7 @@ plt.show()
 fig, axes = plt.subplots(1, 1)
 im, _ = mne.viz.plot_topomap(subject_data_itd500_GLM_mean, epochs.pick('hbo').info,
                      extrapolate='local', image_interp='linear',
-                             vlim=(-caxis_lim, caxis_lim), axes=axes, show=False)
+                             vlim=(-caxis_lim, caxis_lim), cmap ='RdBu_r', axes=axes, show=False)
 cbar = fig.colorbar(im, ax=axes)
 cbar.set_label('Beta (a.u.)')
 axes.set_title('GLM Beta Topography: ITD500')
@@ -430,7 +567,7 @@ plt.show()
 fig, axes = plt.subplots(1, 1)
 im, _ = mne.viz.plot_topomap(subject_data_ild70n_GLM_mean, epochs.pick('hbo').info,
                      extrapolate='local', image_interp='linear',
-                             vlim=(-caxis_lim, caxis_lim), axes=axes, show=False)
+                             vlim=(-caxis_lim, caxis_lim), cmap ='RdBu_r', axes=axes, show=False)
 cbar = fig.colorbar(im, ax=axes)
 cbar.set_label('Beta (a.u.)')
 axes.set_title('GLM Beta Topography: ILD70n')
@@ -439,13 +576,13 @@ plt.show()
 fig, axes = plt.subplots(1, 1)
 im, _ = mne.viz.plot_topomap(subject_data_ild10_GLM_mean, epochs.pick('hbo').info,
                      extrapolate='local', image_interp='linear',
-                             vlim=(-caxis_lim, caxis_lim), axes=axes, show=False)
+                             vlim=(-caxis_lim, caxis_lim), cmap ='RdBu_r', axes=axes, show=False)
 cbar = fig.colorbar(im, ax=axes)
 cbar.set_label('Beta (a.u.)')
 axes.set_title('GLM Beta Topography: ILD10')
 plt.show()
 
-# -----------------   BREATH HOLD CORRECTION AVERAGE
+# -----------------   BREATH HOLD CORRECTION AVERAGE ----------------------
 # plotting topo-plots!
 caxis_lim = np.max([np.max(np.abs(subject_data_itd50_GLM_bh_corr_mean)),
             np.max(np.abs(subject_data_itd500_GLM_bh_corr_mean)),
@@ -455,7 +592,7 @@ caxis_lim = np.max([np.max(np.abs(subject_data_itd50_GLM_bh_corr_mean)),
 fig, axes = plt.subplots(1, 1)
 im, _ = mne.viz.plot_topomap(subject_data_itd50_GLM_bh_corr_mean, epochs.pick('hbo').info,
                      extrapolate='local', image_interp='linear',
-                             vlim=(-caxis_lim, caxis_lim), axes=axes, show=False)
+                             vlim=(-caxis_lim, caxis_lim),cmap ='RdBu_r', axes=axes, show=False)
 cbar = fig.colorbar(im, ax=axes)
 cbar.set_label('Beta (a.u.)')
 axes.set_title('GLM Beta Topography BH Corrected: ITD50')
@@ -464,7 +601,7 @@ plt.show()
 fig, axes = plt.subplots(1, 1)
 im, _ = mne.viz.plot_topomap(subject_data_itd500_GLM_bh_corr_mean, epochs.pick('hbo').info,
                      extrapolate='local', image_interp='linear',
-                             vlim=(-caxis_lim, caxis_lim), axes=axes, show=False)
+                             vlim=(-caxis_lim, caxis_lim),cmap ='RdBu_r', axes=axes, show=False)
 cbar = fig.colorbar(im, ax=axes)
 cbar.set_label('Beta (a.u.)')
 axes.set_title('GLM Beta Topography BH Corrected: ITD500')
@@ -473,7 +610,7 @@ plt.show()
 fig, axes = plt.subplots(1, 1)
 im, _ = mne.viz.plot_topomap(subject_data_ild70n_GLM_bh_corr_mean, epochs.pick('hbo').info,
                      extrapolate='local', image_interp='linear',
-                             vlim=(-caxis_lim, caxis_lim), axes=axes, show=False)
+                             vlim=(-caxis_lim, caxis_lim),cmap ='RdBu_r', axes=axes, show=False)
 cbar = fig.colorbar(im, ax=axes)
 cbar.set_label('Beta (a.u.)')
 axes.set_title('GLM Beta Topography BH Corrected: ILD70n')
@@ -482,7 +619,7 @@ plt.show()
 fig, axes = plt.subplots(1, 1)
 im, _ = mne.viz.plot_topomap(subject_data_ild10_GLM_bh_corr_mean, epochs.pick('hbo').info,
                      extrapolate='local', image_interp='linear',
-                             vlim=(-caxis_lim, caxis_lim), axes=axes, show=False)
+                             vlim=(-caxis_lim, caxis_lim),cmap ='RdBu_r', axes=axes, show=False)
 cbar = fig.colorbar(im, ax=axes)
 cbar.set_label('Beta (a.u.)')
 axes.set_title('GLM Beta Topography BH Corrected: ILD10')
@@ -578,3 +715,58 @@ plt.title('Number of Significant Channels (p < 0.05)')
 plt.ylabel('Number of Channels')
 plt.xlabel('Number of Subjects')
 plt.show()
+
+
+
+
+
+
+## Save breath uncorrected and corrected GLM data
+
+# Uncorrected block averages
+names = ['S','Channel','Time_Index']
+index = pd.MultiIndex.from_product([range(s) for s in subject_data_hold.shape], names = names)
+hold_df = pd.DataFrame({'subject_data_hold':subject_data_hold.flatten()},index=index)['subject_data_hold']
+itd50_df = pd.DataFrame({'subject_data_itd50':subject_data_itd50.flatten()},index=index)['subject_data_itd50']
+itd500_df = pd.DataFrame({'subject_data_itd500':subject_data_itd500.flatten()},index=index)['subject_data_itd500']
+ild70n_df = pd.DataFrame({'subject_data_ild70n':subject_data_ild70n.flatten()},index=index)['subject_data_ild70n']
+ild10_df = pd.DataFrame({'subject_data_ild10':subject_data_ild10.flatten()},index=index)['subject_data_ild10']
+z = pd.concat([hold_df,itd50_df,itd500_df,ild70n_df,ild10_df], ignore_index=True,axis=1)
+z.to_csv("all_subjects_uncorr_block_average_speech_masker.csv",index=True)
+
+# Corrected block averages
+names = ['S','Channel','Time_Index']
+index = pd.MultiIndex.from_product([range(s) for s in subject_data_hold_bh_corr.shape], names = names)
+hold_df = pd.DataFrame({'subject_data_hold_bh_corr':subject_data_hold_bh_corr.flatten()},index=index)['subject_data_hold_bh_corr']
+itd50_df = pd.DataFrame({'subject_data_itd50_bh_corr':subject_data_itd50_bh_corr.flatten()},index=index)['subject_data_itd50_bh_corr']
+itd500_df = pd.DataFrame({'subject_data_itd500_bh_corr':subject_data_itd500_bh_corr.flatten()},index=index)['subject_data_itd500_bh_corr']
+ild70n_df = pd.DataFrame({'subject_data_ild70n_bh_corr':subject_data_ild70n_bh_corr.flatten()},index=index)['subject_data_ild70n_bh_corr']
+ild10_df = pd.DataFrame({'subject_data_ild10_bh_corr':subject_data_ild10_bh_corr.flatten()},index=index)['subject_data_ild10_bh_corr']
+z = pd.concat([hold_df,itd50_df,itd500_df,ild70n_df,ild10_df], ignore_index=True,axis=1)
+z.to_csv("all_subjects_bh_corr_block_average_speech_masker.csv",index=True)
+
+# Uncorrected GLM
+names = ['S','Channel']
+index = pd.MultiIndex.from_product([range(s) for s in subject_data_itd50_GLM.shape], names = names)
+itd50_df_GLM = pd.DataFrame({'subject_data_itd50_GLM':subject_data_itd50_GLM.flatten()},index=index)['subject_data_itd50_GLM']
+itd500_df_GLM = pd.DataFrame({'subject_data_itd500_GLM':subject_data_itd500_GLM.flatten()},index=index)['subject_data_itd500_GLM']
+ild70n_df_GLM = pd.DataFrame({'subject_data_ild70n_GLM':subject_data_ild70n_GLM.flatten()},index=index)['subject_data_ild70n_GLM']
+ild10_df_GLM = pd.DataFrame({'subject_data_ild10_GLM':subject_data_ild10_GLM.flatten()},index=index)['subject_data_ild10_GLM']
+z = pd.concat([itd50_df_GLM,itd500_df_GLM,ild70n_df_GLM,ild10_df_GLM], ignore_index=True,axis=1)
+z.to_csv("all_subjects_uncorr_GLM_speech_masker.csv",index=True)
+
+
+# Corrected GLM
+subject_data_itd50_GLM_bh_corr = np.full((n_subjects, n_long_channels), np.nan)
+subject_data_itd500_GLM_bh_corr = np.full((n_subjects, n_long_channels), np.nan)
+subject_data_ild70n_GLM_bh_corr = np.full((n_subjects, n_long_channels), np.nan)
+subject_data_ild10_GLM_bh_corr = np.full((n_subjects, n_long_channels), np.nan)
+
+names = ['S','Channel']
+index = pd.MultiIndex.from_product([range(s) for s in subject_data_itd50_GLM.shape], names = names)
+itd50_df_GLM_bh_corr = pd.DataFrame({'subject_data_itd50_GLM_bh_corr':subject_data_itd50_GLM_bh_corr.flatten()},index=index)['subject_data_itd50_GLM_bh_corr']
+itd500_df_GLM_bh_corr = pd.DataFrame({'subject_data_itd500_GLM_bh_corr':subject_data_itd500_GLM_bh_corr.flatten()},index=index)['subject_data_itd500_GLM_bh_corr']
+ild70n_df_GLM_bh_corr = pd.DataFrame({'subject_data_ild70n_GLM_bh_corr':subject_data_ild70n_GLM_bh_corr.flatten()},index=index)['subject_data_ild70n_GLM_bh_corr']
+ild10_df_GLM_bh_corr = pd.DataFrame({'subject_data_ild10_GLM_bh_corr':subject_data_ild10_GLM_bh_corr.flatten()},index=index)['subject_data_ild10_GLM_bh_corr']
+z = pd.concat([itd50_df_GLM_bh_corr,itd500_df_GLM_bh_corr,ild70n_df_GLM_bh_corr,ild10_df_GLM_bh_corr], ignore_index=True,axis=1)
+z.to_csv("all_subjects_bh_corr_GLM_speech_masker.csv",index=True)

@@ -18,7 +18,7 @@ import os
 
 mne.set_config('MNE_BROWSER_BACKEND', 'qt')
 #from nirx_movement import mark_aux_movement_bad
-import mne_nirs
+#import mne_nirs
 from mne_nirs.experimental_design import make_first_level_design_matrix
 from mne_nirs.statistics import run_glm
 from mne_nirs.channels import (get_long_channels,
@@ -111,9 +111,9 @@ for ii, subject_num in enumerate(range(n_subjects)):
     subject = subject_ID[ii]
     task_type = 'Ben_SvN'
     base_dir = "C:/Users/elibu/Documents/NIRx/Data/"
-    save_dir = "C:/Users/benri/Documents/GitHub/SRM-NIRS-EEG/ANALYSIS SCRIPTS/Eli Analysis/Data/"
+    save_dir = f"H:/Documents/CMU/Projects/EEG-NIRS/Data/{task_type}/"
     if not os.path.exists(save_dir): os.makedirs(save_dir)
-    plot_dir = "C:/Users/benri/Documents/GitHub/SRM-NIRS-EEG/ANALYSIS SCRIPTS/Eli Analysis/Plots/"
+    plot_dir = "C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA
     if not os.path.exists(plot_dir): os.makedirs(plot_dir)
 
     plot_steps = False

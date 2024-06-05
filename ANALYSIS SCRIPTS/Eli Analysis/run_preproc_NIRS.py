@@ -103,9 +103,9 @@ def preprocess_NIRX(data, data_snirf=0, event_dict=0,
     # ---------------------------------------------------------------
     if reject is True:
         sci = mne.preprocessing.nirs.scalp_coupling_index(raw_od)
-        fig, ax = plt.subplots()
-        ax.hist(sci)
-        ax.set(xlabel='Scalp Coupling Index', ylabel='Count', xlim=[0, 1])
+        #fig, ax = plt.subplots()
+        #ax.hist(sci)
+        #ax.set(xlabel='Scalp Coupling Index', ylabel='Count', xlim=[0, 1])
 
         # raw_od.info['bads'] = list(itertools.compress(raw_od.ch_names, sci < 0.8))
 

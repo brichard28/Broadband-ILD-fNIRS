@@ -95,6 +95,12 @@ subject_data_itd500 = np.full((n_subjects, n_long_channels, n_timepoints), np.na
 subject_data_ild70n = np.full((n_subjects, n_long_channels, n_timepoints), np.nan)
 subject_data_ild10 = np.full((n_subjects, n_long_channels, n_timepoints), np.nan)
 
+subject_data_itd50_hbr = np.full((n_subjects, n_long_channels, n_timepoints), np.nan)
+subject_data_itd500_hbr = np.full((n_subjects, n_long_channels, n_timepoints), np.nan)
+subject_data_ild70n_hbr = np.full((n_subjects, n_long_channels, n_timepoints), np.nan)
+subject_data_ild10_hbr = np.full((n_subjects, n_long_channels, n_timepoints), np.nan)
+
+
 subject_data_hold_bh_corr = np.full((n_subjects, n_long_channels, n_timepoints), np.nan)
 subject_data_itd50_bh_corr = np.full((n_subjects, n_long_channels, n_timepoints), np.nan)
 subject_data_itd500_bh_corr = np.full((n_subjects, n_long_channels, n_timepoints), np.nan)
@@ -321,16 +327,19 @@ for ii, subject_num in enumerate(range(n_subjects)):
                         baseline=(-10, 0),
                         preload=True, detrend=1, verbose=True,
                         on_missing='warn')
-    epochs.plot_drop_log()
-    plt.show()
+    #epochs.plot_drop_log()
+    #plt.show()
+    
+    epochs_for_plotting = mne.Epochs(raw_haemo_filt, events,  # events_block,
+                        event_id=event_dict,  # event_dict_total,
+                        tmin=-15, tmax=25,
+                        baseline=(-10, 0),
+                        preload=True, detrend=1, verbose=True,
+                        on_missing='warn')
     
     n_conditions = 5
     conditions = ['Hold','ild_0__itd_50','ild_0__itd_500','ild_70n__itd_0','ild_10__itd_0']
 
-    for condition in ['ild_0__itd_50','ild_0__itd_500','ild_70n__itd_0','ild_10__itd_0']:
-        all_evokeds[condition].append(epochs[condition].average())
-
-    
     # mark where the bad channels are
     chan_hbo = epochs.copy().pick('hbo').info['ch_names']
     chan_hbo_bad = list(epochs.copy().pick('hbo').info['bads'])
@@ -345,12 +354,23 @@ for ii, subject_num in enumerate(range(n_subjects)):
     data_ild70n = epochs["ild_70n__itd_0"].get_data(picks='hbo')
     data_ild10 = epochs["ild_10__itd_0"].get_data(picks='hbo')
     
+    data_hold_hbr = epochs["Hold"].get_data(picks='hbr')
+    data_itd50_hbr = epochs["ild_0__itd_50"].get_data(picks='hbr')
+    data_itd500_hbr = epochs["ild_0__itd_500"].get_data(picks='hbr')
+    data_ild70n_hbr = epochs["ild_70n__itd_0"].get_data(picks='hbr')
+    data_ild10_hbr = epochs["ild_10__itd_0"].get_data(picks='hbr')
+    
     # get averages for all of the signals
     data_hold_avg = np.mean(data_hold, axis=0)
     data_itd50_avg = np.mean(data_itd50, axis=0)
     data_itd500_avg = np.mean(data_itd500, axis=0)
     data_ild70n_avg = np.mean(data_ild70n, axis=0)
     data_ild10_avg = np.mean(data_ild10, axis=0)
+    
+    data_itd50_avg_hbr = np.mean(data_itd50_hbr, axis=0)
+    data_itd500_avg_hbr = np.mean(data_itd500_hbr, axis=0)
+    data_ild70n_avg_hbr = np.mean(data_ild70n_hbr, axis=0)
+    data_ild10_avg_hbr = np.mean(data_ild10_hbr, axis=0)
     
     # need to mark the indices where the good channels are!
 
@@ -382,6 +402,11 @@ for ii, subject_num in enumerate(range(n_subjects)):
     subject_data_itd500_bh_corr[ii, chan_indices_good, :] = data_itd500_avg_bh_corr
     subject_data_ild70n_bh_corr[ii, chan_indices_good, :] = data_ild70n_avg_bh_corr
     subject_data_ild10_bh_corr[ii, chan_indices_good, :] = data_ild10_avg_bh_corr
+    
+    subject_data_itd50_hbr[ii, chan_indices_good, :] = data_itd50_avg_hbr
+    subject_data_itd500_hbr[ii, chan_indices_good, :] = data_itd500_avg_hbr
+    subject_data_ild70n_hbr[ii, chan_indices_good, :] = data_ild70n_avg_hbr
+    subject_data_ild10_hbr[ii, chan_indices_good, :] = data_ild10_avg_hbr
     
     # run a GLM to extract beta values for each condition
 
@@ -516,6 +541,90 @@ subject_data_ild10_GLM_bh_corr_std = np.nanstd(subject_data_ild10_GLM_bh_corr, a
 # ---------------------------------------------------------------
 
 
+channel_names = [this_chan_hbo.replace(' hbo','') for this_chan_hbo in chan_hbo]
+ymin = -5e-8
+ymax = 12e-8
+for ichannel, channel in enumerate(channel_names):
+    all_evokeds_this_channel = all_evokeds[channel]
+    fig, (ax1, ax2, ax3, ax4, ax5) = plt.subplots(1,5)
+    fig.set_figwidth(16)
+    fig.set_figheight(3)
+    lims = dict(hbo=[-5e-2, 20e-2], hbr=[-5e-2, 20e-2])
+    time = np.linspace(-15,25,num=407)
+    
+    # Plot ITD50
+    # HbO
+    curr_data = subject_data_itd50[:,ichannel,0:407]
+    curr_mean = np.nanmean(curr_data, axis=0) - np.nanmean(curr_data[:,51:153],axis=(0,1))
+    curr_error = np.nanstd(curr_data, axis=0)/np.sqrt(np.size(curr_data, axis=0) - 1)
+    ax1.plot(time, curr_mean, 'k-')
+    ax1.fill_between(time, curr_mean- curr_error,  curr_mean+curr_error, color='r')
+    # HbR
+    curr_data = subject_data_itd50_hbr[:,ichannel,0:407]
+    curr_mean = np.nanmean(curr_data, axis=0) - np.nanmean(curr_data[:,51:153],axis=(0,1))
+    curr_error = np.nanstd(curr_data, axis=0)/np.sqrt(np.size(curr_data, axis=0) - 1)
+    ax1.plot(time, curr_mean, 'k-')
+    ax1.fill_between(time, curr_mean- curr_error,  curr_mean+curr_error, color='b')
+    ax1.set_ylim((ymin, ymax))
+    ax1.set_title('ITD50')
+    ax1.set_ylabel('DeltaHb')
+    ax1.set_xlabel('Time (s)')
+        
+    # Plot ITD500
+    # HbO
+    curr_data = subject_data_itd500[:,ichannel,0:407]
+    curr_mean = np.nanmean(curr_data, axis=0) - np.nanmean(curr_data[:,51:153],axis=(0,1))
+    curr_error = np.nanstd(curr_data, axis=0)/np.sqrt(np.size(curr_data, axis=0) - 1)
+    ax2.plot(time, curr_mean, 'k-')
+    ax2.fill_between(time, curr_mean- curr_error,  curr_mean+curr_error, color='r')
+    # HbR
+    curr_data = subject_data_itd500_hbr[:,ichannel,0:407]
+    curr_mean = np.nanmean(curr_data, axis=0) - np.nanmean(curr_data[:,51:153],axis=(0,1))
+    curr_error = np.nanstd(curr_data, axis=0)/np.sqrt(np.size(curr_data, axis=0) - 1)
+    ax2.plot(time, curr_mean, 'k-')
+    ax2.fill_between(time, curr_mean- curr_error,  curr_mean+curr_error, color='b')
+    ax2.set_ylim((ymin, ymax))
+    ax2.set_title('ITD500')
+    ax2.set_xlabel('Time (s)')
+    
+    # Plot ILD70n
+    # HbO
+    curr_data = subject_data_ild70n[:,ichannel,0:407]
+    curr_mean = np.nanmean(curr_data, axis=0) - np.nanmean(curr_data[:,51:153],axis=(0,1))
+    curr_error = np.nanstd(curr_data, axis=0)/np.sqrt(np.size(curr_data, axis=0) - 1)
+    ax3.plot(time, curr_mean, 'k-')
+    ax3.fill_between(time, curr_mean- curr_error,  curr_mean+curr_error, color='r')
+    # HbR
+    curr_data = subject_data_ild70n_hbr[:,ichannel,0:407]
+    curr_mean = np.nanmean(curr_data, axis=0) - np.nanmean(curr_data[:,51:153],axis=(0,1))
+    curr_error = np.nanstd(curr_data, axis=0)/np.sqrt(np.size(curr_data, axis=0) - 1)
+    ax3.plot(time, curr_mean, 'k-')
+    ax3.fill_between(time, curr_mean- curr_error,  curr_mean+curr_error, color='b')
+    ax3.set_ylim((ymin, ymax))
+    ax3.set_title('ILD70n')
+    ax3.set_xlabel('Time (s)')
+    
+    # Plot ILD10
+    # HbO
+    curr_data = subject_data_ild10[:,ichannel,0:407]
+    curr_mean = np.nanmean(curr_data, axis=0) - np.nanmean(curr_data[:,51:153],axis=(0,1))
+    curr_error = np.nanstd(curr_data, axis=0)/np.sqrt(np.size(curr_data, axis=0) - 1)
+    ax4.plot(time, curr_mean, 'k-')
+    ax4.fill_between(time, curr_mean- curr_error,  curr_mean+curr_error, color='r')
+    ax4.set_xlabel('Time (s)')
+    
+    #HbR
+    curr_data = subject_data_ild10_hbr[:,ichannel,0:407]
+    curr_mean = np.nanmean(curr_data, axis=0) - np.nanmean(curr_data[:,51:153],axis=(0,1))
+    curr_error = np.nanstd(curr_data, axis=0)/np.sqrt(np.size(curr_data, axis=0) - 1)
+    ax4.plot(time, curr_mean, 'k-')
+    ax4.fill_between(time, curr_mean- curr_error,  curr_mean+curr_error, color='b')
+    ax4.set_ylim((ymin, ymax))
+    ax4.set_title('ITD10')
+    
+    # Plot sensor location
+    epochs.copy().pick(chan_hbo[ichannel]).plot_sensors(axes = ax5)
+    fig.subplots_adjust(left=0.05, bottom=0.2, right=0.98, top=0.9, wspace=0.2, hspace=0.1)
 
 # ---------------------------------------------------------------
 # -----------------     PLotting Block Average Means    ---------
@@ -525,17 +634,7 @@ fig, axes = plt.subplots(1, 1)
 im, _ = mne.viz.plot_topomap(np.nanmean(subject_data_itd500,axis=(0,2)),epochs.pick('hbo').info,image_interp='linear', axes = axes, show=False)
 # Note 12:30 on 6/4 --> need to take the correct mean etc. 
 
-fig, axes = plt.subplots(nrows=1, ncols=len(all_evokeds), figsize=(17, 5))
-lims = dict(hbo=[-5, 12], hbr=[-5, 12])
 
-for (pick, color) in zip(['hbo', 'hbr'], ['r', 'b']):
-    for idx, evoked in enumerate(all_evokeds):
-        mne.viz.plot_compare_evokeds({evoked: all_evokeds[evoked]}, combine='mean',
-                             picks=pick, axes=axes[idx], show=False,
-                             colors=[color], legend=False, ylim=lims, ci=0.95,
-                             show_sensors=idx == 2)
-        axes[idx].set_title('{}'.format(evoked))
-axes[0].legend(["Oxyhaemoglobin", "Deoxyhaemoglobin"])
 # ---------------------------------------------------------------
 # -----------------     PLotting GLM Averages           ---------
 # ---------------------------------------------------------------

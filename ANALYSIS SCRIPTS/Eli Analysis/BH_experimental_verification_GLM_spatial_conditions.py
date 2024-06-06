@@ -555,13 +555,13 @@ for ichannel, channel in enumerate(channel_names):
     # Plot ITD50
     # HbO
     curr_data = subject_data_itd50[:,ichannel,0:407]
-    curr_mean = np.nanmean(curr_data, axis=0) - np.nanmean(curr_data[:,51:153],axis=(0,1))
+    curr_mean = np.nanmean(curr_data - np.nanmean(curr_data[:,51:153],axis=(0,1)), axis=0) 
     curr_error = np.nanstd(curr_data, axis=0)/np.sqrt(np.size(curr_data, axis=0) - 1)
     ax1.plot(time, curr_mean, 'k-')
     ax1.fill_between(time, curr_mean- curr_error,  curr_mean+curr_error, color='r')
     # HbR
     curr_data = subject_data_itd50_hbr[:,ichannel,0:407]
-    curr_mean = np.nanmean(curr_data, axis=0) - np.nanmean(curr_data[:,51:153],axis=(0,1))
+    curr_mean = np.nanmean(curr_data - np.nanmean(curr_data[:,51:153],axis=(0,1)), axis=0) 
     curr_error = np.nanstd(curr_data, axis=0)/np.sqrt(np.size(curr_data, axis=0) - 1)
     ax1.plot(time, curr_mean, 'k-')
     ax1.fill_between(time, curr_mean- curr_error,  curr_mean+curr_error, color='b')
@@ -573,13 +573,13 @@ for ichannel, channel in enumerate(channel_names):
     # Plot ITD500
     # HbO
     curr_data = subject_data_itd500[:,ichannel,0:407]
-    curr_mean = np.nanmean(curr_data, axis=0) - np.nanmean(curr_data[:,51:153],axis=(0,1))
+    curr_mean = np.nanmean(curr_data - np.nanmean(curr_data[:,51:153],axis=(0,1)), axis=0) 
     curr_error = np.nanstd(curr_data, axis=0)/np.sqrt(np.size(curr_data, axis=0) - 1)
     ax2.plot(time, curr_mean, 'k-')
     ax2.fill_between(time, curr_mean- curr_error,  curr_mean+curr_error, color='r')
     # HbR
     curr_data = subject_data_itd500_hbr[:,ichannel,0:407]
-    curr_mean = np.nanmean(curr_data, axis=0) - np.nanmean(curr_data[:,51:153],axis=(0,1))
+    curr_mean = np.nanmean(curr_data - np.nanmean(curr_data[:,51:153],axis=(0,1)), axis=0) 
     curr_error = np.nanstd(curr_data, axis=0)/np.sqrt(np.size(curr_data, axis=0) - 1)
     ax2.plot(time, curr_mean, 'k-')
     ax2.fill_between(time, curr_mean- curr_error,  curr_mean+curr_error, color='b')
@@ -590,13 +590,13 @@ for ichannel, channel in enumerate(channel_names):
     # Plot ILD70n
     # HbO
     curr_data = subject_data_ild70n[:,ichannel,0:407]
-    curr_mean = np.nanmean(curr_data, axis=0) - np.nanmean(curr_data[:,51:153],axis=(0,1))
+    curr_mean = np.nanmean(curr_data - np.nanmean(curr_data[:,51:153],axis=(0,1)), axis=0) 
     curr_error = np.nanstd(curr_data, axis=0)/np.sqrt(np.size(curr_data, axis=0) - 1)
     ax3.plot(time, curr_mean, 'k-')
     ax3.fill_between(time, curr_mean- curr_error,  curr_mean+curr_error, color='r')
     # HbR
     curr_data = subject_data_ild70n_hbr[:,ichannel,0:407]
-    curr_mean = np.nanmean(curr_data, axis=0) - np.nanmean(curr_data[:,51:153],axis=(0,1))
+    curr_mean = np.nanmean(curr_data - np.nanmean(curr_data[:,51:153],axis=(0,1)), axis=0) 
     curr_error = np.nanstd(curr_data, axis=0)/np.sqrt(np.size(curr_data, axis=0) - 1)
     ax3.plot(time, curr_mean, 'k-')
     ax3.fill_between(time, curr_mean- curr_error,  curr_mean+curr_error, color='b')
@@ -607,7 +607,7 @@ for ichannel, channel in enumerate(channel_names):
     # Plot ILD10
     # HbO
     curr_data = subject_data_ild10[:,ichannel,0:407]
-    curr_mean = np.nanmean(curr_data, axis=0) - np.nanmean(curr_data[:,51:153],axis=(0,1))
+    curr_mean = np.nanmean(curr_data - np.nanmean(curr_data[:,51:153],axis=(0,1)), axis=0) 
     curr_error = np.nanstd(curr_data, axis=0)/np.sqrt(np.size(curr_data, axis=0) - 1)
     ax4.plot(time, curr_mean, 'k-')
     ax4.fill_between(time, curr_mean- curr_error,  curr_mean+curr_error, color='r')
@@ -615,7 +615,7 @@ for ichannel, channel in enumerate(channel_names):
     
     #HbR
     curr_data = subject_data_ild10_hbr[:,ichannel,0:407]
-    curr_mean = np.nanmean(curr_data, axis=0) - np.nanmean(curr_data[:,51:153],axis=(0,1))
+    curr_mean = np.nanmean(curr_data - np.nanmean(curr_data[:,51:153],axis=(0,1)), axis=0) 
     curr_error = np.nanstd(curr_data, axis=0)/np.sqrt(np.size(curr_data, axis=0) - 1)
     ax4.plot(time, curr_mean, 'k-')
     ax4.fill_between(time, curr_mean- curr_error,  curr_mean+curr_error, color='b')
@@ -630,8 +630,56 @@ for ichannel, channel in enumerate(channel_names):
 # -----------------     PLotting Block Average Means    ---------
 # ---------------------------------------------------------------
 # Use plot_topomap here
-fig, axes = plt.subplots(1, 1)
-im, _ = mne.viz.plot_topomap(np.nanmean(subject_data_itd500,axis=(0,2)),epochs.pick('hbo').info,image_interp='linear', axes = axes, show=False)
+fig, (ax1,ax2,ax3,ax4) = plt.subplots(1, 4)
+caxis_lim = 11e-8
+
+# ITD50
+curr_data = subject_data_itd50
+curr_data = curr_data - np.nanmean(curr_data[:,:,51:153],axis=(0,1,2))
+mean_during_stim = np.mean(curr_data[:,:,153:284], axis=2)
+im, _ = mne.viz.plot_topomap(np.nanmean(mean_during_stim,axis=0),epochs.pick('hbo').info,
+                             image_interp='nearest', extrapolate='local',
+                             vlim=(-5e-8, caxis_lim), cmap ='RdBu_r',
+                             axes = ax1, show=False)
+cbar = fig.colorbar(im, ax=ax1)
+cbar.set_label('Mean DeltaHbO')
+ax1.set_title('ITD50')
+
+#ITD500 
+curr_data = subject_data_itd500
+curr_data = curr_data - np.nanmean(curr_data[:,:,51:153],axis=(0,1,2))
+mean_during_stim = np.mean(curr_data[:,:,153:284], axis=2)
+im, _ = mne.viz.plot_topomap(np.nanmean(mean_during_stim,axis=0),epochs.pick('hbo').info,
+                             image_interp='nearest', extrapolate='local', 
+                             vlim=(-5e-8, caxis_lim), cmap ='RdBu_r',
+                             axes = ax2, show=False)
+cbar = fig.colorbar(im, ax=ax2)
+cbar.set_label('Mean DeltaHbO')
+ax2.set_title('ITD500')
+
+# ILD70n
+curr_data = subject_data_ild70n
+curr_data = curr_data - np.nanmean(curr_data[:,:,51:153],axis=(0,1,2))
+mean_during_stim = np.mean(curr_data[:,:,153:284], axis=2)
+im, _ = mne.viz.plot_topomap(np.nanmean(mean_during_stim,axis=0),epochs.pick('hbo').info,
+                             image_interp='nearest', extrapolate='local', 
+                             vlim=(-5e-8, caxis_lim), cmap ='RdBu_r',
+                             axes = ax3, show=False)
+cbar = fig.colorbar(im, ax=ax3)
+cbar.set_label('Mean DeltaHbO')
+ax3.set_title('ILD70n')
+
+# ILD10
+curr_data = subject_data_ild10
+curr_data = curr_data - np.nanmean(curr_data[:,:,51:153],axis=(0,1,2))
+mean_during_stim = np.mean(curr_data[:,:,153:284], axis=2)
+im, _ = mne.viz.plot_topomap(np.nanmean(mean_during_stim,axis=0),epochs.pick('hbo').info,
+                             image_interp='nearest', extrapolate='local', 
+                             vlim=(-5e-8, caxis_lim), cmap ='RdBu_r',
+                             axes = ax4, show=False)
+cbar = fig.colorbar(im, ax=ax4)
+cbar.set_label('Mean DeltaHbO')
+ax4.set_title('ILD10')
 # Note 12:30 on 6/4 --> need to take the correct mean etc. 
 
 
@@ -645,40 +693,37 @@ caxis_lim = 8e-8
 #             np.max(np.abs(subject_data_ild70n_GLM_mean)),
 #             np.max(np.abs(subject_data_ild10_GLM_mean))])
 
-fig, axes = plt.subplots(1, 1)
+fig, (ax1,ax2,ax3,ax4) = plt.subplots(1, 4)
 im, _ = mne.viz.plot_topomap(subject_data_itd50_GLM_mean, epochs.pick('hbo').info,
-                     extrapolate='local', image_interp='linear',
-                             vlim=(-caxis_lim, caxis_lim), cmap ='RdBu_r', axes=axes, show=False)
-cbar = fig.colorbar(im, ax=axes)
+                     extrapolate='local', image_interp='nearest',
+                             vlim=(-caxis_lim, caxis_lim), cmap ='RdBu_r', axes=ax1, show=False)
+cbar = fig.colorbar(im, ax=ax1)
 cbar.set_label('Beta (a.u.)')
-axes.set_title('GLM Beta Topography: ITD50')
+ax1.set_title('GLM Beta: ITD50')
 plt.show()
 
-fig, axes = plt.subplots(1, 1)
 im, _ = mne.viz.plot_topomap(subject_data_itd500_GLM_mean, epochs.pick('hbo').info,
-                     extrapolate='local', image_interp='linear',
-                             vlim=(-caxis_lim, caxis_lim), cmap ='RdBu_r', axes=axes, show=False)
-cbar = fig.colorbar(im, ax=axes)
+                     extrapolate='local', image_interp='nearest',
+                             vlim=(-caxis_lim, caxis_lim), cmap ='RdBu_r', axes=ax2, show=False)
+cbar = fig.colorbar(im, ax=ax2)
 cbar.set_label('Beta (a.u.)')
-axes.set_title('GLM Beta Topography: ITD500')
+ax2.set_title('GLM Beta: ITD500')
 plt.show()
 
-fig, axes = plt.subplots(1, 1)
 im, _ = mne.viz.plot_topomap(subject_data_ild70n_GLM_mean, epochs.pick('hbo').info,
-                     extrapolate='local', image_interp='linear',
-                             vlim=(-caxis_lim, caxis_lim), cmap ='RdBu_r', axes=axes, show=False)
-cbar = fig.colorbar(im, ax=axes)
+                     extrapolate='local', image_interp='nearest',
+                             vlim=(-caxis_lim, caxis_lim), cmap ='RdBu_r', axes=ax3, show=False)
+cbar = fig.colorbar(im, ax=ax3)
 cbar.set_label('Beta (a.u.)')
-axes.set_title('GLM Beta Topography: ILD70n')
+ax3.set_title('GLM Beta: ILD70n')
 plt.show()
 
-fig, axes = plt.subplots(1, 1)
 im, _ = mne.viz.plot_topomap(subject_data_ild10_GLM_mean, epochs.pick('hbo').info,
-                     extrapolate='local', image_interp='linear',
-                             vlim=(-caxis_lim, caxis_lim), cmap ='RdBu_r', axes=axes, show=False)
-cbar = fig.colorbar(im, ax=axes)
+                     extrapolate='local', image_interp='nearest',
+                             vlim=(-caxis_lim, caxis_lim), cmap ='RdBu_r', axes=ax4, show=False)
+cbar = fig.colorbar(im, ax=ax4)
 cbar.set_label('Beta (a.u.)')
-axes.set_title('GLM Beta Topography: ILD10')
+ax4.set_title('GLM Beta: ILD10')
 plt.show()
 
 # -----------------   BREATH HOLD CORRECTION AVERAGE ----------------------
@@ -688,40 +733,37 @@ caxis_lim = np.max([np.max(np.abs(subject_data_itd50_GLM_bh_corr_mean)),
             np.max(np.abs(subject_data_ild70n_GLM_bh_corr_mean)),
             np.max(np.abs(subject_data_ild10_GLM_bh_corr_mean))])
 
-fig, axes = plt.subplots(1, 1)
+fig, (ax1,ax2,ax3,ax4) = plt.subplots(1, 4)
 im, _ = mne.viz.plot_topomap(subject_data_itd50_GLM_bh_corr_mean, epochs.pick('hbo').info,
-                     extrapolate='local', image_interp='linear',
-                             vlim=(-caxis_lim, caxis_lim),cmap ='RdBu_r', axes=axes, show=False)
-cbar = fig.colorbar(im, ax=axes)
+                     extrapolate='local', image_interp='nearest',
+                             vlim=(-caxis_lim, caxis_lim),cmap ='RdBu_r', axes=ax1, show=False)
+cbar = fig.colorbar(im, ax=ax1)
 cbar.set_label('Beta (a.u.)')
-axes.set_title('GLM Beta Topography BH Corrected: ITD50')
+ax1.set_title('GLM Beta BH Corrected: ITD50')
 plt.show()
 
-fig, axes = plt.subplots(1, 1)
 im, _ = mne.viz.plot_topomap(subject_data_itd500_GLM_bh_corr_mean, epochs.pick('hbo').info,
-                     extrapolate='local', image_interp='linear',
-                             vlim=(-caxis_lim, caxis_lim),cmap ='RdBu_r', axes=axes, show=False)
-cbar = fig.colorbar(im, ax=axes)
+                     extrapolate='local', image_interp='nearest',
+                             vlim=(-caxis_lim, caxis_lim),cmap ='RdBu_r', axes=ax2, show=False)
+cbar = fig.colorbar(im, ax=ax2)
 cbar.set_label('Beta (a.u.)')
-axes.set_title('GLM Beta Topography BH Corrected: ITD500')
+ax2.set_title('GLM Beta BH Corrected: ITD500')
 plt.show()
 
-fig, axes = plt.subplots(1, 1)
 im, _ = mne.viz.plot_topomap(subject_data_ild70n_GLM_bh_corr_mean, epochs.pick('hbo').info,
-                     extrapolate='local', image_interp='linear',
-                             vlim=(-caxis_lim, caxis_lim),cmap ='RdBu_r', axes=axes, show=False)
-cbar = fig.colorbar(im, ax=axes)
+                     extrapolate='local', image_interp='nearest',
+                             vlim=(-caxis_lim, caxis_lim),cmap ='RdBu_r', axes=ax3, show=False)
+cbar = fig.colorbar(im, ax=ax3)
 cbar.set_label('Beta (a.u.)')
-axes.set_title('GLM Beta Topography BH Corrected: ILD70n')
+ax3.set_title('GLM Beta BH Corrected: ILD70n')
 plt.show()
 
-fig, axes = plt.subplots(1, 1)
 im, _ = mne.viz.plot_topomap(subject_data_ild10_GLM_bh_corr_mean, epochs.pick('hbo').info,
-                     extrapolate='local', image_interp='linear',
-                             vlim=(-caxis_lim, caxis_lim),cmap ='RdBu_r', axes=axes, show=False)
-cbar = fig.colorbar(im, ax=axes)
+                     extrapolate='local', image_interp='nearest',
+                             vlim=(-caxis_lim, caxis_lim),cmap ='RdBu_r', axes=ax4, show=False)
+cbar = fig.colorbar(im, ax=ax4)
 cbar.set_label('Beta (a.u.)')
-axes.set_title('GLM Beta Topography BH Corrected: ILD10')
+ax4.set_title('GLM Beta BH Corrected: ILD10')
 plt.show()
 
 # need to take t-test for each channel, matched pair, for all contrasts
@@ -735,23 +777,23 @@ sig_chans = np.array(raw_haemo_filt.copy().pick('hbo').info['ch_names'])[np.wher
 
 caxis_SvN = np.max([np.max(abs(t_stat_SvN)), np.max(abs(t_stat_SvN_bh_corr))])
 
-fig, axes = plt.subplots()
-im, _ = mne.viz.plot_topomap(t_stat_SvN, epochs.pick('hbo').info,
-                     extrapolate='local', image_interp='linear',
-                     vlim=(-caxis_SvN*1.1, caxis_SvN*1.1), axes=axes, show=False)
-cbar = fig.colorbar(im, ax=axes)
-cbar.set_label('t-statistic')
-axes.set_title('ITD50 vs ITD500 Contrast: Uncorrected')
-plt.show()
+# fig, axes = plt.subplots()
+# im, _ = mne.viz.plot_topomap(t_stat_SvN, epochs.pick('hbo').info,
+#                      extrapolate='local', image_interp='linear',
+#                      vlim=(-caxis_SvN*1.1, caxis_SvN*1.1), axes=axes, show=False)
+# cbar = fig.colorbar(im, ax=axes)
+# cbar.set_label('t-statistic')
+# axes.set_title('ITD50 vs ITD500 Contrast: Uncorrected')
+# plt.show()
 
-fig, axes = plt.subplots()
-im, _ =mne.viz.plot_topomap(t_stat_SvN_bh_corr, epochs.pick('hbo').info,
-                     extrapolate='local', image_interp='linear',
-                     vlim=(-caxis_SvN*1.1, caxis_SvN*1.1), axes=axes, show=False)
-cbar = fig.colorbar(im, ax=axes)
-cbar.set_label('t-statistic')
-axes.set_title('ITD50 vs. ITD500 Contrast: BH Corrected')
-plt.show()
+# fig, axes = plt.subplots()
+# im, _ =mne.viz.plot_topomap(t_stat_SvN_bh_corr, epochs.pick('hbo').info,
+#                      extrapolate='local', image_interp='linear',
+#                      vlim=(-caxis_SvN*1.1, caxis_SvN*1.1), axes=axes, show=False)
+# cbar = fig.colorbar(im, ax=axes)
+# cbar.set_label('t-statistic')
+# axes.set_title('ITD50 vs. ITD500 Contrast: BH Corrected')
+# plt.show()
 
 # ---------------------------------------------------------------
 # -----------------     Bootstrapping Test              ---------
@@ -800,20 +842,20 @@ t_stat_iter_max_bh_corr_std = np.nanstd(t_stat_iter_max_bh_corr, axis=0)
 p_stat_below_0p05_bh_corr_mean = np.nanmean(p_stat_below_0p05_bh_corr, axis=0)
 p_stat_below_0p05_bh_corr_std = np.nanstd(p_stat_below_0p05_bh_corr, axis=0)
 
-plt.errorbar(subject_num_list, t_stat_iter_max_mean, t_stat_iter_max_std, capsize=5)
-plt.errorbar(subject_num_list, t_stat_iter_max_bh_corr_mean, t_stat_iter_max_bh_corr_std, capsize=5)
-plt.ylim([1, 5])
-plt.ylabel('Maximum t-statistic')
-plt.xlabel('Number of Subjects')
-plt.title('Maximum t-statistic Across Channels')
-plt.show()
+# plt.errorbar(subject_num_list, t_stat_iter_max_mean, t_stat_iter_max_std, capsize=5)
+# plt.errorbar(subject_num_list, t_stat_iter_max_bh_corr_mean, t_stat_iter_max_bh_corr_std, capsize=5)
+# plt.ylim([1, 5])
+# plt.ylabel('Maximum t-statistic')
+# plt.xlabel('Number of Subjects')
+# plt.title('Maximum t-statistic Across Channels')
+# plt.show()
 
-plt.errorbar(subject_num_list, p_stat_below_0p05_mean, p_stat_below_0p05_std, capsize=5)
-plt.errorbar(subject_num_list, p_stat_below_0p05_bh_corr_mean, p_stat_below_0p05_bh_corr_std, capsize=5)
-plt.title('Number of Significant Channels (p < 0.05)')
-plt.ylabel('Number of Channels')
-plt.xlabel('Number of Subjects')
-plt.show()
+# plt.errorbar(subject_num_list, p_stat_below_0p05_mean, p_stat_below_0p05_std, capsize=5)
+# plt.errorbar(subject_num_list, p_stat_below_0p05_bh_corr_mean, p_stat_below_0p05_bh_corr_std, capsize=5)
+# plt.title('Number of Significant Channels (p < 0.05)')
+# plt.ylabel('Number of Channels')
+# plt.xlabel('Number of Subjects')
+# plt.show()
 
 
 

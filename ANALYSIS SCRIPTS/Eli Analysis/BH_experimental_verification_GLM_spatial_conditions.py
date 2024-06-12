@@ -332,8 +332,8 @@ for ii, subject_num in enumerate(range(n_subjects)):
     
     epochs_for_plotting = mne.Epochs(raw_haemo_filt, events,  # events_block,
                         event_id=event_dict,  # event_dict_total,
-                        tmin=-15, tmax=25,
-                        baseline=(-10, 0),
+                        tmin=-5, tmax=25,
+                        baseline=(-5, 0),
                         preload=True, detrend=1, verbose=True,
                         on_missing='warn')
     
@@ -392,21 +392,21 @@ for ii, subject_num in enumerate(range(n_subjects)):
     data_ild10_avg_bh_corr = (data_ild10_avg.T / range_BH_response[ii, chan_indices_good]).T
 
     # put into a larger array with all subjects data!
-    subject_data_hold[ii, chan_indices_good, :] = data_hold_avg
-    subject_data_itd50[ii, chan_indices_good, :] = data_itd50_avg
-    subject_data_itd500[ii, chan_indices_good, :] = data_itd500_avg
-    subject_data_ild70n[ii, chan_indices_good, :] = data_ild70n_avg
-    subject_data_ild10[ii, chan_indices_good, :] = data_ild10_avg
+    subject_data_hold[ii, chan_indices_good, :] = 1e6*data_hold_avg
+    subject_data_itd50[ii, chan_indices_good, :] = 1e6*data_itd50_avg
+    subject_data_itd500[ii, chan_indices_good, :] = 1e6*data_itd500_avg
+    subject_data_ild70n[ii, chan_indices_good, :] = 1e6*data_ild70n_avg
+    subject_data_ild10[ii, chan_indices_good, :] = 1e6*data_ild10_avg
 
     subject_data_itd50_bh_corr[ii, chan_indices_good, :] = data_itd50_avg_bh_corr
     subject_data_itd500_bh_corr[ii, chan_indices_good, :] = data_itd500_avg_bh_corr
     subject_data_ild70n_bh_corr[ii, chan_indices_good, :] = data_ild70n_avg_bh_corr
     subject_data_ild10_bh_corr[ii, chan_indices_good, :] = data_ild10_avg_bh_corr
     
-    subject_data_itd50_hbr[ii, chan_indices_good, :] = data_itd50_avg_hbr
-    subject_data_itd500_hbr[ii, chan_indices_good, :] = data_itd500_avg_hbr
-    subject_data_ild70n_hbr[ii, chan_indices_good, :] = data_ild70n_avg_hbr
-    subject_data_ild10_hbr[ii, chan_indices_good, :] = data_ild10_avg_hbr
+    subject_data_itd50_hbr[ii, chan_indices_good, :] = 1e6*data_itd50_avg_hbr
+    subject_data_itd500_hbr[ii, chan_indices_good, :] = 1e6*data_itd500_avg_hbr
+    subject_data_ild70n_hbr[ii, chan_indices_good, :] = 1e6*data_ild70n_avg_hbr
+    subject_data_ild10_hbr[ii, chan_indices_good, :] = 1e6*data_ild10_avg_hbr
     
     # run a GLM to extract beta values for each condition
 
@@ -542,19 +542,21 @@ subject_data_ild10_GLM_bh_corr_std = np.nanstd(subject_data_ild10_GLM_bh_corr, a
 
 
 channel_names = [this_chan_hbo.replace(' hbo','') for this_chan_hbo in chan_hbo]
-ymin = -5e-8
-ymax = 12e-8
+ymin = -5e-2
+ymax = 12e-2
 for ichannel, channel in enumerate(channel_names):
     all_evokeds_this_channel = all_evokeds[channel]
     fig, (ax1, ax2, ax3, ax4, ax5) = plt.subplots(1,5)
     fig.set_figwidth(16)
     fig.set_figheight(3)
     lims = dict(hbo=[-5e-2, 20e-2], hbr=[-5e-2, 20e-2])
-    time = np.linspace(-15,25,num=407)
+    index_start = 10*10.2
+    index_end = 40*10.2
+    time = np.linspace(-5,25,num=index_start-index_end)
     
     # Plot ITD50
     # HbO
-    curr_data = subject_data_itd50[:,ichannel,0:407]
+    curr_data = subject_data_itd50[:,ichannel,index_start:index_end]
     curr_mean = np.nanmean(curr_data - np.nanmean(curr_data[:,51:153],axis=(0,1)), axis=0) 
     curr_error = np.nanstd(curr_data, axis=0)/np.sqrt(np.size(curr_data, axis=0) - 1)
     ax1.plot(time, curr_mean, 'k-')
@@ -620,7 +622,7 @@ for ichannel, channel in enumerate(channel_names):
     ax4.plot(time, curr_mean, 'k-')
     ax4.fill_between(time, curr_mean- curr_error,  curr_mean+curr_error, color='b')
     ax4.set_ylim((ymin, ymax))
-    ax4.set_title('ITD10')
+    ax4.set_title('ILD10')
     
     # Plot sensor location
     epochs.copy().pick(chan_hbo[ichannel]).plot_sensors(axes = ax5)
@@ -629,58 +631,59 @@ for ichannel, channel in enumerate(channel_names):
 # ---------------------------------------------------------------
 # -----------------     PLotting Block Average Means    ---------
 # ---------------------------------------------------------------
-# Use plot_topomap here
-fig, (ax1,ax2,ax3,ax4) = plt.subplots(1, 4)
+fig, axes = plt.subplots(2, 7)
 caxis_lim = 11e-8
 
+pfc_channels = []
+stg_channels = []
+# Take Means
+index_baseline_start = 51
+index_baseline_end = 153
+index_stim_start = 153
+index_stim_end = 284
 # ITD50
 curr_data = subject_data_itd50
-curr_data = curr_data - np.nanmean(curr_data[:,:,51:153],axis=(0,1,2))
-mean_during_stim = np.mean(curr_data[:,:,153:284], axis=2)
-im, _ = mne.viz.plot_topomap(np.nanmean(mean_during_stim,axis=0),epochs.pick('hbo').info,
-                             image_interp='nearest', extrapolate='local',
-                             vlim=(-5e-8, caxis_lim), cmap ='RdBu_r',
-                             axes = ax1, show=False)
-cbar = fig.colorbar(im, ax=ax1)
-cbar.set_label('Mean DeltaHbO')
-ax1.set_title('ITD50')
+curr_data = curr_data - np.nanmean(curr_data[:,:,index_baseline_start:index_baseline_end],axis=(0,1,2))
+mean_during_stim_itd50 = np.mean(curr_data[:,:,index_stim_start:index_stim_end], axis=2)
 
-#ITD500 
+# ITD500
 curr_data = subject_data_itd500
-curr_data = curr_data - np.nanmean(curr_data[:,:,51:153],axis=(0,1,2))
-mean_during_stim = np.mean(curr_data[:,:,153:284], axis=2)
-im, _ = mne.viz.plot_topomap(np.nanmean(mean_during_stim,axis=0),epochs.pick('hbo').info,
-                             image_interp='nearest', extrapolate='local', 
-                             vlim=(-5e-8, caxis_lim), cmap ='RdBu_r',
-                             axes = ax2, show=False)
-cbar = fig.colorbar(im, ax=ax2)
-cbar.set_label('Mean DeltaHbO')
-ax2.set_title('ITD500')
+curr_data = curr_data - np.nanmean(curr_data[:,:,index_baseline_start:index_baseline_end],axis=(0,1,2))
+mean_during_stim_itd500 = np.mean(curr_data[:,:,index_stim_start:index_stim_end], axis=2)
 
 # ILD70n
 curr_data = subject_data_ild70n
-curr_data = curr_data - np.nanmean(curr_data[:,:,51:153],axis=(0,1,2))
-mean_during_stim = np.mean(curr_data[:,:,153:284], axis=2)
-im, _ = mne.viz.plot_topomap(np.nanmean(mean_during_stim,axis=0),epochs.pick('hbo').info,
-                             image_interp='nearest', extrapolate='local', 
-                             vlim=(-5e-8, caxis_lim), cmap ='RdBu_r',
-                             axes = ax3, show=False)
-cbar = fig.colorbar(im, ax=ax3)
-cbar.set_label('Mean DeltaHbO')
-ax3.set_title('ILD70n')
+curr_data = curr_data - np.nanmean(curr_data[:,:,index_baseline_start:index_baseline_end],axis=(0,1,2))
+mean_during_stim_ild70n = np.mean(curr_data[:,:,index_stim_start:index_stim_end], axis=2)
 
-# ILD10
+#ILD10
 curr_data = subject_data_ild10
-curr_data = curr_data - np.nanmean(curr_data[:,:,51:153],axis=(0,1,2))
-mean_during_stim = np.mean(curr_data[:,:,153:284], axis=2)
-im, _ = mne.viz.plot_topomap(np.nanmean(mean_during_stim,axis=0),epochs.pick('hbo').info,
-                             image_interp='nearest', extrapolate='local', 
-                             vlim=(-5e-8, caxis_lim), cmap ='RdBu_r',
-                             axes = ax4, show=False)
-cbar = fig.colorbar(im, ax=ax4)
-cbar.set_label('Mean DeltaHbO')
-ax4.set_title('ILD10')
-# Note 12:30 on 6/4 --> need to take the correct mean etc. 
+curr_data = curr_data - np.nanmean(curr_data[:,:,index_baseline_start:index_baseline_end],axis=(0,1,2))
+mean_during_stim_ild10 = np.mean(curr_data[:,:,index_stim_start:index_stim_end], axis=2)
+
+# Plot error bars
+for ichannel, curr_axes in enumerate(axes.reshape(-1)):
+    # ITD50
+    curr_axes.errorbar(1, np.nanmean(mean_during_stim_itd50[:,ichannel], axis=0), 
+                       np.nanstd(mean_during_stim_itd50[:,ichannel],axis=0)/(np.sqrt(np.size(mean_during_stim_itd50, axis=0)) - 1),
+                       fmt='o')    
+    # ITD500
+    curr_axes.errorbar(2, np.nanmean(mean_during_stim_itd500[:,ichannel], axis=0), 
+                       np.nanstd(mean_during_stim_itd500[:,ichannel],axis=0)/(np.sqrt(np.size(mean_during_stim_itd500, axis=0)) - 1),
+                       fmt='o')
+    # ILD70n
+    curr_axes.errorbar(3, np.nanmean(mean_during_stim_ild70n[:,ichannel], axis=0),
+                       np.nanstd(mean_during_stim_ild70n[:,ichannel],axis=0)/(np.sqrt(np.size(mean_during_stim_ild70n, axis=0)) - 1),
+                       fmt='o')
+    # ILD10 
+    curr_axes.errorbar(4, np.nanmean(mean_during_stim_ild10[:,ichannel], axis=0), 
+                       np.nanstd(mean_during_stim_ild10[:,ichannel],axis=0)/(np.sqrt(np.size(mean_during_stim_ild10, axis=0)) - 1),
+                       fmt='o')
+    
+    curr_axes.set_xlabel('Condition')
+    curr_axes.set_title(channel_names[ichannel])
+    curr_axes.set_xticks([1,2,3,4])
+    curr_axes.set_xticklabels(["ITD50","ITD500","ILD70n","ILD10"])
 
 
 # ---------------------------------------------------------------

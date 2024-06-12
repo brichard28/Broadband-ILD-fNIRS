@@ -17,7 +17,7 @@ def preprocess_NIRX(data, data_snirf=0, event_dict=0,
                     short_regression=True,
                     negative_enhancement=False,
                     snr_thres=3.5,
-                    filter_type='iir', filter_limits=[0.01, 0.1],
+                    filter_type='iir', filter_limits=[0.01, 0.1], # 0.01, 0.1
                     tddr=True):
     """
 

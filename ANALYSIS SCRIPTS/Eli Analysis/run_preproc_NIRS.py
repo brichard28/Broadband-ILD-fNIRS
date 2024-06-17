@@ -120,8 +120,8 @@ def preprocess_NIRX(data, data_snirf=0, event_dict=0,
         fig_fft, bad_channels_total, SNR_dict = raw_nirx_channelwise_fft(raw_od, plot_steps, snr_thres=snr_thres)
         # raw_od.info['bads'] = bad_channels_total
 
-        agree = np.intersect1d(list(itertools.compress(raw_od.ch_names, sci < 0.5)), bad_channels_total)
-        diff = np.setdiff1d(list(itertools.compress(raw_od.ch_names, sci < 0.5)), bad_channels_total)
+        agree = np.intersect1d(list(itertools.compress(raw_od.ch_names, sci < 0.8)), bad_channels_total)
+        diff = np.setdiff1d(list(itertools.compress(raw_od.ch_names, sci < 0.8)), bad_channels_total)
 
         # set the bad channels to what the two methods agree upon
         raw_od.info['bads'] = list(np.concatenate([agree, diff]))

@@ -83,8 +83,8 @@ curr_subject_ID = ['NDARVX753BR6', 'NDARZD647HJ1', 'NDARBL382XK5', 'NDARGF569BF3
                    'NDARGS283RM9', 'NDARRED356WS', 'NDARHUG535MO','NDARFIN244AL',
                    'NDARKAI888JU','NDARBAA679HA']
 
-masker_type = 'noise' # type of masker to analyze on this run
-glm_dur = 5
+masker_type = 'speech' # type of masker to analyze on this run
+glm_dur = 7
 
 n_subjects = len(all_fnirs_data_folders)
 
@@ -105,6 +105,16 @@ subject_data_itd50_hbr = np.full((n_subjects, n_long_channels, n_timepoints), np
 subject_data_itd500_hbr = np.full((n_subjects, n_long_channels, n_timepoints), np.nan)
 subject_data_ild70n_hbr = np.full((n_subjects, n_long_channels, n_timepoints), np.nan)
 subject_data_ild10_hbr = np.full((n_subjects, n_long_channels, n_timepoints), np.nan)
+
+subject_data_itd50_baselined = np.full((n_subjects, n_long_channels, n_timepoints), np.nan)
+subject_data_itd500_baselined = np.full((n_subjects, n_long_channels, n_timepoints), np.nan)
+subject_data_ild70n_baselined = np.full((n_subjects, n_long_channels, n_timepoints), np.nan)
+subject_data_ild10_baselined = np.full((n_subjects, n_long_channels, n_timepoints), np.nan)
+
+subject_data_itd50_hbr_baselined = np.full((n_subjects, n_long_channels, n_timepoints), np.nan)
+subject_data_itd500_hbr_baselined = np.full((n_subjects, n_long_channels, n_timepoints), np.nan)
+subject_data_ild70n_hbr_baselined = np.full((n_subjects, n_long_channels, n_timepoints), np.nan)
+subject_data_ild10_hbr_baselined = np.full((n_subjects, n_long_channels, n_timepoints), np.nan)
 
 
 subject_data_hold_bh_corr = np.full((n_subjects, n_long_channels, n_timepoints), np.nan)
@@ -328,6 +338,7 @@ for ii, subject_num in enumerate(range(n_subjects)):
                         event_id=event_dict,  # event_dict_total,
                         tmin=tmin, tmax=tmax,
                         baseline= None, #(-5, 0)
+                        reject = reject_criteria,
                         preload=True, detrend=1, verbose=True,
                         on_missing='warn')
     #epochs.plot_drop_log()
@@ -507,15 +518,16 @@ subject_data_ild10_GLM_bh_corr_std = np.nanstd(subject_data_ild10_GLM_bh_corr, a
 # -----------------     Baselining                      ---------
 # ---------------------------------------------------------------
 
-subject_data_itd50_baselined = (subject_data_itd50 - np.nanmean(subject_data_itd50[:,:,0:int(5*fs)], axis=(0,1,2)))#/np.nanstd(subject_data_itd50[:,:,0:int(5*fs)], axis=(0,1,2))
-subject_data_itd500_baselined = (subject_data_itd500 - np.nanmean(subject_data_itd500[:,:,0:int(5*fs)], axis=(0,1,2)))#/np.nanstd(subject_data_itd500[:,:,0:int(5*fs)], axis=(0,1,2))
-subject_data_ild70n_baselined = (subject_data_ild70n - np.nanmean(subject_data_ild70n[:,:,0:int(5*fs)], axis=(0,1,2)))#/np.nanstd(subject_data_ild70n[:,:,0:int(5*fs)], axis=(0,1,2))
-subject_data_ild10_baselined = (subject_data_ild10 - np.nanmean(subject_data_ild10[:,:,0:int(5*fs)], axis=(0,1,2)))#/np.nanstd(subject_data_ild10[:,:,0:int(5*fs)], axis=(0,1,2))
-
-subject_data_itd50_hbr_baselined = (subject_data_itd50_hbr - np.nanmean(subject_data_itd50_hbr[:,:,0:int(5*fs)], axis=(0,1,2)))#/np.nanstd(subject_data_itd50_hbr[:,:,0:int(5*fs)], axis=(0,1,2))
-subject_data_itd500_hbr_baselined = (subject_data_itd500_hbr - np.nanmean(subject_data_itd500_hbr[:,:,0:int(5*fs)], axis=(0,1,2)))#/np.nanstd(subject_data_itd500_hbr[:,:,0:int(5*fs)], axis=(0,1,2))
-subject_data_ild70n_hbr_baselined = (subject_data_ild70n_hbr - np.nanmean(subject_data_ild70n_hbr[:,:,0:int(5*fs)], axis=(0,1,2)))#/np.nanstd(subject_data_ild70n_hbr[:,:,0:int(5*fs)], axis=(0,1,2))
-subject_data_ild10_hbr_baselined = (subject_data_ild10_hbr - np.nanmean(subject_data_ild10_hbr[:,:,0:int(5*fs)], axis=(0,1,2)))#/np.nanstd(subject_data_ild10_hbr[:,:,0:int(5*fs)], axis=(0,1,2))
+for ichannel in range(n_long_channels):
+    subject_data_itd50_baselined[:,ichannel,:] = (subject_data_itd50[:,ichannel,:]  - np.nanmean(subject_data_itd50[:,ichannel,0:int(5*fs)], axis=(0,1)))#/np.nanstd(subject_data_itd50[:,:,0:int(5*fs)], axis=(0,1,2))
+    subject_data_itd500_baselined[:,ichannel,:]  = (subject_data_itd500[:,ichannel,:]  - np.nanmean(subject_data_itd500[:,ichannel,0:int(5*fs)], axis=(0,1)))#/np.nanstd(subject_data_itd500[:,:,0:int(5*fs)], axis=(0,1,2))
+    subject_data_ild70n_baselined[:,ichannel,:]  = (subject_data_ild70n[:,ichannel,:]  - np.nanmean(subject_data_ild70n[:,ichannel,0:int(5*fs)], axis=(0,1)))#/np.nanstd(subject_data_ild70n[:,:,0:int(5*fs)], axis=(0,1,2))
+    subject_data_ild10_baselined[:,ichannel,:]  = (subject_data_ild10[:,ichannel,:]  - np.nanmean(subject_data_ild10[:,ichannel,0:int(5*fs)], axis=(0,1)))#/np.nanstd(subject_data_ild10[:,:,0:int(5*fs)], axis=(0,1,2))
+    
+    subject_data_itd50_hbr_baselined[:,ichannel,:]  = (subject_data_itd50_hbr[:,ichannel,:]  - np.nanmean(subject_data_itd50_hbr[:,ichannel,0:int(5*fs)], axis=(0,1)))#/np.nanstd(subject_data_itd50_hbr[:,:,0:int(5*fs)], axis=(0,1,2))
+    subject_data_itd500_hbr_baselined[:,ichannel,:]  = (subject_data_itd500_hbr[:,ichannel,:]  - np.nanmean(subject_data_itd500_hbr[:,ichannel,0:int(5*fs)], axis=(0,1)))#/np.nanstd(subject_data_itd500_hbr[:,:,0:int(5*fs)], axis=(0,1,2))
+    subject_data_ild70n_hbr_baselined[:,ichannel,:]  = (subject_data_ild70n_hbr[:,ichannel,:]  - np.nanmean(subject_data_ild70n_hbr[:,ichannel,0:int(5*fs)], axis=(0,1)))#/np.nanstd(subject_data_ild70n_hbr[:,:,0:int(5*fs)], axis=(0,1,2))
+    subject_data_ild10_hbr_baselined[:,ichannel,:]  = (subject_data_ild10_hbr[:,ichannel,:]  - np.nanmean(subject_data_ild10_hbr[:,ichannel,0:int(5*fs)], axis=(0,1)))#/np.nanstd(subject_data_ild10_hbr[:,:,0:int(5*fs)], axis=(0,1,2))
 
 # ---------------------------------------------------------------
 # -----------------     PLotting Block Averages (PFC)   ---------
@@ -744,22 +756,18 @@ index_stim_start = int(5*fs)
 index_stim_end = int(17.8*fs)
 # ITD50
 curr_data = subject_data_itd50_baselined
-curr_data = curr_data - np.nanmean(curr_data[:,:,index_baseline_start:index_baseline_end],axis=(0,1,2))
 mean_during_stim_itd50 = np.mean(curr_data[:,:,index_stim_start:index_stim_end], axis=2)
 
 # ITD500
 curr_data = subject_data_itd500_baselined
-curr_data = curr_data - np.nanmean(curr_data[:,:,index_baseline_start:index_baseline_end],axis=(0,1,2))
 mean_during_stim_itd500 = np.mean(curr_data[:,:,index_stim_start:index_stim_end], axis=2)
 
 # ILD70n
 curr_data = subject_data_ild70n_baselined
-curr_data = curr_data - np.nanmean(curr_data[:,:,index_baseline_start:index_baseline_end],axis=(0,1,2))
 mean_during_stim_ild70n = np.mean(curr_data[:,:,index_stim_start:index_stim_end], axis=2)
 
 #ILD10
 curr_data = subject_data_ild10_baselined
-curr_data = curr_data - np.nanmean(curr_data[:,:,index_baseline_start:index_baseline_end],axis=(0,1,2))
 mean_during_stim_ild10 = np.mean(curr_data[:,:,index_stim_start:index_stim_end], axis=2)
 
 # Plot error bars
@@ -790,7 +798,7 @@ for ichannel, curr_axes in enumerate(axes.reshape(-1)):
         curr_axes.set_ylabel(r'Mean $\Delta$Hb ($\mu$M) during stim.', usetex=False)
 
 plt.subplots_adjust(top=.9, right=.98, left= 0.05, bottom = 0.07)
-plt.savefig('C:\\Users\\benri\\Documents\\GitHub\\SRM-NIRS-EEG\\ANALYSIS SCRIPTS\\Eli Analysis\\Plots\\Mean_HbO__{masker_type}_masker.png')
+plt.savefig(f'C:\\Users\\benri\\Documents\\GitHub\\SRM-NIRS-EEG\\ANALYSIS SCRIPTS\\Eli Analysis\\Plots\\Mean_HbO__{masker_type}_masker.png')
 
 # ---------------------------------------------------------------
 # -----------------     PLotting GLM Averages           ---------

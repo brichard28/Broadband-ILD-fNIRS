@@ -8,7 +8,11 @@
 %BehaviorTable = readtable('/home/ben/Documents/GitHub/SRM-NIRS-EEG/RESULTS DATA/SRM-NIRS-EEG Behavior Files/srm-nirs-eeg-1.xlsx','Format','auto');
 BehaviorTable = readtable('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\SRM-NIRS-EEG Behavior Files\srm-nirs-eeg-1.xlsx','Format','auto');
 
-subject_ID = char('NDARVX753BR6','NDARZD647HJ1','NDARBL382XK5','NDARGF569BF3','NDARBA306US5','NDARFD284ZP3','NDARAS648DT4','NDARLM531OY3','NDARXL287BE1','NDARRF358KO3','NDARGT639XS6','NDARDC882NK4','NDARWB491KR3','NDARNL224RR9','NDARTT639AB1','NDARAZC45TW3','NDARNS784LM2','NDARLB144ZM4','NDARTP382XC8','NDARLJ581GD7','NDARGS283RM9','NDARRED356WS', 'NDARHUG535MO','NDARFIN244AL','NDARKAI888JU','NDARBAA679HA'); %
+subject_ID = char('NDARVX753BR6', 'NDARZD647HJ1', 'NDARBL382XK5', 'NDARGF569BF3', 'NDARBA306US5', 'NDARFD284ZP3',...
+                   'NDARAS648DT4','NDARLM531OY3', 'NDARXL287BE1', 'NDARRF358KO3', 'NDARGT639XS6', 'NDARDC882NK4',...
+                   'NDARWB491KR3','NDARNL224RR9', 'NDARTT639AB1', 'NDARAZC45TW3', 'NDARNS784LM2', 'NDARLB144ZM4', 'NDARTP382XC8',...
+                   'NDARLJ581GD7','NDARGS283RM9', 'NDARRED356WS', 'NDARHUG535MO','NDARFIN244AL',...
+                   'NDARKAI888JU','NDARBAA679HA'); %
 num_conditions = 20;
 %,
 all_hits = zeros(size(subject_ID,1),num_conditions);
@@ -68,7 +72,7 @@ for isubject = 1:size(subject_ID,1) % For each subject...
         this_trial_click_times(isnan(this_trial_click_times)) = []; % remove NaN from these click times
         % remove double clicks
         click_distances = diff(this_trial_click_times);
-        click_distances_to_remove = find(click_distances < 0.5);
+        click_distances_to_remove = find(click_distances < 0.2);
         this_trial_click_times(click_distances_to_remove + 1) = [];
 
         this_trial_target_all = WordTimesTable(string(WordTimesTable.Condition) == this_trial_masker & WordTimesTable.Run == this_trial_run & string(WordTimesTable.Type) == 'Target',4:end);
@@ -94,8 +98,8 @@ for isubject = 1:size(subject_ID,1) % For each subject...
 %         
        %% Hit and False Alarm Windows
 
-       threshold_window_start = 0.2; %0.2
-       threshold_window_end =  1; % 1.1
+       threshold_window_start = 0.6; %0.2
+       threshold_window_end =  1.1; % 1.0
        tVec = 1:1/44100:14;
        hit_windows = zeros(1,length(tVec)); % create an empty array to define hit windows
        FA_windows = zeros(1,length(tVec)); % create an empty array to define false alarm windows
@@ -201,7 +205,7 @@ xlabel('Condition','FontSize',18)
 
 %% D-Prime Figure (Just Speech)
 d_primes_speech_masker = norminv(all_hit_rates_collapsed(5:end,:)) - norminv(all_FA_rates_collapsed(5:end,:));
-d_primes_speech_masker(1,:) = d_primes_speech_masker(1,:) - 0.2;
+%d_primes_speech_masker(1,:) = d_primes_speech_masker(1,:) - 0.2;
 figure;
 hold on
 for i = 1:size(d_primes_speech_masker,2)

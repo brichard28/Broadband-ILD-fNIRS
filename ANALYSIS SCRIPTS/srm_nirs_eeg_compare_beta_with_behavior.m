@@ -5,140 +5,114 @@ load('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\SRM-NIRS-EEG-1_B
 % ORDER: itd50, itd500, ildnat, ild10
 
 % load beta values
-load('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\collapsed attend and masker PFC time constant SPEECH NO BREATH STG results.mat')
-stg_betas_to_plot = all_betas;
-stg_means_to_plot = all_means;
-
-load('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\collapsed attend and masker PFC time constant SPEECH NO BREATH PFC results.mat')
-pfc_betas_to_plot = all_betas;
-pfc_means_to_plot = all_means;
-
-% ORDER: itd50, itd500, ild10, ildnat
+mean_hbo_table = readtable('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\ANALYSIS SCRIPTS\Eli Analysis\all_subjects_mean_during_stim_speech_masker.csv');
+mean_hbo_table(1,:) = [];
+mean_hbo_table = table2array(mean_hbo_table);
+% col 1= subject, col 2= channel, col 3= itd50, col 4 = itd500, col 5 =
+% ild70n, col 6 = ild10
+% ORDER: itd50, itd500, ildnat, ild10
 
 % Define current subjects
-subject_ID = char('NDARVX753BR6','NDARZD647HJ1','NDARBL382XK5','NDARGF569BF3','NDARBA306US5','NDARFD284ZP3','NDARAS648DT4','NDARLM531OY3','NDARXL287BE1','NDARRF358KO3','NDARGT639XS6','NDARDC882NK4','NDARWB491KR3','NDARNL224RR9','NDARTT639AB1','NDARAZC45TW3','NDARNS784LM2','NDARLB144ZM4','NDARTP382XC8','NDARLJ581GD7','NDARGS283RM9'); %
-
+subject_ID = char('NDARVX753BR6', 'NDARZD647HJ1', 'NDARBL382XK5', 'NDARGF569BF3', 'NDARBA306US5', 'NDARFD284ZP3',...
+                   'NDARAS648DT4','NDARLM531OY3', 'NDARXL287BE1', 'NDARRF358KO3', 'NDARGT639XS6', 'NDARDC882NK4',...
+                   'NDARWB491KR3','NDARNL224RR9', 'NDARTT639AB1', 'NDARAZC45TW3', 'NDARNS784LM2', 'NDARLB144ZM4', 'NDARTP382XC8',...
+                   'NDARLJ581GD7','NDARGS283RM9', 'NDARRED356WS', 'NDARHUG535MO','NDARFIN244AL',...
+                   'NDARKAI888JU','NDARBAA679HA');
 conditions = string({'itd50','itd500','ildnat','ild10'});
-colors = {'r','g','b','m'};
-%for icondition = 1:length(conditions)
-    for isubject = 1:length(subject_ID)
-        % get d-prime for this subject and this condition
-        this_subject_d_prime = mean(d_primes_speech_masker(:,isubject),1);
 
-        % get pfc beta for this subject and this condition
-        this_subject_pfc_beta = mean(pfc_betas_to_plot(isubject,:),2);
-        % get stg beta for this subject and this condition
-        this_subject_stg_beta = mean(stg_betas_to_plot(isubject,:),2);
-        % get pfc AUC for this subject and this condition
-        this_subject_pfc_mean = mean(pfc_means_to_plot(isubject,:),2);
-        % get pfc AUC for this subject and this condition
-        this_subject_stg_mean = mean(stg_means_to_plot(isubject,:),2);
+pfc_means_to_plot = nan(14,4,length(subject_ID));
+stg_means_to_plot = nan(14,4,length(subject_ID));
 
-        figure(1) % PFC Beta
-        scatter(this_subject_d_prime,this_subject_pfc_beta,'filled','MarkerFaceColor','m')
-        hold on
-        figure(2) % stg Beta
-        scatter(this_subject_d_prime,this_subject_stg_beta,'filled','MarkerFaceColor','m')
-        hold on
-        figure(3) % pfc AUC
-        scatter(this_subject_d_prime,this_subject_pfc_mean,'filled','MarkerFaceColor','m')
-        hold on
-        figure(4) % stg AUC
-        scatter(this_subject_d_prime,this_subject_stg_mean,'filled','MarkerFaceColor','m')
-        hold on
+% Turn mean_hbo_table into 14 channels x 4 conditions x n subjects
+for isubject = 0:length(subject_ID)-1
+    for ichannel = 1:14
+        this_subject_data = mean_hbo_table(mean_hbo_table(:,1) == isubject,3:end);
+        pfc_means_to_plot(ichannel,:,isubject+1) = this_subject_data(ichannel,:);
+        stg_means_to_plot(ichannel,:,isubject+1) = this_subject_data(ichannel,:);
     end
-%end
-figure(1)
-% best fit lines
-%for icondition = 1:length(conditions)
-    x = mean(d_primes_speech_masker,1);%(icondition,:);
+end
 
-    y = mean(pfc_betas_to_plot,2);%(:,icondition);
+% PFC
+figure;
+for ichannel = 1:6
+    subplot(2,3,ichannel);
+    colors = {'r','g','b','m'};
+    for isubject = 1:length(subject_ID)
+        for icondition = 1:4
+            % get d-prime for this subject and this condition
+            this_subject_d_prime = mean(d_primes_speech_masker(icondition,isubject),1);
 
-    coefficients = polyfit(x, y, 1);
-    % Get the estimated yFit value for each of those 1000 new x locations.
-    yFit = polyval(coefficients , x)';
-    p = plot(x,yFit,'m');
-%end
-% Calculate R^2 value
-y_mean = mean(y);
-SS_tot = sum((y - y_mean).^2);
-SS_res = sum((y - yFit).^2);
-R_squared = 1 - SS_res / SS_tot;
-text(2,0.1,['R2 = ',string(R_squared)])
-% plot labels
-xlabel("Behavioral Sensitivity (d')",'FontSize',18)
-ylabel('PFC Beta','FontSize',18)
-title('PFC Beta vs. D-prime','FontSize',18)
+            % get pfc AUC for this subject and this condition
+            this_subject_pfc_mean = pfc_means_to_plot(ichannel,icondition,isubject);
 
-figure(2)
-% best fit lines
-%for icondition = 1:length(conditions)
-    x = mean(d_primes_speech_masker,1);%(icondition,:);
+            scatter(this_subject_d_prime,this_subject_pfc_mean,'filled','MarkerFaceColor',string(colors(icondition)))
+            hold on
+        end
+    end
+end
+sgtitle('PFC','FontSize',24)
 
-    y = mean(stg_betas_to_plot,2);%(:,icondition);
+% STG
+figure;
+for ichannel = 7:14
+    subplot(2,4,ichannel-6);
+    colors = {'r','g','b','m'};
+    for isubject = 1:length(subject_ID)
+        for icondition = 1:4
+            % get d-prime for this subject and this condition
+            this_subject_d_prime = mean(d_primes_speech_masker(icondition,isubject),1);
 
-    coefficients = polyfit(x, y, 1);
+            % get pfc AUC for this subject and this condition
+            this_subject_stg_mean = stg_means_to_plot(ichannel,icondition,isubject);
 
-    % Get the estimated yFit value for each of those 1000 new x locations.
-    yFit = polyval(coefficients , x)';
-    plot(x,yFit,'m')
-%end
+            scatter(this_subject_d_prime,this_subject_stg_mean,'filled','MarkerFaceColor',string(colors(icondition)))
+            hold on
+        end
+    end
+end
+sgtitle('STG','FontSize',24)
 
-% Calculate R^2 value
-y_mean = mean(y);
-SS_tot = sum((y - y_mean).^2);
-SS_res = sum((y - yFit).^2);
-R_squared = 1 - SS_res / SS_tot;
-text(2,0.1,['R2 = ',string(R_squared)])
-%plot labels
-xlabel("Behavioral Sensitivity (d')",'FontSize',18)
-ylabel('STG Beta','FontSize',18)
-title('STG Beta vs. D-prime','FontSize',18)
-
-figure(3)
-% best fit lines
-%for icondition = 1:length(conditions)
-    x = mean(d_primes_speech_masker,1);%(icondition,:);
-
-    y = mean(pfc_means_to_plot,2);%(:,icondition);
-
-    coefficients = polyfit(x, y, 1);
-
-    % Get the estimated yFit value for each of those 1000 new x locations.
-    yFit = polyval(coefficients , x)';
-    plot(x,yFit,'m')
-%end
-% Calculate R^2 value
-y_mean = mean(y);
-SS_tot = sum((y - y_mean).^2);
-SS_res = sum((y - yFit).^2);
-R_squared = 1 - SS_res / SS_tot;
-text(2,0.1,['R2 = ',string(R_squared)])
-%plot labels
-xlabel("Behavioral Sensitivity (d')",'FontSize',18)
-ylabel('PFC Mean','FontSize',18)
-title('PFC Mean vs. D-prime','FontSize',18)
+% % best fit lines
+% %for icondition = 1:length(conditions)
+%     x = mean(d_primes_speech_masker,2);%(icondition,:);
+% 
+%     y = mean(pfc_means_to_plot,2);%(:,icondition);
+% 
+%     coefficients = polyfit(x, y, 1);
+% 
+%     % Get the estimated yFit value for each of those 1000 new x locations.
+%     yFit = polyval(coefficients , x)';
+%     plot(x,yFit,'m')
+% %end
+% % Calculate R^2 value
+% y_mean = mean(y);
+% SS_tot = sum((y - y_mean).^2);
+% SS_res = sum((y - yFit).^2);
+% R_squared = 1 - SS_res / SS_tot;
+% text(2,0.1,['R2 = ',string(R_squared)])
+% %plot labels
+% xlabel("Behavioral Sensitivity (d')",'FontSize',18)
+% ylabel('PFC Mean','FontSize',18)
+% title('PFC Mean vs. D-prime','FontSize',18)
 
 
-figure(4)
-% best fit lines
-%for icondition = 1:length(conditions)
-    x = mean(d_primes_speech_masker,1); %(icondition,:);
-
-    y = mean(stg_means_to_plot,2); %(:,icondition);
-
-    coefficients = polyfit(x, y, 1);
-    % Get the estimated yFit value for each of those 1000 new x locations.
-    yFit = polyval(coefficients , x)';
-    plot(x,yFit,'m')
-%end
-% Calculate R^2 value
-y_mean = mean(y);
-SS_tot = sum((y - y_mean).^2);
-SS_res = sum((y - yFit).^2);
-R_squared = 1 - SS_res / SS_tot;
-text(2,0.1,['R2 = ',string(R_squared)])
+% % best fit lines
+% %for icondition = 1:length(conditions)
+%     x = mean(d_primes_speech_masker,2); %(icondition,:);
+% 
+%     y = mean(stg_means_to_plot,2); %(:,icondition);
+% 
+%     coefficients = polyfit(x, y, 1);
+%     % Get the estimated yFit value for each of those 1000 new x locations.
+%     yFit = polyval(coefficients , x)';
+%     plot(x,yFit,'m')
+% %end
+% % Calculate R^2 value
+% y_mean = mean(y);
+% SS_tot = sum((y - y_mean).^2);
+% SS_res = sum((y - yFit).^2);
+% R_squared = 1 - SS_res / SS_tot;
+% text(2,0.1,['R2 = ',string(R_squared)])
 %plot labels
 xlabel("Behavioral Sensitivity (d')",'FontSize',18)
 ylabel('STG Mean','FontSize',18)

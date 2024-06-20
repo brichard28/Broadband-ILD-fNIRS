@@ -41,8 +41,6 @@ all_maskers = {'m_speech__ild_0__itd_500__targ_r__control_0',...
 'm_noise__ild_0__itd_500__targ_l__control_0',...
 'm_speech__ild_70n__itd_0__targ_l__control_0'}; % we will maintain this order throughout
 
-
-
 for isubject = 1:size(subject_ID,1) % For each subject...
     clicks_not_counted = 0;
     total_clicks = 0;
@@ -98,7 +96,7 @@ for isubject = 1:size(subject_ID,1) % For each subject...
 %         
        %% Hit and False Alarm Windows
 
-       threshold_window_start = 0.6; %0.2
+       threshold_window_start = 0.4; %0.2
        threshold_window_end =  1.1; % 1.0
        tVec = 1:1/44100:14;
        hit_windows = zeros(1,length(tVec)); % create an empty array to define hit windows
@@ -416,4 +414,5 @@ title('Speech Masker Behavior (HIT RATE)','FontSize',18)
 
 %% Save data
 save('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\SRM-NIRS-EEG-1_Behavior_Results.mat','d_primes_speech_masker','all_hit_rates_collapsed','all_FA_rates_collapsed')
-
+hit_rate_table = array2table(all_hit_rates_collapsed);
+writetable(rows2vars(hit_rate_table),'C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\SRM-NIRS-EEG-1_Hit_Rates.csv')

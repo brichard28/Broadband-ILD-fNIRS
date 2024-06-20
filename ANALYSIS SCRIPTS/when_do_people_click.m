@@ -102,6 +102,7 @@ end
 
 figure;
 histogram(all_target_distances,500);
+xticks
 xlabel('Time (s)')
 title('Distance from click to nearest preceding target color word')
 

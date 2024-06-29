@@ -12,13 +12,13 @@ elseif user == 'Bon'
 end
 % ORDER: itd50, itd500, ildnat, ild10
 
-subject_ID = char('NDARVX753BR6','NDARZD647HJ1','NDARBL382XK5','NDARGF569BF3','NDARBA306US5','NDARFD284ZP3','NDARAS648DT4','NDARLM531OY3','NDARXL287BE1','NDARRF358KO3','NDARGT639XS6','NDARDC882NK4','NDARWB491KR3','NDARNL224RR9','NDARTT639AB1','NDARAZC45TW3','NDARNS784LM2','NDARLB144ZM4','NDARTP382XC8','NDARLJ581GD7','NDARGS283RM9','NDARRED356WS', 'NDARHUG535MO','NDARKAI888JU','NDARBAA679HA'); % 
+subject_ID = char('NDARVX753BR6','NDARZD647HJ1','NDARBL382XK5','NDARGF569BF3','NDARBA306US5','NDARFD284ZP3','NDARAS648DT4','NDARLM531OY3','NDARXL287BE1','NDARRF358KO3','NDARGT639XS6','NDARFV472HU7','NDARDC882NK4','NDARWB491KR3','NDARNL224RR9','NDARTT639AB1','NDARAZC45TW3','NDARNS784LM2','NDARLB144ZM4','NDARTP382XC8','NDARLJ581GD7','NDARGS283RM9','NDARRED356WS', 'NDARHUG535MO','NDARFIN244AL','NDARKAI888JU','NDARBAA679HA'); % 
 
 num_conditions = 20;
 
 %% Analysis Parameters
 method = 'weight'; % 'choose' or 'weight'
-mode = 'NOISE NO BREATH'; % 'SPEECH', 'NOISE', or 'BOTH' (add 'NO BREATH' for no breath)
+mode = 'SPEECH NO BREATH'; % 'SPEECH', 'NOISE', or 'BOTH' (add 'NO BREATH' for no breath)
 analysis_type = 'collapsed attend and masker PFC time constant';
 area = 'PFC'; % 'PFC' or 'STG'
 statistic_to_plot = 'mean'; % 'mean' or 'beta'
@@ -34,13 +34,13 @@ hold on
 plot([1,1.5],[mean(d_primes_speech_masker(1,:),2,'omitnan'),mean(d_primes_speech_masker(2,:),2,'omitnan')],'-b','LineWidth',2)
 
 %plot([1:2],d_primes_speech_masker(1:2,:),'Color',[0.4 0.4 0.4])
-e1 = errorbar([1],mean(d_primes_speech_masker(1,:),2,'omitnan'),std(d_primes_speech_masker(1,:),[],2,'omitnan')./(sqrt(size(subject_ID,1))-1),'Color','b');
+e1 = errorbar([1],mean(d_primes_speech_masker(1,:),2,'omitnan'),std(d_primes_speech_masker(1,:),[],2,'omitnan')./(sqrt(size(subject_ID,1)-1)),'Color','b');
 e1.Marker = 'o';
 e1.MarkerFaceColor = 'w';
 e1.MarkerSize = 10;
 e1.CapSize = 15;
 e1.LineWidth = 2;
-e2 = errorbar([1.5],mean(d_primes_speech_masker(2,:),2,'omitnan'),std(d_primes_speech_masker(2,:),[],2,'omitnan')./(sqrt(size(subject_ID,1))-1),'Color','b');
+e2 = errorbar([1.5],mean(d_primes_speech_masker(2,:),2,'omitnan'),std(d_primes_speech_masker(2,:),[],2,'omitnan')./(sqrt(size(subject_ID,1)-1)),'Color','b');
 e2.Marker = 'o';
 e2.MarkerFaceColor = 'b';
 e2.MarkerSize = 10;
@@ -49,7 +49,7 @@ e2.LineWidth = 2;
 
 
 xlim([0.9 1.6])
-ylim([0.7 3])
+ylim([1 3.5])
 xticks([1,1.5])
 
 
@@ -60,14 +60,14 @@ hold on
 plot([1,1.5],[mean(d_primes_speech_masker(3,:),2,'omitnan'),mean(d_primes_speech_masker(4,:),2,'omitnan')],'-b','LineWidth',2)
 
 %plot([1:2],d_primes_speech_masker(3:4,:),'Color',[0.4 0.4 0.4])
-e3 = errorbar([1],mean(d_primes_speech_masker(3,:),2,'omitnan'),std(d_primes_speech_masker(3,:),[],2,'omitnan')./(sqrt(size(subject_ID,1))-1),'Color','b');
+e3 = errorbar([1],mean(d_primes_speech_masker(3,:),2,'omitnan'),std(d_primes_speech_masker(3,:),[],2,'omitnan')./(sqrt(size(subject_ID,1)-1)),'Color','b');
 e3.Marker = 'o';
 e3.MarkerFaceColor = 'w';
 e3.MarkerSize = 10;
 e3.CapSize = 15;
 e3.LineWidth = 2;
 
-e4 = errorbar([1.5],mean(d_primes_speech_masker(4,:),2,'omitnan'),std(d_primes_speech_masker(4,:),[],2,'omitnan')./(sqrt(size(subject_ID,1))-1),'Color','b');
+e4 = errorbar([1.5],mean(d_primes_speech_masker(4,:),2,'omitnan'),std(d_primes_speech_masker(4,:),[],2,'omitnan')./(sqrt(size(subject_ID,1)-1)),'Color','b');
 e4.Marker = 'o';
 e4.MarkerFaceColor = 'b';
 e4.MarkerSize = 10;
@@ -76,7 +76,7 @@ e4.LineWidth = 2;
 
 
 xlim([0.9 1.6])
-ylim([0.7 3])
+ylim([1 3.5])
 xticks([1,1.5])
 
 
@@ -104,13 +104,13 @@ if contains(analysis_type,'collapsed attend and masker')
     conditions([4 5]) = conditions([5 4]);
 end
 % channels
-dlpfc_channels = [1,2,3,4,5,6];
+dlpfc_channels = [1,2,3,4,5,6]; % 1,2,3,4,5,6
 stg_channels = 7:14;
 left_stg_channels = 11:14;
 right_stg_channels = 7:10;
 
 % time
-epoch_time_limits = [-5,20];
+epoch_time_limits = [-5,25];
 
 all_block_averages = [];
 for isubject = 1:size(subject_ID,1)
@@ -201,7 +201,7 @@ time = linspace(epoch_time_limits(1),epoch_time_limits(2),size(all_block_average
 subplot(2,2,1)
 hold on
 yyaxis right
-ylim([0 0.11])
+ylim([0.03 0.13])
 
 [~,time_index_0] = min(abs(time - 4)); %0
 [~,time_index_10] = min(abs(time - 7)); %10.8
@@ -213,11 +213,11 @@ beta_itd_500 = squeeze(mean(all_pfc_betas(:,:,3),2));
 if statistic_to_plot == 'mean'
     plot([1,1.5],[mean(mean_itd_50),mean(mean_itd_500)],'-r','LineWidth',2)
 
-    e5 = errorbar([1],mean(mean_itd_50),std(mean_itd_50,[],1,'omitnan')./(sqrt(size(subject_ID,1))-1),'Color','r');
+    e5 = errorbar([1],mean(mean_itd_50),std(mean_itd_50,[],1,'omitnan')./(sqrt(size(subject_ID,1)-1)),'Color','r');
 elseif statistic_to_plot == 'beta'
     plot([1,1.5],[mean(beta_itd_50),mean(beta_itd_500)],'-r','LineWidth',2)
 
-    e5 = errorbar([1],mean(beta_itd_50),std(beta_itd_50,[],1,'omitnan')./(sqrt(size(subject_ID,1))-1),'Color','r');
+    e5 = errorbar([1],mean(beta_itd_50),std(beta_itd_50,[],1,'omitnan')./(sqrt(size(subject_ID,1)-1)),'Color','r');
 
 end
 e5.Marker = '^';
@@ -226,9 +226,9 @@ e5.MarkerSize = 10;
 e5.CapSize = 15;
 e5.LineWidth = 2;
 if statistic_to_plot == 'mean'
-    e6 = errorbar([1.5],mean(mean_itd_500),std(mean_itd_500,[],1,'omitnan')./(sqrt(size(subject_ID,1))-1),'Color','r');
+    e6 = errorbar([1.5],mean(mean_itd_500),std(mean_itd_500,[],1,'omitnan')./(sqrt(size(subject_ID,1)-1)),'Color','r');
 elseif statistic_to_plot == 'beta'
-    e6 = errorbar([1.5],mean(beta_itd_500),std(beta_itd_500,[],1,'omitnan')./(sqrt(size(subject_ID,1))-1),'Color','r');
+    e6 = errorbar([1.5],mean(beta_itd_500),std(beta_itd_500,[],1,'omitnan')./(sqrt(size(subject_ID,1)-1)),'Color','r');
 
 end
 e6.Marker = '^';
@@ -242,7 +242,7 @@ e6.LineWidth = 2;
 subplot(2,2,3)
 hold on
 yyaxis right
-ylim([0 0.11])
+ylim([0.03 0.14])
 
 mean_ild_70n = squeeze(mean(block_averages_to_plot(:,4,time_index_0:time_index_10),3));
 mean_ild_10 = squeeze(mean(block_averages_to_plot(:,5,time_index_0:time_index_10),3));
@@ -252,11 +252,11 @@ beta_ild_10 = squeeze(mean(all_pfc_betas(:,:,5),2));
 if statistic_to_plot == 'mean'
     plot([1,1.5],[mean(mean_ild_70n),mean(mean_ild_10)],'-r','LineWidth',2)
 
-    e7 = errorbar([1],mean(mean_ild_70n),std(mean_ild_70n,[],1,'omitnan')./(sqrt(size(subject_ID,1))-1),'Color','r','Marker','square');
+    e7 = errorbar([1],mean(mean_ild_70n),std(mean_ild_70n,[],1,'omitnan')./(sqrt(size(subject_ID,1)-1)),'Color','r','Marker','square');
 elseif statistic_to_plot == 'beta'
     plot([1,1.5],[mean(beta_ild_70n),mean(beta_ild_10)],'-r','LineWidth',2)
 
-    e7 = errorbar([1],mean(beta_ild_70n),std(beta_ild_70n,[],1,'omitnan')./(sqrt(size(subject_ID,1))-1),'Color','r','Marker','square');
+    e7 = errorbar([1],mean(beta_ild_70n),std(beta_ild_70n,[],1,'omitnan')./(sqrt(size(subject_ID,1)-1)),'Color','r','Marker','square');
 
 end
 e7.Marker = 'square';
@@ -265,9 +265,9 @@ e7.MarkerSize = 10;
 e7.CapSize = 15;
 e7.LineWidth = 2;
 if statistic_to_plot == 'mean'
-e8 = errorbar([1.5],mean(mean_ild_10),std(mean_ild_10,[],1,'omitnan')./(sqrt(size(subject_ID,1))-1),'Color','r','Marker','square');
+e8 = errorbar([1.5],mean(mean_ild_10),std(mean_ild_10,[],1,'omitnan')./(sqrt(size(subject_ID,1)-1)),'Color','r','Marker','square');
 elseif statistic_to_plot == 'beta'
-e8 = errorbar([1.5],mean(beta_ild_10),std(beta_ild_10,[],1,'omitnan')./(sqrt(size(subject_ID,1))-1),'Color','r','Marker','square');
+e8 = errorbar([1.5],mean(beta_ild_10),std(beta_ild_10,[],1,'omitnan')./(sqrt(size(subject_ID,1)-1)),'Color','r','Marker','square');
 
 end
 e8.Marker = 'square';
@@ -289,14 +289,14 @@ ymax = 0.6;
 ymin = -0.125;
 ymax = 0.15;
 time = linspace(epoch_time_limits(1),epoch_time_limits(2),size(all_block_averages,4));
-plotting_fs = 5;
+plotting_fs = 20;
 lineprop_list = {'-k',{'or','markerfacecolor',[1,1,1],'MarkerIndices',1:plotting_fs:length(time)},{'or','markerfacecolor',[1,0,0],'MarkerIndices',1:plotting_fs:length(time)},{'or','markerfacecolor',[1,1,1],'MarkerIndices',1:plotting_fs:length(time)},{'or','markerfacecolor',[1,0,0],'MarkerIndices',1:plotting_fs:length(time)}};
 % ITD conditions
 subplot(2,2,2)
 hold on
 for icondition = 2:3
     this_lineprop = lineprop_list(icondition);
-    shadedErrorBar(time,squeeze(nanmean(block_averages_to_plot(:,icondition,:),1)),squeeze(nanstd(block_averages_to_plot(:,icondition,:),[],1))./(sqrt(size(subject_ID,1))-1),'lineProps',this_lineprop{1,1});
+    shadedErrorBar(time,squeeze(nanmean(block_averages_to_plot(:,icondition,:),1)),squeeze(nanstd(block_averages_to_plot(:,icondition,:),[],1))./(sqrt(size(subject_ID,1)-1)),'lineProps',this_lineprop{1,1});
     hold on
 end
 
@@ -310,7 +310,7 @@ subplot(2,2,4)
 hold on
 for icondition = 4:5
     this_lineprop = lineprop_list(icondition);
-    shadedErrorBar(time,squeeze(nanmean(block_averages_to_plot(:,icondition,:),1)),squeeze(nanstd(block_averages_to_plot(:,icondition,:),[],1))./(sqrt(size(subject_ID,1))-1),'lineProps',this_lineprop{1,1});
+    shadedErrorBar(time,squeeze(nanmean(block_averages_to_plot(:,icondition,:),1)),squeeze(nanstd(block_averages_to_plot(:,icondition,:),[],1))./(sqrt(size(subject_ID,1)-1)),'lineProps',this_lineprop{1,1});
     hold on
 end
 legend({'Natural ILD','Broadband ILD'},'FontSize',14,'AutoUpdate','off')
@@ -342,7 +342,6 @@ ax = gca;
 ax.YColor = 'b';
 ylabel({"Behavioral";"Sensitivity (d')"},'FontSize',18,'FontWeight','bold')
 yyaxis right
-ylim([0 0.11])
 ax = gca;
 ax.YColor = 'k';
 if statistic_to_plot == 'mean'
@@ -390,8 +389,6 @@ ax = gca;
 ax.YColor = 'b';
 ylabel({"Behavioral";"Sensitivity (d')"},'FontSize',18,'FontWeight','bold')
 yyaxis right
-ylim([-0.025 0.375])
-ylim([0 0.11])
 ax = gca;
 ax.YColor = 'k';
 if statistic_to_plot == 'mean'

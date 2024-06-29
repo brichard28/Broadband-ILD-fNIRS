@@ -30,6 +30,14 @@ from mne_nirs.io.snirf import read_snirf_aux_data
 #from scipy import signal
 from scipy import stats
 
+
+# Ben preprocessing specific imports
+from mne.preprocessing.nirs import optical_density, beer_lambert_law, temporal_derivative_distribution_repair, scalp_coupling_index
+from itertools import compress
+from mne_nirs.signal_enhancement import short_channel_regression
+from mne_modified_beer_lambert_law import mne_modified_beer_lambert_law
+from mne.io import read_raw_nirx
+from mpl_toolkits.mplot3d import Axes3D
 # ---------------------------------------------------------------
 # -----------------          Data Parameters            ---------
 # ---------------------------------------------------------------
@@ -85,12 +93,13 @@ curr_subject_ID = ['NDARVX753BR6', 'NDARZD647HJ1', 'NDARBL382XK5', 'NDARGF569BF3
 
 masker_type = 'speech' # type of masker to analyze on this run
 glm_dur = 7
+preprocessing_type = "Ben"
 
 n_subjects = len(all_fnirs_data_folders)
 
 n_long_channels = 14
 fs = 10.2
-n_timepoints = 306
+n_timepoints = 255
 
 
 
@@ -139,6 +148,9 @@ range_BH_response = np.zeros((n_subjects, n_long_channels))
 all_evokeds = defaultdict(list)
 # loop through all subjects and all sessions (takes a while)
 for ii, subject_num in enumerate(range(n_subjects)):
+    
+    os.environ["OMP_NUM_THREADS"] = "1"
+    
     subject = subject_ID[ii]
     task_type = 'Ben_SvN'
     base_dir = "C:/Users/elibu/Documents/NIRx/Data/"
@@ -152,14 +164,20 @@ for ii, subject_num in enumerate(range(n_subjects)):
     # ---------------------------------------------------------------
     # -----------------      Load the Data        ---------
     # ---------------------------------------------------------------
-    data = mne.io.read_raw_nirx(f"{all_fnirs_data_folders[ii]}/{all_fnirs_data_folders[ii][-14:]}_config.hdr",
-                                verbose=False, preload=True)
-
-    data_snirf = mne.io.read_raw_snirf(f"{all_fnirs_data_folders[ii]}/{all_fnirs_data_folders[ii][-14:]}.snirf",
-                                       optode_frame="mri", preload=True)
-
-    aux_snirf = read_snirf_aux_data(f"{all_fnirs_data_folders[ii]}/{all_fnirs_data_folders[ii][-14:]}.snirf",
-                                    data_snirf)
+    if preprocessing_type == "Eli":
+        data = mne.io.read_raw_nirx(f"{all_fnirs_data_folders[ii]}/{all_fnirs_data_folders[ii][-14:]}_config.hdr",
+                                    verbose=False, preload=True)
+    
+        data_snirf = mne.io.read_raw_snirf(f"{all_fnirs_data_folders[ii]}/{all_fnirs_data_folders[ii][-14:]}.snirf",
+                                           optode_frame="mri", preload=True)
+    
+        aux_snirf = read_snirf_aux_data(f"{all_fnirs_data_folders[ii]}/{all_fnirs_data_folders[ii][-14:]}.snirf",
+                                        data_snirf)
+    elif preprocessing_type == "Ben":
+        data = read_raw_nirx(f"{all_fnirs_data_folders[ii]}/", verbose=False, preload=True)
+        data_snirf = mne.io.read_raw_snirf(f"{all_fnirs_data_folders[ii]}/{all_fnirs_data_folders[ii][-14:]}.snirf",
+                                           optode_frame="mri", preload=True)
+    
 
     # ---------------------------------------------------------------
     # -----------------      Preprocess the Data            ---------
@@ -257,7 +275,7 @@ for ii, subject_num in enumerate(range(n_subjects)):
                                           '20':'noise',
                                           '21':'control',
                                           '22':'noise',
-                                          '23':'ild_70n__itd_0'})
+                                              '23':'ild_70n__itd_0'})
     else: # both maskers:
         data.annotations.rename({'1.0': 'Inhale',
                                   '2.0': 'Exhale',
@@ -307,32 +325,86 @@ for ii, subject_num in enumerate(range(n_subjects)):
                                         '22': 'ild_0__itd_500',
                                         '23': 'ild_70n__itd_0'})
     
-    events, event_dict = mne.events_from_annotations(data, verbose=False)
+    # ---------------------------------------------------------------
+    # -------------               Preprocessing             ---------
+    # ---------------------------------------------------------------
+    
+    if preprocessing_type == "Eli":
+        events, event_dict = mne.events_from_annotations(data, verbose=False)
+    
+        raw_haemo_temp, null = preprocess_NIRX(data, data_snirf, event_dict,
+                                               save=True,
+                                               savename=save_dir + f'{subject}_{task_type}_preproc_nirs.fif',
+                                               plot_steps=False,
+                                               crop=False, crop_low=0, crop_high=0,
+                                               events_modification=False, reject=True,
+                                               short_regression=True, events_from_snirf=False,
+                                               drop_short=False, negative_enhancement=False,
+                                               snr_thres=3, filter_type='iir')
+    
+        raw_haemo_short = get_short_channels(raw_haemo_temp)
+        raw_haemo_filt = get_long_channels(raw_haemo_temp)
+        
+        # extra_regressors = aux_snirf.reset_index(drop=True)
+        #
+        # order = 4  # You can adjust the order as needed
+        # [b, a] = signal.iirfilter(N=order, Wn=0.01 / (0.5 * raw_haemo_filt.info['sfreq']), btype='high', ftype='butter')
+        # filtered_signals = extra_regressors.iloc[:, 1:].apply(lambda col: signal.filtfilt(b, a, col), axis=0)
 
-    raw_haemo_temp, null = preprocess_NIRX(data, data_snirf, event_dict,
-                                           save=True,
-                                           savename=save_dir + f'{subject}_{task_type}_preproc_nirs.fif',
-                                           plot_steps=False,
-                                           crop=False, crop_low=0, crop_high=0,
-                                           events_modification=False, reject=True,
-                                           short_regression=True, events_from_snirf=False,
-                                           drop_short=False, negative_enhancement=False,
-                                           snr_thres=3, filter_type='iir')
+    elif preprocessing_type == "Ben":
+        events, event_dict = mne.events_from_annotations(data, verbose=False)
+        # Convert to optical density
+        raw_od = optical_density(data_snirf)
+         
+        # Scalp Coupling Index, label bad channels
+        sci = scalp_coupling_index(raw_od)
 
-    raw_haemo_short = get_short_channels(raw_haemo_temp)
-    raw_haemo_filt = get_long_channels(raw_haemo_temp)
+        # Add 'bads' to info
+         
+        raw_od.info['bads'] = list(compress(raw_od.ch_names,sci < 0.8))
 
-    # extra_regressors = aux_snirf.reset_index(drop=True)
-    #
-    # order = 4  # You can adjust the order as needed
-    # [b, a] = signal.iirfilter(N=order, Wn=0.01 / (0.5 * raw_haemo_filt.info['sfreq']), btype='high', ftype='butter')
-    # filtered_signals = extra_regressors.iloc[:, 1:].apply(lambda col: signal.filtfilt(b, a, col), axis=0)
+        # raw_od = short_channel_regression(raw_od, max_dist=0.01)
+        
+        # Apply TDDR
+        raw_od = temporal_derivative_distribution_repair(raw_od, verbose=False)
+         
+        # Resample to 3 Hz
+        #raw_od.resample(3) # 10
+         
+        # Create separate object for block averages (will run short channel on these, but use short channels as a regressor in the GLM for betas)
+        raw_od_for_block_averages = short_channel_regression(raw_od, max_dist=0.01)
+         
+        #raw_haemo = beer_lambert_law(raw_od, ppf=0.1)
+        #raw_haemo_for_block_averages = beer_lambert_law(raw_od_for_block_averages, ppf=0.1)
+        raw_haemo = mne_modified_beer_lambert_law(raw_od) # TRYING ELIS FUNCTION
+        raw_haemo_for_block_averages = mne_modified_beer_lambert_law(raw_od_for_block_averages)
+         
+        # Filter data
+        iir_params = dict({"order":3,"ftype":"butter","padlen":10000})
+        raw_haemo = raw_haemo.filter(0.01, 0.3, iir_params=iir_params, method='iir', verbose=False)
+        raw_haemo_for_block_averages = raw_haemo_for_block_averages.filter(0.01, 0.3, iir_params=iir_params, method='iir', verbose=False)
+        #raw_haemo.filter(0.01, 0.2, h_trans_bandwidth=0.2, l_trans_bandwidth=0.005) # 0.01, 0.3, 0.2, 0.005
+        #raw_haemo_for_block_averages.filter(0.01, 0.2, h_trans_bandwidth=0.2, l_trans_bandwidth=0.005)
+            
+        # if ID == 'NDARBA306US5' or ID == 'NDARDC882NK4':
+        #     events_to_remove = [45,46,47]
+        #     raw_haemo.annotations.delete(events_to_remove)
+        #     raw_haemo_for_block_averages.annotations.delete(events_to_remove)
+        # if ID == 'NDARAZC45TW3':
+        #     events_to_remove = [1,2]
+        #     raw_haemo.annotations.delete(events_to_remove)
+        #     raw_haemo_for_block_averages.annotations.delete(events_to_remove)
+        
+        raw_haemo_short = get_short_channels(raw_haemo)
+        raw_haemo_filt = get_long_channels(raw_haemo)
+        raw_haemo_for_block_averages = get_long_channels(raw_haemo_for_block_averages)
+         
 
     # ---------------------------------------------------------------
     # -------------               Epoching                  ---------
     # ---------------------------------------------------------------
     reject_criteria = dict(hbo=5e-6)
-    tmin, tmax = -5, 25
+    tmin, tmax = -5, 20
 
     epochs = mne.Epochs(raw_haemo_filt, events,  # events_block,
                         event_id=event_dict,  # event_dict_total,
@@ -402,7 +474,7 @@ for ii, subject_num in enumerate(range(n_subjects)):
 
     # try to remove some of the conditions in the raw_haemo_filt annotations
 
-    raw_haemo_temp_crop = raw_haemo_temp.crop(tmin=raw_haemo_temp.annotations.onset[45] - 15)
+    raw_haemo_temp_crop = raw_haemo.crop(tmin=raw_haemo.annotations.onset[45] - 15)
 
     raw_haemo_short_crop = get_short_channels(raw_haemo_temp_crop)
     raw_haemo_filt_crop = get_long_channels(raw_haemo_temp_crop)
@@ -536,14 +608,14 @@ for ichannel in range(n_long_channels):
 
 channel_names = [this_chan_hbo.replace(' hbo','') for this_chan_hbo in chan_hbo]
 ymin = -5e-2
-ymax = 12e-2
+ymax = 20e-2
 fig, axes = plt.subplots(6,5)
 fig.set_figwidth(16)
 fig.set_figheight(8)
 for ichannel in [0,1,2,3,4,5]:
       
     lims = dict(hbo=[-5e-2, 20e-2], hbr=[-5e-2, 20e-2])
-    time = np.linspace(tmin,tmax,num=int((tmax-tmin)*fs))
+    time = np.linspace(tmin,tmax,num=n_timepoints)
     baseline_start_index = 0
     baseline_end_index = int(5*fs)
     
@@ -562,11 +634,16 @@ for ichannel in [0,1,2,3,4,5]:
     curr_ax.plot(time, curr_mean, 'k-')
     curr_ax.fill_between(time, curr_mean- curr_error,  curr_mean+curr_error, color='b')
     curr_ax.set_ylim((ymin, ymax))
+    curr_ax.set_xticks(np.linspace(-5,20,num=6))
     if ichannel == 0:
-        curr_ax.set_title('ITD50')
-    curr_ax.set_ylabel(r'$\Delta$Hb ($\mu$M)', usetex=False)
+        curr_ax.set_title('Small ITD', fontsize = 24)
+    elif ichannel == 3:
+        curr_ax.set_ylabel(r'$\Delta$Hb ($\mu$M)', usetex=False, fontsize = 24)
     if ichannel == 5:
-        curr_ax.set_xlabel('Time (s)')
+        curr_ax.set_xlabel('Time (s)', fontsize = 24)
+        curr_ax.set_xticklabels(np.linspace(-5,20,num=6))
+    else:
+        curr_ax.set_xticklabels(["","","","","",""])
         
     # Plot ITD500
     curr_ax = axes[ichannel,1]
@@ -583,11 +660,14 @@ for ichannel in [0,1,2,3,4,5]:
     curr_ax.plot(time, curr_mean, 'k-')
     curr_ax.fill_between(time, curr_mean- curr_error,  curr_mean+curr_error, color='b')
     curr_ax.set_ylim((ymin, ymax))
+    curr_ax.set_xticks(np.linspace(-5,20,num=6))
     if ichannel == 0:
-        curr_ax.set_title('ITD500')
+        curr_ax.set_title('Large ITD', fontsize = 24)
     if ichannel == 5:
-        curr_ax.set_xlabel('Time (s)')
-    
+        curr_ax.set_xlabel('Time (s)', fontsize = 24)
+        curr_ax.set_xticklabels(np.linspace(-5,20,num=6))
+    else:
+        curr_ax.set_xticklabels(["","","","","",""])
     # Plot ILD70n
     curr_ax = axes[ichannel,2]
     # HbO
@@ -603,11 +683,14 @@ for ichannel in [0,1,2,3,4,5]:
     curr_ax.plot(time, curr_mean, 'k-')
     curr_ax.fill_between(time, curr_mean- curr_error,  curr_mean+curr_error, color='b')
     curr_ax.set_ylim((ymin, ymax))
+    curr_ax.set_xticks(np.linspace(-5,20,num=6))
     if ichannel == 0:
-        curr_ax.set_title('ILD70n')
+        curr_ax.set_title('Natural ILD', fontsize = 24)
     if ichannel == 5:
-        curr_ax.set_xlabel('Time (s)')
-    
+        curr_ax.set_xlabel('Time (s)', fontsize = 24)
+        curr_ax.set_xticklabels(np.linspace(-5,20,num=6))
+    else:
+        curr_ax.set_xticklabels(["","","","","",""])
     # Plot ILD10
     curr_ax = axes[ichannel,3]
     # HbO
@@ -616,9 +699,12 @@ for ichannel in [0,1,2,3,4,5]:
     curr_error = np.nanstd(curr_data, axis=0)/np.sqrt(np.size(curr_data, axis=0) - 1)
     curr_ax.plot(time, curr_mean, 'k-')
     curr_ax.fill_between(time, curr_mean- curr_error,  curr_mean+curr_error, color='r')
+    curr_ax.set_xticks(np.linspace(-5,20,num=6))
     if ichannel == 5:
-        curr_ax.set_xlabel('Time (s)')
-    
+        curr_ax.set_xlabel('Time (s)', fontsize = 24)
+        curr_ax.set_xticklabels(np.linspace(-5,20,num=6))
+    else:
+        curr_ax.set_xticklabels(["","","","","",""])
     #HbR
     curr_data = subject_data_ild10_hbr_baselined[:,ichannel,:]
     curr_mean = np.nanmean(curr_data, axis=0) 
@@ -627,14 +713,58 @@ for ichannel in [0,1,2,3,4,5]:
     curr_ax.fill_between(time, curr_mean- curr_error,  curr_mean+curr_error, color='b')
     curr_ax.set_ylim((ymin, ymax))
     if ichannel == 0:
-        curr_ax.set_title('ILD10')
+        curr_ax.set_title('Broadband ILD', fontsize = 24)
+    
     
     # Plot sensor location
     curr_ax = axes[ichannel,4]
     epochs.copy().pick(chan_hbo[ichannel]).plot_sensors(axes = curr_ax)
 plt.subplots_adjust(top=.9, right=.98, left= 0.05, bottom = 0.07)
-fig.suptitle('PFC')
-plt.savefig(f'C:\\Users\\benri\\Documents\\GitHub\\SRM-NIRS-EEG\\ANALYSIS SCRIPTS\\Eli Analysis\\Plots\\PFC_Block_Averages_{masker_type}_masker.png')
+plt.savefig(f'C:\\Users\\benri\\Documents\\GitHub\\SRM-NIRS-EEG\\ANALYSIS SCRIPTS\\Eli Analysis\\Plots\\PFC_Block_Averages_{masker_type}_masker.svg', format='svg')
+
+
+# ---------------------------------------------------------------
+# -----------------     Plot Grand Average PFC          ---------
+# ---------------------------------------------------------------
+
+ymin = -5e-2
+ymax = 20e-2
+fig, axes = plt.subplots(1, 2)
+fig.set_figwidth(16)
+fig.set_figheight(8)
+# ITD 50 vs ITD 500
+curr_ax = axes[0]
+curr_data = np.nanmean(subject_data_itd50_baselined[:,0:5,:], axis = 1) # mean over channel
+curr_mean = np.nanmean(curr_data, axis = 0) # mean over subject
+curr_error = np.nanstd(curr_data, axis = 0)/np.sqrt(np.size(curr_data, axis=0) - 1)
+line1 = curr_ax.plot(time, curr_mean, 'ro', markerfacecolor= 'white', label = 'Small ITD')
+curr_ax.fill_between(time, curr_mean- curr_error,  curr_mean+curr_error, color='r', alpha = 0.1)
+
+curr_data = np.nanmean(subject_data_itd500_baselined[:,0:5,:], axis = 1) # mean over channel
+curr_mean = np.nanmean(curr_data, axis = 0) # mean over subject
+curr_error = np.nanstd(curr_data, axis = 0)/np.sqrt(np.size(curr_data, axis=0) - 1)
+line2 = curr_ax.plot(time, curr_mean, 'ro', markerfacecolor= 'r', label = 'Large ITD')
+curr_ax.fill_between(time, curr_mean- curr_error,  curr_mean+curr_error, color='r', alpha = 0.1)
+curr_ax.legend()
+curr_ax.set_xlabel('Time (s)',fontsize=24)
+curr_ax.set_ylabel(r'$\Delta$HbO ($\mu$M)', usetex=False, fontsize = 24)
+
+# ILD 
+curr_ax = axes[1]
+curr_data = np.nanmean(subject_data_ild70n_baselined[:,0:5,:], axis = 1) # mean over channel
+curr_mean = np.nanmean(curr_data, axis = 0) # mean over subject
+curr_error = np.nanstd(curr_data, axis = 0)/np.sqrt(np.size(curr_data, axis=0) - 1)
+line1 = curr_ax.plot(time, curr_mean, 'ro', markerfacecolor= 'white', label = 'Natural ILD')
+curr_ax.fill_between(time, curr_mean- curr_error,  curr_mean+curr_error, color='r', alpha = 0.1)
+
+curr_data = np.nanmean(subject_data_ild10_baselined[:,0:5,:], axis = 1) # mean over channel
+curr_mean = np.nanmean(curr_data, axis = 0) # mean over subject
+curr_error = np.nanstd(curr_data, axis = 0)/np.sqrt(np.size(curr_data, axis=0) - 1)
+line2 = curr_ax.plot(time, curr_mean, 'ro', markerfacecolor= 'r', label = 'Broadband ILD')
+curr_ax.fill_between(time, curr_mean- curr_error,  curr_mean+curr_error, color='r', alpha = 0.1)
+curr_ax.legend()
+curr_ax.set_xlabel('Time (s)',fontsize=24)
+plt.savefig(f'C:\\Users\\benri\\Documents\\GitHub\\SRM-NIRS-EEG\\ANALYSIS SCRIPTS\\Eli Analysis\\Plots\\PFC_Grand_Average_{masker_type}_masker.svg', format='svg')
 
 # ---------------------------------------------------------------
 # -----------------     PLotting Block Averages (STG)   ---------
@@ -645,7 +775,7 @@ fig.set_figheight(8)
 for ichannel in [6, 7, 8, 9, 10, 11, 12, 13]:
       
     lims = dict(hbo=[-5e-2, 20e-2], hbr=[-5e-2, 20e-2])
-    time = np.linspace(tmin,tmax,num=int((tmax-tmin)*fs))
+    time = np.linspace(tmin,tmax,num=n_timepoints)
     baseline_start_index = 0
     baseline_end_index = int(5*fs)
     
@@ -665,7 +795,7 @@ for ichannel in [6, 7, 8, 9, 10, 11, 12, 13]:
     curr_ax.fill_between(time, curr_mean- curr_error,  curr_mean+curr_error, color='b')
     curr_ax.set_ylim((ymin, ymax))
     if ichannel == 6:
-        curr_ax.set_title('ITD50')
+        curr_ax.set_title('Small ITD')
     curr_ax.set_ylabel(r'$\Delta$Hb ($\mu$M)', usetex=False)
     if ichannel == 13:
         curr_ax.set_xlabel('Time (s)')
@@ -686,7 +816,7 @@ for ichannel in [6, 7, 8, 9, 10, 11, 12, 13]:
     curr_ax.fill_between(time, curr_mean- curr_error,  curr_mean+curr_error, color='b')
     curr_ax.set_ylim((ymin, ymax))
     if ichannel == 6:
-        curr_ax.set_title('ITD500')
+        curr_ax.set_title('Large ITD')
     if ichannel == 13:
         curr_ax.set_xlabel('Time (s)')
     
@@ -706,7 +836,7 @@ for ichannel in [6, 7, 8, 9, 10, 11, 12, 13]:
     curr_ax.fill_between(time, curr_mean- curr_error,  curr_mean+curr_error, color='b')
     curr_ax.set_ylim((ymin, ymax))
     if ichannel == 6:
-        curr_ax.set_title('ILD70n')
+        curr_ax.set_title('Natural ILD')
     if ichannel == 13:
         curr_ax.set_xlabel('Time (s)')
     
@@ -727,7 +857,7 @@ for ichannel in [6, 7, 8, 9, 10, 11, 12, 13]:
     curr_ax.fill_between(time, curr_mean- curr_error,  curr_mean+curr_error, color='b')
     curr_ax.set_ylim((ymin, ymax))
     if ichannel == 6:
-        curr_ax.set_title('ILD10')
+        curr_ax.set_title('Broadband ILD')
     if ichannel == 13:
         curr_ax.set_xlabel('Time (s)')
     
@@ -735,16 +865,58 @@ for ichannel in [6, 7, 8, 9, 10, 11, 12, 13]:
     curr_ax = axes[ichannel-6,4]
     epochs.copy().pick(chan_hbo[ichannel]).plot_sensors(axes = curr_ax)
 plt.subplots_adjust(top=.9, right=.98, left= 0.05, bottom = 0.07)
-fig.suptitle('STG')
 plt.savefig(f'C:\\Users\\benri\\Documents\\GitHub\\SRM-NIRS-EEG\\ANALYSIS SCRIPTS\\Eli Analysis\\Plots\\STG_Block_Averages__{masker_type}_masker.png')
 
+# ---------------------------------------------------------------
+# -----------------     Plot Grand Average STG          ---------
+# ---------------------------------------------------------------
 
-# ---------------------------------------------------------------
-# -----------------     PLotting Block Average Means    ---------
-# ---------------------------------------------------------------
-fig, axes = plt.subplots(2, 7)
+ymin = -5e-2
+ymax = 20e-2
+fig, axes = plt.subplots(1, 2)
 fig.set_figwidth(16)
 fig.set_figheight(8)
+# ITD 50 vs ITD 500
+curr_ax = axes[0]
+curr_data = np.nanmean(subject_data_itd50_baselined[:,6:13,:], axis = 1) # mean over channel
+curr_mean = np.nanmean(curr_data, axis = 0) # mean over subject
+curr_error = np.nanstd(curr_data, axis = 0)/np.sqrt(np.size(curr_data, axis=0) - 1)
+line1 = curr_ax.plot(time, curr_mean, 'ro', markerfacecolor= 'white', label = 'Small ITD')
+curr_ax.fill_between(time, curr_mean- curr_error,  curr_mean+curr_error, color='r', alpha = 0.1)
+
+curr_data = np.nanmean(subject_data_itd500_baselined[:,6:13,:], axis = 1) # mean over channel
+curr_mean = np.nanmean(curr_data, axis = 0) # mean over subject
+curr_error = np.nanstd(curr_data, axis = 0)/np.sqrt(np.size(curr_data, axis=0) - 1)
+line2 = curr_ax.plot(time, curr_mean, 'ro', markerfacecolor= 'r', label = 'Large ITD')
+curr_ax.fill_between(time, curr_mean- curr_error,  curr_mean+curr_error, color='r', alpha = 0.1)
+curr_ax.legend()
+curr_ax.set_xlabel('Time (s)',fontsize=24)
+curr_ax.set_ylabel(r'$\Delta$HbO ($\mu$M)', usetex=False, fontsize = 24)
+
+# ILD 
+curr_ax = axes[1]
+curr_data = np.nanmean(subject_data_ild70n_baselined[:,6:13,:], axis = 1) # mean over channel
+curr_mean = np.nanmean(curr_data, axis = 0) # mean over subject
+curr_error = np.nanstd(curr_data, axis = 0)/np.sqrt(np.size(curr_data, axis=0) - 1)
+line1 = curr_ax.plot(time, curr_mean, 'ro', markerfacecolor= 'white', label = 'Natural ILD')
+curr_ax.fill_between(time, curr_mean- curr_error,  curr_mean+curr_error, color='r', alpha = 0.1)
+
+curr_data = np.nanmean(subject_data_ild10_baselined[:,6:13,:], axis = 1) # mean over channel
+curr_mean = np.nanmean(curr_data, axis = 0) # mean over subject
+curr_error = np.nanstd(curr_data, axis = 0)/np.sqrt(np.size(curr_data, axis=0) - 1)
+line2 = curr_ax.plot(time, curr_mean, 'ro', markerfacecolor= 'r', label = 'Broadband ILD')
+curr_ax.fill_between(time, curr_mean- curr_error,  curr_mean+curr_error, color='r', alpha = 0.1)
+curr_ax.legend()
+curr_ax.set_xlabel('Time (s)',fontsize=24)
+plt.savefig(f'C:\\Users\\benri\\Documents\\GitHub\\SRM-NIRS-EEG\\ANALYSIS SCRIPTS\\Eli Analysis\\Plots\\STG_Grand_Average_{masker_type}_masker.svg', format='svg')
+
+
+# ---------------------------------------------------------------
+# -----------------     PLotting Block Average Means PFC---------
+# ---------------------------------------------------------------
+fig, axes = plt.subplots(6, 2)
+fig.set_figwidth(10)
+fig.set_figheight(9)
 caxis_lim = 11e-8
 
 pfc_channels = []
@@ -753,7 +925,7 @@ stg_channels = []
 index_baseline_start = 0
 index_baseline_end = int(5*fs)
 index_stim_start = int(5*fs)
-index_stim_end = int(17.8*fs)
+index_stim_end = int(14.8*fs)
 # ITD50
 curr_data = subject_data_itd50_baselined
 mean_during_stim_itd50 = np.mean(curr_data[:,:,index_stim_start:index_stim_end], axis=2)
@@ -771,34 +943,113 @@ curr_data = subject_data_ild10_baselined
 mean_during_stim_ild10 = np.mean(curr_data[:,:,index_stim_start:index_stim_end], axis=2)
 
 # Plot error bars
-for ichannel, curr_axes in enumerate(axes.reshape(-1)):
+for ichannel in range(6):
+    curr_axes = axes[ichannel, 0]
     # ITD50
-    curr_axes.errorbar(1, np.nanmean(mean_during_stim_itd50[:,ichannel], axis=0), 
-                       np.nanstd(mean_during_stim_itd50[:,ichannel],axis=0)/(np.sqrt(np.size(mean_during_stim_itd50, axis=0)) - 1),
-                       fmt='o')    
+    curr_axes.errorbar(0.5, np.nanmean(mean_during_stim_itd50[:,ichannel], axis=0), 
+                       np.nanstd(mean_during_stim_itd50[:,ichannel],axis=0)/(np.sqrt(np.size(mean_during_stim_itd50, axis=0) - 1)),
+                       fmt='o', capsize= 5.0)    
     # ITD500
-    curr_axes.errorbar(2, np.nanmean(mean_during_stim_itd500[:,ichannel], axis=0), 
-                       np.nanstd(mean_during_stim_itd500[:,ichannel],axis=0)/(np.sqrt(np.size(mean_during_stim_itd500, axis=0)) - 1),
-                       fmt='o')
+    curr_axes.errorbar(1, np.nanmean(mean_during_stim_itd500[:,ichannel], axis=0), 
+                       np.nanstd(mean_during_stim_itd500[:,ichannel],axis=0)/(np.sqrt(np.size(mean_during_stim_itd500, axis=0) - 1) ),
+                       fmt='o', capsize= 5.0)
     # ILD70n
-    curr_axes.errorbar(3, np.nanmean(mean_during_stim_ild70n[:,ichannel], axis=0),
-                       np.nanstd(mean_during_stim_ild70n[:,ichannel],axis=0)/(np.sqrt(np.size(mean_during_stim_ild70n, axis=0)) - 1),
-                       fmt='o')
+    curr_axes.errorbar(1.5, np.nanmean(mean_during_stim_ild70n[:,ichannel], axis=0),
+                       np.nanstd(mean_during_stim_ild70n[:,ichannel],axis=0)/(np.sqrt(np.size(mean_during_stim_ild70n, axis=0)  - 1)),
+                       fmt='o', capsize= 5.0)
     # ILD10 
-    curr_axes.errorbar(4, np.nanmean(mean_during_stim_ild10[:,ichannel], axis=0), 
-                       np.nanstd(mean_during_stim_ild10[:,ichannel],axis=0)/(np.sqrt(np.size(mean_during_stim_ild10, axis=0)) - 1),
-                       fmt='o')
+    curr_axes.errorbar(2, np.nanmean(mean_during_stim_ild10[:,ichannel], axis=0), 
+                       np.nanstd(mean_during_stim_ild10[:,ichannel],axis=0)/(np.sqrt(np.size(mean_during_stim_ild10, axis=0) - 1) ),
+                       fmt='o', capsize= 5.0)
     
-    curr_axes.set_ylim((0,0.1))
-    curr_axes.set_xlabel('Condition')
-    curr_axes.set_title(channel_names[ichannel])
-    curr_axes.set_xticks([1,2,3,4])
-    curr_axes.set_xticklabels(["ITD50","ITD500","ILD70n","ILD10"])
-    if ichannel == 0 or ichannel == 7:
-        curr_axes.set_ylabel(r'Mean $\Delta$Hb ($\mu$M) during stim.', usetex=False)
+    curr_axes.set_ylim((0,0.15))
+    if ichannel == 2:
+        curr_axes.set_ylabel(r'Mean $\Delta$Hb ($\mu$M) during stim.', usetex=False, fontsize=24)
+    #curr_axes.set_title(channel_names[ichannel])
+    curr_axes.set_xticks([0.5,1,1.5,2])
+    curr_axes.set_xlim([0.4,2.1])
+    if ichannel == 5:
+        curr_axes.set_xticklabels(["Small\n ITD","Large\n ITD","Natural\n ILD","Broadband\n ILD"], fontsize = 18)
+    else:
+        curr_axes.set_xticklabels(["","","",""])
+        
+    curr_axes = axes[ichannel, 1]
+    epochs.copy().pick(chan_hbo[ichannel]).plot_sensors(axes = curr_axes)
+    
+fig.tight_layout()
+plt.subplots_adjust(top=.98, right=.999, left= 0.1, bottom = 0.1)
+plt.savefig(f'C:\\Users\\benri\\Documents\\GitHub\\SRM-NIRS-EEG\\ANALYSIS SCRIPTS\\Eli Analysis\\Plots\\Mean_HbO_PFC__{masker_type}_masker.svg', format='svg')
 
-plt.subplots_adjust(top=.9, right=.98, left= 0.05, bottom = 0.07)
-plt.savefig(f'C:\\Users\\benri\\Documents\\GitHub\\SRM-NIRS-EEG\\ANALYSIS SCRIPTS\\Eli Analysis\\Plots\\Mean_HbO__{masker_type}_masker.png')
+
+# ---------------------------------------------------------------
+# -----------------     PLotting Block Average Means PFC---------
+# ---------------------------------------------------------------
+fig, axes = plt.subplots(8, 2)
+fig.set_figwidth(10)
+fig.set_figheight(9)
+caxis_lim = 11e-8
+
+pfc_channels = []
+stg_channels = []
+# Take Means
+index_baseline_start = 0
+index_baseline_end = int(5*fs)
+index_stim_start = int(5*fs)
+index_stim_end = int(14.8*fs)
+# ITD50
+curr_data = subject_data_itd50_baselined
+mean_during_stim_itd50 = np.mean(curr_data[:,:,index_stim_start:index_stim_end], axis=2)
+
+# ITD500
+curr_data = subject_data_itd500_baselined
+mean_during_stim_itd500 = np.mean(curr_data[:,:,index_stim_start:index_stim_end], axis=2)
+
+# ILD70n
+curr_data = subject_data_ild70n_baselined
+mean_during_stim_ild70n = np.mean(curr_data[:,:,index_stim_start:index_stim_end], axis=2)
+
+#ILD10
+curr_data = subject_data_ild10_baselined
+mean_during_stim_ild10 = np.mean(curr_data[:,:,index_stim_start:index_stim_end], axis=2)
+
+# Plot error bars
+for ichannel in [6,7,8,9,10,11,12,13]:
+    curr_axes = axes[ichannel - 6, 0]
+    # ITD50
+    curr_axes.errorbar(0.5, np.nanmean(mean_during_stim_itd50[:,ichannel], axis=0), 
+                       np.nanstd(mean_during_stim_itd50[:,ichannel],axis=0)/(np.sqrt(np.size(mean_during_stim_itd50, axis=0) - 1)),
+                       fmt='o', capsize= 5.0)    
+    # ITD500
+    curr_axes.errorbar(1, np.nanmean(mean_during_stim_itd500[:,ichannel], axis=0), 
+                       np.nanstd(mean_during_stim_itd500[:,ichannel],axis=0)/(np.sqrt(np.size(mean_during_stim_itd500, axis=0) - 1) ),
+                       fmt='o', capsize= 5.0)
+    # ILD70n
+    curr_axes.errorbar(1.5, np.nanmean(mean_during_stim_ild70n[:,ichannel], axis=0),
+                       np.nanstd(mean_during_stim_ild70n[:,ichannel],axis=0)/(np.sqrt(np.size(mean_during_stim_ild70n, axis=0)  - 1)),
+                       fmt='o', capsize= 5.0)
+    # ILD10 
+    curr_axes.errorbar(2, np.nanmean(mean_during_stim_ild10[:,ichannel], axis=0), 
+                       np.nanstd(mean_during_stim_ild10[:,ichannel],axis=0)/(np.sqrt(np.size(mean_during_stim_ild10, axis=0) - 1) ),
+                       fmt='o', capsize= 5.0)
+    
+    curr_axes.set_ylim((0,0.15))
+    if ichannel == 2:
+        curr_axes.set_ylabel(r'Mean $\Delta$Hb ($\mu$M) during stim.', usetex=False, fontsize=24)
+    #curr_axes.set_title(channel_names[ichannel])
+    curr_axes.set_xticks([0.5,1,1.5,2])
+    curr_axes.set_xlim([0.4,2.1])
+    if ichannel == 5:
+        curr_axes.set_xticklabels(["Small\n ITD","Large\n ITD","Natural\n ILD","Broadband\n ILD"], fontsize = 18)
+    else:
+        curr_axes.set_xticklabels(["","","",""])
+        
+    curr_axes = axes[ichannel - 6, 1]
+    epochs.copy().pick(chan_hbo[ichannel]).plot_sensors(axes = curr_axes)
+    
+fig.tight_layout()
+plt.subplots_adjust(top=.98, right=.999, left= 0.1, bottom = 0.1)
+plt.savefig(f'C:\\Users\\benri\\Documents\\GitHub\\SRM-NIRS-EEG\\ANALYSIS SCRIPTS\\Eli Analysis\\Plots\\Mean_HbO_STG__{masker_type}_masker.svg', format='svg')
+
 
 # ---------------------------------------------------------------
 # -----------------     PLotting GLM Averages           ---------
@@ -809,8 +1060,8 @@ plt.savefig(f'C:\\Users\\benri\\Documents\\GitHub\\SRM-NIRS-EEG\\ANALYSIS SCRIPT
 # #             np.max(np.abs(subject_data_itd500_GLM_mean)),
 # #             np.max(np.abs(subject_data_ild70n_GLM_mean)),
 # #             np.max(np.abs(subject_data_ild10_GLM_mean))])
-fig, axes = plt.subplots(2, 7)
-fig.set_figwidth(16)
+fig, axes = plt.subplots(6,1)
+fig.set_figwidth(4)
 fig.set_figheight(8)
 caxis_lim = 11e-8
 
@@ -818,30 +1069,30 @@ caxis_lim = 11e-8
 for ichannel, curr_axes in enumerate(axes.reshape(-1)):
     # ITD50
     curr_axes.errorbar(1, np.nanmean(subject_data_itd50_GLM[:,ichannel], axis=0), 
-                       np.nanstd(subject_data_itd50_GLM[:,ichannel],axis=0)/(np.sqrt(np.size(subject_data_itd50_GLM, axis=0)) - 1),
+                       np.nanstd(subject_data_itd50_GLM[:,ichannel],axis=0)/(np.sqrt(np.size(subject_data_itd50_GLM, axis=0) - 1) ),
                        fmt='o')    
     # ITD500
     curr_axes.errorbar(2, np.nanmean(subject_data_itd500_GLM[:,ichannel], axis=0), 
-                       np.nanstd(subject_data_itd500_GLM[:,ichannel],axis=0)/(np.sqrt(np.size(subject_data_itd500_GLM, axis=0)) - 1),
+                       np.nanstd(subject_data_itd500_GLM[:,ichannel],axis=0)/(np.sqrt(np.size(subject_data_itd500_GLM, axis=0)- 1) ),
                        fmt='o')
     # ILD70n
     curr_axes.errorbar(3, np.nanmean(subject_data_ild70n_GLM[:,ichannel], axis=0),
-                       np.nanstd(subject_data_ild70n_GLM[:,ichannel],axis=0)/(np.sqrt(np.size(subject_data_ild70n_GLM, axis=0)) - 1),
+                       np.nanstd(subject_data_ild70n_GLM[:,ichannel],axis=0)/(np.sqrt(np.size(subject_data_ild70n_GLM, axis=0)- 1) ),
                        fmt='o')
     # ILD10 
     curr_axes.errorbar(4, np.nanmean(subject_data_ild10_GLM[:,ichannel], axis=0), 
-                       np.nanstd(subject_data_ild10_GLM[:,ichannel],axis=0)/(np.sqrt(np.size(subject_data_ild10_GLM, axis=0)) - 1),
+                       np.nanstd(subject_data_ild10_GLM[:,ichannel],axis=0)/(np.sqrt(np.size(subject_data_ild10_GLM, axis=0)- 1) ),
                        fmt='o')
     
     curr_axes.set_ylim((-2e-8,11e-8))
     curr_axes.set_xlabel('Condition')
     curr_axes.set_title(channel_names[ichannel])
     curr_axes.set_xticks([1,2,3,4])
-    curr_axes.set_xticklabels(["ITD50","ITD500","ILD70n","ILD10"])
+    curr_axes.set_xticklabels(["Small ITD","Large ITD","Natural ILD","Broadband ILD"])
     if ichannel == 0 or ichannel == 7:
         curr_axes.set_ylabel('Beta', usetex=False)
 
-plt.subplots_adjust(top=.9, right=.98, left= 0.05, bottom = 0.07)
+plt.subplots_adjust(top=.9, right=0.999, left= 0.1, bottom = 0.07)
 plt.savefig(f'C:\\Users\\benri\\Documents\\GitHub\\SRM-NIRS-EEG\\ANALYSIS SCRIPTS\\Eli Analysis\\Plots\\Beta_dur_{glm_dur}_{masker_type}_masker.png')
 
 

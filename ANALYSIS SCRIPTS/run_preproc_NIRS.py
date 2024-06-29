@@ -17,7 +17,7 @@ def preprocess_NIRX(data, data_snirf=0, event_dict=0,
                     short_regression=True,
                     negative_enhancement=False,
                     snr_thres=3.5,
-                    filter_type='iir', filter_limits=[0.01, 0.1],
+                    filter_type='iir', filter_limits=[0.01, 0.3], # 0.01, 0.1
                     tddr=True):
     """
 
@@ -49,7 +49,7 @@ def preprocess_NIRX(data, data_snirf=0, event_dict=0,
     import itertools
     from mne.preprocessing.nirs import (temporal_derivative_distribution_repair)
     from mne_modified_beer_lambert_law import mne_modified_beer_lambert_law
-    from mne_short_channel_correction import short_channel_regression_OD
+    #from mne_short_channel_correction import short_channel_regression_OD
     from raw_nirx_channelwise_fft import raw_nirx_channelwise_fft
     import numpy as np
 
@@ -93,7 +93,7 @@ def preprocess_NIRX(data, data_snirf=0, event_dict=0,
     raw_od = mne.preprocessing.nirs.optical_density(data_snirf_crop)
 
     if plot_steps:
-        x=1
+        x = 1
         # raw_od.plot(n_channels=30,
         #             show_scrollbars=True,
         #             scalings='auto')
@@ -103,9 +103,9 @@ def preprocess_NIRX(data, data_snirf=0, event_dict=0,
     # ---------------------------------------------------------------
     if reject is True:
         sci = mne.preprocessing.nirs.scalp_coupling_index(raw_od)
-        fig, ax = plt.subplots()
-        ax.hist(sci)
-        ax.set(xlabel='Scalp Coupling Index', ylabel='Count', xlim=[0, 1])
+        #fig, ax = plt.subplots()
+        #ax.hist(sci)
+        #ax.set(xlabel='Scalp Coupling Index', ylabel='Count', xlim=[0, 1])
 
         # raw_od.info['bads'] = list(itertools.compress(raw_od.ch_names, sci < 0.8))
 
@@ -120,11 +120,12 @@ def preprocess_NIRX(data, data_snirf=0, event_dict=0,
         fig_fft, bad_channels_total, SNR_dict = raw_nirx_channelwise_fft(raw_od, plot_steps, snr_thres=snr_thres)
         # raw_od.info['bads'] = bad_channels_total
 
-        agree = np.intersect1d(list(itertools.compress(raw_od.ch_names, sci < 0.7)), bad_channels_total)
-        diff = np.setdiff1d(list(itertools.compress(raw_od.ch_names, sci < 0.7)), bad_channels_total)
+        agree = np.intersect1d(list(itertools.compress(raw_od.ch_names, sci < 0.8)), bad_channels_total)
+        diff = np.setdiff1d(list(itertools.compress(raw_od.ch_names, sci < 0.8)), bad_channels_total)
 
         # set the bad channels to what the two methods agree upon
         raw_od.info['bads'] = list(np.concatenate([agree, diff]))
+
 
     # ---------------------------------------------------------------
     # ----      Temporal derivative filter        -------
@@ -145,11 +146,12 @@ def preprocess_NIRX(data, data_snirf=0, event_dict=0,
     if filter_limits[0] is not None:
         if filter_type == 'iir':
             raw_od_corrected = corrected_tddr.filter(l_freq=filter_limits[0], h_freq=None,
-                                            l_trans_bandwidth=filter_limits[0], method='iir')  # ,phase='minimum')
+                                                     l_trans_bandwidth=filter_limits[0],
+                                                     method='iir')  # ,phase='minimum')
 
         elif filter_type == 'fir':
             raw_od_corrected = corrected_tddr.filter(l_freq=filter_limits[0], h_freq=None,
-                                            l_trans_bandwidth=filter_limits[0], method='fir')
+                                                     l_trans_bandwidth=filter_limits[0], method='fir')
     else:
         raw_od_corrected = corrected_tddr
 
@@ -164,20 +166,44 @@ def preprocess_NIRX(data, data_snirf=0, event_dict=0,
 
     if plot_steps:
         raw_OD_sc.plot(n_channels=30,
-                          show_scrollbars=True,
-                          scalings='auto')
+                       show_scrollbars=True,
+                       scalings='auto')
 
-    # try a highpass filter before short channel regression
+    # # ---------------------------------------------------------------
+    # # -----               Low-pass Filter the Data            ------
+    # # ---------------------------------------------------------------
+    if filter_limits[1] is not None:
+        if filter_type == 'iir':
+            raw_OD_filt = raw_OD_sc.filter(l_freq=None, h_freq=filter_limits[1],
+                                                 h_trans_bandwidth=filter_limits[1] / 2, method='iir')
+
+        elif filter_type == 'fir':
+            raw_OD_filt = raw_OD_sc.filter(l_freq=None, h_freq=filter_limits[1],
+                                                 h_trans_bandwidth=filter_limits[1] / 2, method='fir')
+    else:
+        raw_OD_filt = raw_OD_sc
+
+    if plot_steps:
+        fig = raw_OD_filt.compute_psd(average='mean').plot()
+        plt.xlim([0, 0.1])
+        fig.suptitle('After filtering', weight='bold', size='x-large')
+        fig.subplots_adjust(top=0.88)
+
+    if plot_steps:
+        raw_OD_filt.plot(n_channels=30,
+                            show_scrollbars=True,
+                            scalings='auto')
+
     # ---------------------------------------------------------------
     # ----      conversion to Hb and remove heart rate        -------
     # ---------------------------------------------------------------
-    raw_haemo_sc = mne_modified_beer_lambert_law(raw_OD_sc)
+    raw_haemo_filt = mne_modified_beer_lambert_law(raw_OD_filt)
 
     if plot_steps:
-        raw_haemo_sc.plot(n_channels=30,
-                       show_scrollbars=True,
-                       scalings='auto')
-        fig = raw_haemo_sc.plot_psd(average=True)
+        raw_haemo_filt.plot(n_channels=30,
+                          show_scrollbars=True,
+                          scalings='auto')
+        fig = raw_haemo_filt.plot_psd(average=True)
         fig.suptitle('Before filtering', weight='bold', size='x-large')
         fig.subplots_adjust(top=0.88)
 
@@ -186,32 +212,8 @@ def preprocess_NIRX(data, data_snirf=0, event_dict=0,
     # ---------------------------------------------------------------
     if drop_short is True:
         # get only the long channels now
-        raw_haemo_sc = mne_nirs.channels.get_long_channels(raw_haemo_sc)
+        raw_haemo_filt = mne_nirs.channels.get_long_channels(raw_haemo_filt)
 
-    # ---------------------------------------------------------------
-    # -----               Low-pass Filter the Data            ------
-    # ---------------------------------------------------------------
-    if filter_limits[1] is not None:
-        if filter_type == 'iir':
-            raw_haemo_filt = raw_haemo_sc.filter(l_freq=None, h_freq=filter_limits[1],
-                                                 h_trans_bandwidth=filter_limits[1] / 2, method='iir')
-
-        elif filter_type == 'fir':
-            raw_haemo_filt = raw_haemo_sc.filter(l_freq=None, h_freq=filter_limits[1],
-                                                 h_trans_bandwidth=filter_limits[1] / 2, method='fir')
-    else:
-        raw_haemo_filt = raw_haemo_sc
-
-    if plot_steps:
-        fig = raw_haemo_filt.compute_psd(average='mean').plot()
-        plt.xlim([0, 0.1])
-        fig.suptitle('After filtering', weight='bold', size='x-large')
-        fig.subplots_adjust(top=0.88)
-
-    if plot_steps:
-        raw_haemo_filt.plot(n_channels=30,
-                            show_scrollbars=True,
-                            scalings='auto')
 
     # ---------------------------------------------------------------
     # ------            Negative Enhancement                ---------

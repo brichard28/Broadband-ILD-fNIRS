@@ -96,7 +96,7 @@ for isubject = 1:size(subject_ID,1) % For each subject...
 %         
        %% Hit and False Alarm Windows
 
-       threshold_window_start = 0.4; %0.2
+       threshold_window_start = 0.2; %0.2
        threshold_window_end =  1.1; % 1.0
        tVec = 1:1/44100:14;
        hit_windows = zeros(1,length(tVec)); % create an empty array to define hit windows
@@ -189,7 +189,7 @@ all_num_masker_color_words_collapsed_left_and_right(8,:) = sum(all_num_masker_co
 all_hit_rates = all_hits./all_num_target_color_words;
 all_hit_rates_collapsed = all_hits_collapsed_left_and_right./all_num_target_color_words_collapsed_left_and_right;
 all_hit_rates_collapsed(all_hit_rates_collapsed == 0) = 0.001;
-all_hit_rates_collapsed(all_hit_rates_collapsed == 1) = 0.999;
+all_hit_rates_collapsed(all_hit_rates_collapsed >= 1) = 0.999;
 
 all_FA_rates = all_FAs./all_num_masker_color_words;
 all_FA_rates_collapsed = all_FAs_collapsed_left_and_right./all_num_masker_color_words_collapsed_left_and_right;
@@ -203,19 +203,18 @@ xlabel('Condition','FontSize',18)
 
 %% D-Prime Figure (Just Speech)
 d_primes_speech_masker = norminv(all_hit_rates_collapsed(5:end,:)) - norminv(all_FA_rates_collapsed(5:end,:));
-%d_primes_speech_masker(1,:) = d_primes_speech_masker(1,:) - 0.2;
 figure;
 hold on
 for i = 1:size(d_primes_speech_masker,2)
     if d_primes_speech_masker(1,i) > d_primes_speech_masker(2,i) % plot in red
-        plot([1:2],d_primes_speech_masker(1:2,i),'Color',[1 0 0])
+        plot([1:2],d_primes_speech_masker(1:2,i),'Color',[0.4 0.4 0.4])
     else % plot in blue
-        plot([1:2],d_primes_speech_masker(1:2,i),'Color',[0 0 1])
+        plot([1:2],d_primes_speech_masker(1:2,i),'Color',[0.4 0.4 0.4])
     end
     if d_primes_speech_masker(3,i) > d_primes_speech_masker(4,i) % plot in red
-       plot([2.5:3.5],d_primes_speech_masker(3:4,i),'Color',[1 0 0])
+       plot([2.5:3.5],d_primes_speech_masker(3:4,i),'Color',[0.4 0.4 0.4])
     else % plot in blue
-        plot([2.5:3.5],d_primes_speech_masker(3:4,i),'Color',[0 0 1])
+        plot([2.5:3.5],d_primes_speech_masker(3:4,i),'Color',[0.4 0.4 0.4])
     end
 end
 e1 = errorbar(1,mean(d_primes_speech_masker(1,:),2,'omitnan'),std(d_primes_speech_masker(1,:),[],2,'omitnan')./(sqrt(size(subject_ID,1))-1));
@@ -277,14 +276,14 @@ figure;
 hold on
 for i = 1:size(all_hit_rates_collapsed,2)
     if all_hit_rates_collapsed(1,i) > all_hit_rates_collapsed(2,i) % plot in red
-        plot([1:2],all_hit_rates_collapsed(1:2,i),'Color',[1 0 0])
+        plot([1:2],all_hit_rates_collapsed(1:2,i),'Color',[0.4 0.4 0.4])
     else % plot in blue
-        plot([1:2],all_hit_rates_collapsed(1:2,i),'Color',[0 0 1])
+        plot([1:2],all_hit_rates_collapsed(1:2,i),'Color',[0.4 0.4 0.4])
     end
     if all_hit_rates_collapsed(3,i) > all_hit_rates_collapsed(4,i) % plot in red
-       plot([2.5:3.5],all_hit_rates_collapsed(3:4,i),'Color',[1 0 0])
+       plot([2.5:3.5],all_hit_rates_collapsed(3:4,i),'Color',[0.4 0.4 0.4])
     else % plot in blue
-        plot([2.5:3.5],all_hit_rates_collapsed(3:4,i),'Color',[0 0 1])
+        plot([2.5:3.5],all_hit_rates_collapsed(3:4,i),'Color',[0.4 0.4 0.4])
     end
 end
 e1 = errorbar(1,mean(all_hit_rates_collapsed(1,:),2,'omitnan'),std(all_hit_rates_collapsed(1,:),[],2,'omitnan')./(sqrt(size(subject_ID,1))-1));
@@ -347,14 +346,14 @@ figure;
 hold on
 for i = 1:size(all_hit_rates_collapsed,2)
     if all_hit_rates_collapsed(5,i) > all_hit_rates_collapsed(6,i) % plot in red
-        plot([1:2],all_hit_rates_collapsed(5:6,i),'Color',[1 0 0])
+        plot([1:2],all_hit_rates_collapsed(5:6,i),'Color',[0.4 0.4 0.4])
     else % plot in blue
-        plot([1:2],all_hit_rates_collapsed(5:6,i),'Color',[0 0 1])
+        plot([1:2],all_hit_rates_collapsed(5:6,i),'Color',[0.4 0.4 0.4])
     end
     if all_hit_rates_collapsed(7,i) > all_hit_rates_collapsed(8,i) % plot in red
-       plot([2.5:3.5],all_hit_rates_collapsed(7:8,i),'Color',[1 0 0])
+       plot([2.5:3.5],all_hit_rates_collapsed(7:8,i),'Color',[0.4 0.4 0.4])
     else % plot in blue
-        plot([2.5:3.5],all_hit_rates_collapsed(7:8,i),'Color',[0 0 1])
+        plot([2.5:3.5],all_hit_rates_collapsed(7:8,i),'Color',[0.4 0.4 0.4])
     end
 end
 e1 = errorbar(1,mean(all_hit_rates_collapsed(5,:),2,'omitnan'),std(all_hit_rates_collapsed(5,:),[],2,'omitnan')./(sqrt(size(subject_ID,1))-1));
@@ -412,6 +411,20 @@ title('Speech Masker Behavior (HIT RATE)','FontSize',18)
 %     text(mean([group_a,group_b]),height+0.3,'*','FontSize',24)
 % end
 
+
+%% Plot hit-rate vs d-prime for speech masker
+figure;
+hold on
+colors = {'r','g','b','m'};
+for icondition = 1:4
+    curr_d_primes = d_primes_speech_masker(icondition,:);
+    curr_hit_rates = all_hit_rates_collapsed(icondition+4,:);
+    scatter(curr_d_primes,curr_hit_rates,'filled',string(colors(icondition)))
+end
+legend({'Small ITD','Large ITD','Natural ILD','Broadband ILD'})
+title('Hit Rate vs. D-prime (speech masker only)', 'FontSize',18)
+xlabel('D-prime','FontSize',18)
+ylabel('Hit Rate','FontSize',18)
 %% Save data
 save('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\SRM-NIRS-EEG-1_Behavior_Results.mat','d_primes_speech_masker','all_hit_rates_collapsed','all_FA_rates_collapsed')
 hit_rate_table = array2table(all_hit_rates_collapsed);

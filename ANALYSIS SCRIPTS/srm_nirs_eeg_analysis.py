@@ -56,7 +56,30 @@ from obspy.signal.detrend import polynomial
 
 from mne_modified_beer_lambert_law import mne_modified_beer_lambert_law
 
-from sklearn.preprocessing import StandardScaler, MinMaxScaler
+import numpy as np
+import mne
+import pickle
+import matplotlib
+# matplotlib.use('TkAgg')
+from matplotlib import pyplot as plt
+import os
+import pandas as pd
+from collections import defaultdict
+
+mne.set_config('MNE_BROWSER_BACKEND', 'qt')
+#from nirx_movement import mark_aux_movement_bad
+import mne_nirs
+from mne_nirs.experimental_design import make_first_level_design_matrix
+from mne_nirs.statistics import run_glm
+from mne_nirs.channels import (get_long_channels,
+                               get_short_channels)
+#import pandas as pd
+#from nilearn.plotting import plot_design_matrix
+from run_preproc_NIRS import preprocess_NIRX
+from mne_nirs.io.snirf import read_snirf_aux_data
+#from sklearn.preprocessing import StandardScaler, MinMaxScaler
+#from scipy import signal
+from scipy import stats
 
 # Define Subject Files
 root = ''
@@ -111,221 +134,258 @@ subject_ID = ['NDARVX753BR6','NDARZD647HJ1','NDARBL382XK5','NDARGF569BF3','NDARB
 # The subjects we would like to run right now
 curr_subject_ID = ['NDARVX753BR6','NDARZD647HJ1','NDARBL382XK5','NDARGF569BF3','NDARBA306US5','NDARFD284ZP3','NDARAS648DT4','NDARLM531OY3','NDARXL287BE1','NDARRF358KO3','NDARGT639XS6','NDARFV472HU7','NDARDC882NK4','NDARWB491KR3','NDARNL224RR9','NDARTT639AB1','NDARAZC45TW3','NDARNS784LM2','NDARLB144ZM4','NDARTP382XC8','NDARLJ581GD7','NDARGS283RM9','NDARRED356WS', 'NDARHUG535MO','NDARFIN244AL','NDARKAI888JU','NDARBAA679HA']
 
+masker_type = 'speech' # type of masker to analyze on this run
+glm_dur = 7
+
+n_subjects = len(all_fnirs_data_folders)
+
+n_long_channels = 14
+fs = 10.2
+n_timepoints = 306
+task_type = 'Ben_SvN'
 
 def individual_analysis(fnirs_data_folder, ID):
     
     os.environ["OMP_NUM_THREADS"] = "1"
 
+    base_dir = "C:/Users/elibu/Documents/NIRx/Data/"
+    save_dir = "C:/Users/benri/Documents/GitHub/SRM-NIRS-EEG/ANALYSIS SCRIPTS/Eli Analysis/Data/"
+    if not os.path.exists(save_dir): os.makedirs(save_dir)
+    plot_dir = "C:/Users/benri/Documents/GitHub/SRM-NIRS-EEG/ANALYSIS SCRIPTS/Eli Analysis/Plots/"
+    if not os.path.exists(plot_dir): os.makedirs(plot_dir)
+    
     # Read in the raw nirs file
-    raw_intensity = read_raw_nirx(fnirs_data_folder, verbose=False, preload=True)
-    
-    # Before Control Condition
-    # raw_intensity.annotations.rename({'1.0':'Inhale',
-    #                                    '2.0':'Exhale',
-    #                                    '3.0':'Hold',
-    #                                    '4.0':'m_speech__ild_0__itd_500__targ_r__control_0',
-    #                                    '5.0':'m_noise__ild_0__itd_50__targ_l__control_0',
-    #                                    '6.0':'m_noise__ild_0__itd_50__targ_r__control_0',
-    #                                    '7.0':'m_speech__ild_70n__itd_0__targ_r__control_0',
-    #                                    '8.0':'m_speech__ild_0__itd_50__targ_l__control_0',
-    #                                    '9.0':'m_speech__ild_10__itd_0__targ_l__control_0',
-    #                                    '10.0':'m_speech__ild_0__itd_500__targ_l__control_0',
-    #                                    '11.0':'m_speech__ild_0__itd_500__targ_l__control_1',
-    #                                    '12.0':'m_noise__ild_0__itd_500__targ_r__control_1',
-    #                                    '13.0':'m_noise__ild_0__itd_500__targ_r__control_0',
-    #                                    '14.0':'m_noise__ild_70n__itd_0__targ_l__control_0',
-    #                                    '15.0':'m_noise__ild_10__itd_0__targ_l__control_0',
-    #                                    '16.0':'m_speech__ild_10__itd_0__targ_r__control_0',
-    #                                    '17.0':'m_noise__ild_10__itd_0__targ_r__control_0',
-    #                                    '18.0':'m_speech__ild_0__itd_50__targ_r__control_0',
-    #                                     '19.0':'m_speech__ild_0__itd_500__targ_r__control_1',
-    #                                    '20.0':'m_noise__ild_70n__itd_0__targ_r__control_0',
-    #                                    '21.0':'m_noise__ild_0__itd_500__targ_l__control_1',
-    #                                    '22.0':'m_noise__ild_0__itd_500__targ_l__control_0',
-    #                                    '23.0':'m_speech__ild_70n__itd_0__targ_l__control_0'})
-    # raw_intensity.annotations.rename({'1.0':'Inhale',
-    #                                   '2.0':'Exhale',
-    #                                   '3.0':'Hold',
-    #                                   '4.0':'m_speech__ild_0__itd_500__targ_r__control_0',
-    #                                   '5.0':'m_noise__ild_0__itd_50__targ_l__control_0',
-    #                                   '6.0':'m_noise__ild_0__itd_50__targ_r__control_0',
-    #                                   '7.0':'m_speech__ild_70n__itd_0__targ_r__control_0',
-    #                                   '8.0':'m_speech__ild_0__itd_50__targ_l__control_0',
-    #                                   '9.0':'m_speech__ild_10__itd_0__targ_l__control_0',
-    #                                   '10.0':'m_speech__ild_0__itd_500__targ_l__control_0',
-    #                                   '11.0':'m_speech__ild_0__itd_500__targ_l__control_1',
-    #                                   '12.0':'m_noise__ild_0__itd_500__targ_r__control_1',
-    #                                   '13.0':'m_noise__ild_0__itd_500__targ_r__control_0',
-    #                                   '14.0':'m_noise__ild_70n__itd_0__targ_l__control_0',
-    #                                   '15.0':'m_noise__ild_10__itd_0__targ_l__control_0',
-    #                                   '16.0':'m_speech__ild_10__itd_0__targ_r__control_0',
-    #                                   '17.0':'m_noise__ild_10__itd_0__targ_r__control_0',
-    #                                   '18.0':'m_speech__ild_0__itd_50__targ_r__control_0',
-    #                                    '19.0':'m_speech__ild_0__itd_500__targ_r__control_1',
-    #                                   '20.0':'m_noise__ild_70n__itd_0__targ_r__control_0',
-    #                                   '21.0':'m_noise__ild_0__itd_500__targ_l__control_1',
-    #                                   '22.0':'m_noise__ild_0__itd_500__targ_l__control_0',
-    #                                   '23.0':'m_speech__ild_70n__itd_0__targ_l__control_0'})
-    
-    # CHANGED HERE TO COLLAPSE ACROSS ATTEND LEFT AND RIGHT, SPEECH VS. NOISE FOR PFC PURPOSES
-    # raw_intensity.annotations.rename({'1.0':'Inhale',
-    #                                   '2.0':'Exhale',
-    #                                   '3.0':'Hold',
-    #                                   '4.0':'ild_0__itd_500',
-    #                                   '5.0':'ild_0__itd_50',
-    #                                   '6.0':'ild_0__itd_50',
-    #                                   '7.0':'ild_70n__itd_0',
-    #                                   '8.0':'ild_0__itd_50',
-    #                                   '9.0':'ild_10__itd_0',
-    #                                   '10.0':'ild_0__itd_500',
-    #                                   '11.0':'control',
-    #                                   '12.0':'control',
-    #                                   '13.0':'ild_0__itd_500',
-    #                                   '14.0':'ild_70n__itd_0',
-    #                                   '15.0':'ild_10__itd_0',
-    #                                   '16.0':'ild_10__itd_0',
-    #                                   '17.0':'ild_10__itd_0',
-    #                                   '18.0':'ild_0__itd_50',
-    #                                     '19.0':'control',
-    #                                   '20.0':'ild_70n__itd_0',
-    #                                   '21.0':'control',
-    #                                   '22.0':'ild_0__itd_500',
-    #                                   '23.0':'ild_70n__itd_0'})
-    
-    raw_intensity.annotations.rename({'1.0':'Inhale',
-                                      '2.0':'Exhale',
-                                      '3.0':'Hold',
-                                      '4.0':'ild_0__itd_500',
-                                      '5.0':'noise',
-                                      '6.0':'noise',
-                                      '7.0':'ild_70n__itd_0',
-                                      '8.0':'ild_0__itd_50',
-                                      '9.0':'ild_10__itd_0',
-                                      '10.0':'ild_0__itd_500',
-                                      '11.0':'control',
-                                      '12.0':'control',
-                                      '13.0':'noise',
-                                      '14.0':'noise',
-                                      '15.0':'noise',
-                                      '16.0':'ild_10__itd_0',
-                                      '17.0':'noise',
-                                      '18.0':'ild_0__itd_50',
-                                      '19.0':'control',
-                                      '20.0':'noise',
-                                      '21.0':'control',
-                                      '22.0':'noise',
-                                      '23.0':'ild_70n__itd_0'})
-    
-    # raw_intensity.annotations.rename({'1.0':'Inhale',
-    #                                   '2.0':'Exhale',
-    #                                   '3.0':'Hold',
-    #                                   '4.0':'speech',
-    #                                   '5.0':'ild_0__itd_50',
-    #                                   '6.0':'ild_0__itd_50',
-    #                                   '7.0':'speech',
-    #                                   '8.0':'speech',
-    #                                   '9.0':'speech',
-    #                                   '10.0':'speech',
-    #                                   '11.0':'control',
-    #                                   '12.0':'control',
-    #                                   '13.0':'ild_0__itd_500',
-    #                                   '14.0':'ild_70n__itd_0',
-    #                                   '15.0':'ild_10__itd_0',
-    #                                   '16.0':'speech',
-    #                                   '17.0':'ild_10__itd_0',
-    #                                   '18.0':'speech',
-    #                                     '19.0':'control',
-    #                                   '20.0':'ild_70n__itd_0',
-    #                                   '21.0':'control',
-    #                                   '22.0':'ild_0__itd_500',
-    #                                   '23.0':'speech'})
-    
-    # raw_intensity.annotations.rename({'1.0':'Inhale',
-    #                                     '2.0':'Exhale',
-    #                                     '3.0':'Hold',
-    #                                     '4.0':'speech',
-    #                                     '5.0':'noise',
-    #                                     '6.0':'noise',
-    #                                     '7.0':'speech',
-    #                                     '8.0':'speech',
-    #                                     '9.0':'speech',
-    #                                     '10.0':'speech',
-    #                                     '11.0':'control',
-    #                                     '12.0':'control',
-    #                                     '13.0':'noise',
-    #                                     '14.0':'noise',
-    #                                     '15.0':'noise',
-    #                                     '16.0':'speech',
-    #                                     '17.0':'noise',
-    #                                     '18.0':'speech',
-    #                                     '19.0':'control',
-    #                                     '20.0':'noise',
-    #                                     '21.0':'control',
-    #                                     '22.0':'noise',
-    #                                     '23.0':'speech'})
+    #raw_intensity = read_raw_nirx(fnirs_data_folder, verbose=False, preload=True)
+    data = mne.io.read_raw_nirx(f"{fnirs_data_folder}/{fnirs_data_folder[-14:]}_config.hdr",
+                                verbose=False, preload=True)
 
-    # Convert to optical density
-    raw_od = optical_density(raw_intensity)
-    
-    # Scalp Coupling Index, label bad channels
-    sci = scalp_coupling_index(raw_od)
+    data_snirf = mne.io.read_raw_snirf(f"{fnirs_data_folder}/{fnirs_data_folder[-14:]}.snirf",
+                                       optode_frame="mri", preload=True)
 
-    # Add 'bads' to info
+    aux_snirf = read_snirf_aux_data(f"{fnirs_data_folder}/{fnirs_data_folder[-14:]}.snirf",
+                                    data_snirf)
     
-    raw_od.info['bads'] = list(compress(raw_od.ch_names,sci < 0.8))
+    # ---------------------------------------------------------------
+    # -----------------      Preprocess the Data            ---------
+    # ---------------------------------------------------------------  
+    if masker_type == 'speech': # speech masker
+        data.annotations.rename({'1.0':'Inhale',
+                                          '2.0':'Exhale',
+                                          '3.0':'Hold',
+                                          '4.0':'speech',
+                                          '5.0':'ild_0__itd_50',
+                                          '6.0':'ild_0__itd_50',
+                                          '7.0':'speech',
+                                          '8.0':'speech',
+                                          '9.0':'speech',
+                                          '10.0':'speech',
+                                          '11.0':'control',
+                                          '12.0':'control',
+                                          '13.0':'ild_0__itd_500',
+                                          '14.0':'ild_70n__itd_0',
+                                          '15.0':'ild_10__itd_0',
+                                          '16.0':'speech',
+                                          '17.0':'ild_10__itd_0',
+                                          '18.0':'speech',
+                                            '19.0':'control',
+                                          '20.0':'ild_70n__itd_0',
+                                          '21.0':'control',
+                                          '22.0':'ild_0__itd_500',
+                                          '23.0':'speech'})
+        data_snirf.annotations.rename({'1':'Inhale',
+                                          '2':'Exhale',
+                                          '3':'Hold',
+                                          '4':'speech',
+                                          '5':'ild_0__itd_50',
+                                          '6':'ild_0__itd_50',
+                                          '7':'speech',
+                                          '8':'speech',
+                                          '9':'speech',
+                                          '10':'speech',
+                                          '11':'control',
+                                          '12':'control',
+                                          '13':'ild_0__itd_500',
+                                          '14':'ild_70n__itd_0',
+                                          '15':'ild_10__itd_0',
+                                          '16':'speech',
+                                          '17':'ild_10__itd_0',
+                                          '18':'speech',
+                                          '19':'control',
+                                          '20':'ild_70n__itd_0',
+                                          '21':'control',
+                                          '22':'ild_0__itd_500',
+                                          '23':'speech'})
+    elif masker_type == 'noise': # noise masker
+        data.annotations.rename({'1.0':'Inhale',
+                                          '2.0':'Exhale',
+                                          '3.0':'Hold',
+                                          '4.0':'ild_0__itd_500',
+                                          '5.0':'noise',
+                                          '6.0':'noise',
+                                          '7.0':'ild_70n__itd_0',
+                                          '8.0':'ild_0__itd_50',
+                                          '9.0':'ild_10__itd_0',
+                                          '10.0':'ild_0__itd_500',
+                                          '11.0':'control',
+                                          '12.0':'control',
+                                          '13.0':'noise',
+                                          '14.0':'noise',
+                                          '15.0':'noise',
+                                          '16.0':'ild_10__itd_0',
+                                          '17.0':'noise',
+                                          '18.0':'ild_0__itd_50',
+                                          '19.0':'control',
+                                          '20.0':'noise',
+                                          '21.0':'control',
+                                          '22.0':'noise',
+                                          '23.0':'ild_70n__itd_0'})
+        data_snirf.annotations.rename({'1':'Inhale',
+                                          '2':'Exhale',
+                                          '3':'Hold',
+                                          '4':'ild_0__itd_500',
+                                          '5':'noise',
+                                          '6':'noise',
+                                          '7':'ild_70n__itd_0',
+                                          '8':'ild_0__itd_50',
+                                          '9':'ild_10__itd_0',
+                                          '10':'ild_0__itd_500',
+                                          '11':'control',
+                                          '12':'control',
+                                          '13':'noise',
+                                          '14':'noise',
+                                          '15':'noise',
+                                          '16':'ild_10__itd_0',
+                                          '17':'noise',
+                                          '18':'ild_0__itd_50',
+                                          '19':'control',
+                                          '20':'noise',
+                                          '21':'control',
+                                          '22':'noise',
+                                          '23':'ild_70n__itd_0'})
+    else: # both maskers:
+        data.annotations.rename({'1.0': 'Inhale',
+                                  '2.0': 'Exhale',
+                                  '3.0': 'Hold',
+                                  '4.0': 'ild_0__itd_500',
+                                  '5.0': 'ild_0__itd_50',
+                                '6.0': 'ild_0__itd_50',
+                                  '7.0': 'ild_70n__itd_0',
+                                  '8.0': 'ild_0__itd_50',
+                                  '9.0': 'ild_10__itd_0',
+                                  '10.0': 'ild_0__itd_500',
+                                  '11.0': 'control',
+                                  '12.0': 'control',
+                                  '13.0': 'ild_0__itd_500',
+                                  '14.0': 'ild_70n__itd_0',
+                                  '15.0': 'ild_10__itd_0',
+                                  '16.0': 'ild_10__itd_0',
+                                  '17.0': 'ild_10__itd_0',
+                                  '18.0': 'ild_0__itd_50',
+                                  '19.0': 'control',
+                                  '20.0': 'ild_70n__itd_0',
+                                  '21.0': 'control',
+                                  '22.0': 'ild_0__itd_500',
+                                  '23.0': 'ild_70n__itd_0'})
 
-   # raw_od = short_channel_regression(raw_od, max_dist=0.01)
+        data_snirf.annotations.rename({'1': 'Inhale',
+                                        '2': 'Exhale',
+                                        '3': 'Hold',
+                                        '4': 'ild_0__itd_500',
+                                        '5': 'ild_0__itd_50',
+                                        '6': 'ild_0__itd_50',
+                                        '7': 'ild_70n__itd_0',
+                                        '8': 'ild_0__itd_50',
+                                        '9': 'ild_10__itd_0',
+                                        '10': 'ild_0__itd_500',
+                                        '11': 'control',
+                                        '12': 'control',
+                                        '13': 'ild_0__itd_500',
+                                        '14': 'ild_70n__itd_0',
+                                        '15': 'ild_10__itd_0',
+                                        '16': 'ild_10__itd_0',
+                                        '17': 'ild_10__itd_0',
+                                        '18': 'ild_0__itd_50',
+                                        '19': 'control',
+                                        '20': 'ild_70n__itd_0',
+                                        '21': 'control',
+                                        '22': 'ild_0__itd_500',
+                                        '23': 'ild_70n__itd_0'})
+
+   #  # Convert to optical density
+   #  raw_od = optical_density(raw_intensity)
+    
+   #  # Scalp Coupling Index, label bad channels
+   #  sci = scalp_coupling_index(raw_od)
+
+   #  # Add 'bads' to info
+    
+   #  raw_od.info['bads'] = list(compress(raw_od.ch_names,sci < 0.8))
+
+   # # raw_od = short_channel_regression(raw_od, max_dist=0.01)
    
-    # Apply TDDR
-    raw_od = temporal_derivative_distribution_repair(raw_od, verbose=False)
+   #  # Apply TDDR
+   #  raw_od = temporal_derivative_distribution_repair(raw_od, verbose=False)
     
-    # Resample to 3 Hz
-    raw_od.resample(3) # 10
+   #  # Resample to 3 Hz
+   #  raw_od.resample(3) # 10
     
-    # Create separate object for block averages (will run short channel on these, but use short channels as a regressor in the GLM for betas)
-    raw_od_for_block_averages = short_channel_regression(raw_od, max_dist=0.01)
+   #  # Create separate object for block averages (will run short channel on these, but use short channels as a regressor in the GLM for betas)
+   #  raw_od_for_block_averages = short_channel_regression(raw_od, max_dist=0.01)
     
-    #raw_haemo = beer_lambert_law(raw_od, ppf=0.1)
-    #raw_haemo_for_block_averages = beer_lambert_law(raw_od_for_block_averages, ppf=0.1)
-    raw_haemo = mne_modified_beer_lambert_law(raw_od) # TRYING ELIS FUNCTION
-    raw_haemo_for_block_averages = mne_modified_beer_lambert_law(raw_od_for_block_averages)
+   #  #raw_haemo = beer_lambert_law(raw_od, ppf=0.1)
+   #  #raw_haemo_for_block_averages = beer_lambert_law(raw_od_for_block_averages, ppf=0.1)
+   #  raw_haemo = mne_modified_beer_lambert_law(raw_od) # TRYING ELIS FUNCTION
+   #  raw_haemo_for_block_averages = mne_modified_beer_lambert_law(raw_od_for_block_averages)
     
-    # Cut out just the short channels for creating a GLM repressor
+   #  # Cut out just the short channels for creating a GLM repressor
+   #  sht_chans = get_short_channels(raw_haemo)
+   #  raw_haemo = get_long_channels(raw_haemo)
+   #  raw_haemo_for_block_averages = get_long_channels(raw_haemo_for_block_averages)
+    
+   #  bad_channels = list(compress(raw_haemo.ch_names,sci < 0.8))
+    
+   #  # Filter data
+   #  iir_params = dict({"order":3,"ftype":"butter","padlen":10000})
+   #  raw_haemo = raw_haemo.filter(0.01, 0.3, iir_params=iir_params, method='iir', verbose=False)
+   #  raw_haemo_for_block_averages = raw_haemo_for_block_averages.filter(0.01, 0.3, iir_params=iir_params, method='iir', verbose=False)
+   #  #raw_haemo.filter(0.01, 0.2, h_trans_bandwidth=0.2, l_trans_bandwidth=0.005) # 0.01, 0.3, 0.2, 0.005
+   #  #raw_haemo_for_block_averages.filter(0.01, 0.2, h_trans_bandwidth=0.2, l_trans_bandwidth=0.005)
+       
+   #  if ID == 'NDARBA306US5' or ID == 'NDARDC882NK4':
+   #      events_to_remove = [45,46,47]
+   #      raw_haemo.annotations.delete(events_to_remove)
+   #      raw_haemo_for_block_averages.annotations.delete(events_to_remove)
+   #  if ID == 'NDARAZC45TW3':
+   #      events_to_remove = [1,2]
+   #      raw_haemo.annotations.delete(events_to_remove)
+   #      raw_haemo_for_block_averages.annotations.delete(events_to_remove)
+        
+    tmin, tmax = -5, 25 # timings for block averages
+    
+    
+    events, event_dict = mne.events_from_annotations(data, verbose=False)
+    
+    
+
+    raw_haemo, null = preprocess_NIRX(data, data_snirf, event_dict,
+                                           save=True,
+                                           savename=save_dir + f'{ID}_{task_type}_preproc_nirs.fif',
+                                           plot_steps=False,
+                                           crop=False, crop_low=0, crop_high=0,
+                                           events_modification=False, reject=True,
+                                           short_regression=True, events_from_snirf=False,
+                                           drop_short=False, negative_enhancement=False,
+                                           snr_thres=3, filter_type='iir')
+    raw_haemo_for_block_averages = raw_haemo.copy()
+    
     sht_chans = get_short_channels(raw_haemo)
     raw_haemo = get_long_channels(raw_haemo)
     raw_haemo_for_block_averages = get_long_channels(raw_haemo_for_block_averages)
     
-    bad_channels = list(compress(raw_haemo.ch_names,sci < 0.8))
-    
-    # Filter data
-    iir_params = dict({"order":3,"ftype":"butter","padlen":10000})
-    raw_haemo = raw_haemo.filter(0.01, 0.3, iir_params=iir_params, method='iir', verbose=False)
-    raw_haemo_for_block_averages = raw_haemo_for_block_averages.filter(0.01, 0.3, iir_params=iir_params, method='iir', verbose=False)
-    #raw_haemo.filter(0.01, 0.2, h_trans_bandwidth=0.2, l_trans_bandwidth=0.005) # 0.01, 0.3, 0.2, 0.005
-    #raw_haemo_for_block_averages.filter(0.01, 0.2, h_trans_bandwidth=0.2, l_trans_bandwidth=0.005)
-       
-    if ID == 'NDARBA306US5' or ID == 'NDARDC882NK4':
-        events_to_remove = [45,46,47]
-        raw_haemo.annotations.delete(events_to_remove)
-        raw_haemo_for_block_averages.annotations.delete(events_to_remove)
-    if ID == 'NDARAZC45TW3':
-        events_to_remove = [1,2]
-        raw_haemo.annotations.delete(events_to_remove)
-        raw_haemo_for_block_averages.annotations.delete(events_to_remove)
-        
-    tmin, tmax = -10, 20 # timings for block averages
-    
-    # Shift events by 1.5 seconds (because of cue)
-    #raw_haemo.annotations.onset += 1.5
-    
-    
-    # Redefine events
-    events, event_dict = mne.events_from_annotations(raw_haemo, verbose=False)
-    
     # Define epochs
     epochs = mne.Epochs(raw_haemo, events, event_id=event_dict,
                            tmin=tmin, tmax=tmax,reject_by_annotation=True,
-                           proj=True, baseline=(-10, 0), preload=True,
+                           proj=True, baseline=(-5, 0), preload=True,
                            detrend=None, verbose=False)
     # APPLY BREATH HOLD NORMALIZATION
     # Get data from first inhale to end of hold
@@ -350,7 +410,7 @@ def individual_analysis(fnirs_data_folder, ID):
     #flat_criteria = dict(hbo=0.1e-6)
     epochs = mne.Epochs(raw_haemo, events, event_id=event_dict,
                            tmin=tmin, tmax=tmax,reject=reject_criteria,reject_by_annotation=True,
-                           proj=True, baseline=(-10, 0), preload=True,
+                           proj=True, baseline=(-5, 0), preload=True,
                            detrend=None, verbose=False)
 
     # Remove rejected epochs from design matrix
@@ -371,10 +431,10 @@ def individual_analysis(fnirs_data_folder, ID):
     # Save Block Averages
     epochs_for_block_averages = mne.Epochs(raw_haemo_for_block_averages, events, event_id=event_dict,
                            tmin=tmin, tmax=tmax,reject=reject_criteria,reject_by_annotation=True,
-                           proj=True, baseline=(-10, 0), preload=True,
+                           proj=True, baseline=(-5, 0), preload=True,
                            detrend=None, verbose=False)
 
-    epochs_for_block_averages.drop_channels(bad_channels)
+    #epochs_for_block_averages.drop_channels(bad_channels)
     
     epochs_this_subject = epochs_for_block_averages.to_data_frame()
     

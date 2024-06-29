@@ -40,17 +40,35 @@ for ichannel = 1:6
     for isubject = 1:length(subject_ID)
         for icondition = 1:4
             % get d-prime for this subject and this condition
-            this_subject_d_prime = mean(d_primes_speech_masker(icondition,isubject),1);
-
+            this_subject_d_prime = nanmean(d_primes_speech_masker(icondition,isubject),1);
+            this_subject_hit_rate = nanmean(all_hit_rates_collapsed(icondition+4, isubject),1);
             % get pfc AUC for this subject and this condition
             this_subject_pfc_mean = pfc_means_to_plot(ichannel,icondition,isubject);
 
-            scatter(this_subject_d_prime,this_subject_pfc_mean,'filled','MarkerFaceColor',string(colors(icondition)))
+            scatter(this_subject_hit_rate,this_subject_pfc_mean,'filled','MarkerFaceColor',string(colors(icondition)))
             hold on
         end
     end
 end
 sgtitle('PFC','FontSize',24)
+
+% Mean over all pfc channels?
+
+figure;
+colors = {'r','g','b','m'};
+for isubject = 1:length(subject_ID)
+    for icondition = 1:4
+        % get d-prime for this subject and this condition
+        this_subject_d_prime = nanmean(d_primes_speech_masker(icondition,isubject),1);
+        this_subject_hit_rate = nanmean(all_hit_rates_collapsed(icondition+4, isubject),1);
+        % get pfc AUC for this subject and this condition
+        this_subject_pfc_mean = nanmean(pfc_means_to_plot(:,icondition,isubject),1);
+
+        scatter(this_subject_hit_rate,this_subject_pfc_mean,'filled','MarkerFaceColor',string(colors(icondition)))
+        hold on
+    end
+end
+
 
 % STG
 figure;
@@ -60,12 +78,12 @@ for ichannel = 7:14
     for isubject = 1:length(subject_ID)
         for icondition = 1:4
             % get d-prime for this subject and this condition
-            this_subject_d_prime = mean(d_primes_speech_masker(icondition,isubject),1);
-
+            this_subject_d_prime = nanmean(d_primes_speech_masker(icondition,isubject),1);
+            this_subject_hit_rate = nanmean(all_hit_rates_collapsed(icondition+4, isubject),1);
             % get pfc AUC for this subject and this condition
             this_subject_stg_mean = stg_means_to_plot(ichannel,icondition,isubject);
 
-            scatter(this_subject_d_prime,this_subject_stg_mean,'filled','MarkerFaceColor',string(colors(icondition)))
+            scatter(this_subject_hit_rate,this_subject_stg_mean,'filled','MarkerFaceColor',string(colors(icondition)))
             hold on
         end
     end

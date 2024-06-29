@@ -101,12 +101,15 @@ for isubject = 1:size(subject_ID,1) % For each subject...
 end
 
 figure;
-histogram(all_target_distances,500);
-xticks
+histogram(all_target_distances,400);
+xticks(0:0.25:14)
 xlabel('Time (s)')
-title('Distance from click to nearest preceding target color word')
+title('Distance from click to nearest preceding target color word','FontSize',18)
+ylabel('Frequency of occurrence (count)','FontSize',18)
 
 figure;
-histogram(all_masker_distances,500);
+histogram(all_masker_distances,400);
+xticks(0:0.25:14)
 xlabel('Time (s)')
-title('Distance from click to nearest preceding masker color word')
+title('Distance from click to nearest preceding masker color word','FontSize',18)
+ylabel('Frequency of occurrence (count)','FontSize',18)

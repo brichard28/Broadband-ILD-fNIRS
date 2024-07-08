@@ -11,14 +11,18 @@ BehaviorTable = readtable('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS 
 subject_ID = char('NDARVX753BR6', 'NDARZD647HJ1', 'NDARBL382XK5', 'NDARGF569BF3', 'NDARBA306US5', 'NDARFD284ZP3',...
                    'NDARAS648DT4','NDARLM531OY3', 'NDARXL287BE1', 'NDARRF358KO3', 'NDARGT639XS6', 'NDARDC882NK4',...
                    'NDARWB491KR3','NDARNL224RR9', 'NDARTT639AB1', 'NDARAZC45TW3', 'NDARNS784LM2', 'NDARLB144ZM4', 'NDARTP382XC8',...
-                   'NDARLJ581GD7','NDARGS283RM9', 'NDARRED356WS', 'NDARHUG535MO','NDARFIN244AL',...
-                   'NDARKAI888JU','NDARBAA679HA'); %
+                   'NDARKR750LP6','NDARLJ581GD7','NDARGS283RM9', 'NDARRED356WS', 'NDARHUG535MO','NDARFIN244AL',...
+                   'NDARKAI888JU','NDARBAA679HA', ...
+                   'NDARUXL573SS','NDARMOL966PB',...
+                   'NDARGHM426BL','NDARSEW256ZA'); %
 num_conditions = 20;
 %,
 all_hits = zeros(size(subject_ID,1),num_conditions);
 all_FAs = zeros(size(subject_ID,1),num_conditions);
+all_objects = zeros(size(subject_ID,1),num_conditions);
 all_num_target_color_words = zeros(size(subject_ID,1),num_conditions);
 all_num_masker_color_words = zeros(size(subject_ID,1),num_conditions);
+all_num_target_object_words = zeros(size(subject_ID,1),num_conditions);
 
 all_maskers = {'m_speech__ild_0__itd_500__targ_r__control_0',...
 'm_noise__ild_0__itd_50__targ_l__control_0',...
@@ -84,7 +88,8 @@ for isubject = 1:size(subject_ID,1) % For each subject...
         % Store number of color words in the target and masker
         all_num_target_color_words(isubject,string(all_maskers) == string(this_trial_masker)) = all_num_target_color_words(isubject,string(all_maskers) == string(this_trial_masker)) + sum(ismember(this_trial_target_words,color_words));
         all_num_masker_color_words(isubject,string(all_maskers) == string(this_trial_masker)) = all_num_masker_color_words(isubject,string(all_maskers) == string(this_trial_masker)) + sum(ismember(this_trial_masker_words,color_words));
-
+        all_num_target_object_words(isubject,string(all_maskers) == string(this_trial_masker)) = all_num_masker_color_words(isubject,string(all_maskers) == string(this_trial_masker)) + sum(~ismember(this_trial_target_words,color_words));
+        
         % Find just color times in target and masker
         this_trial_target_color_times = this_trial_target_times(ismember(this_trial_target_words,color_words));
         this_trial_target_object_times = this_trial_target_times(~ismember(this_trial_target_words,color_words));
@@ -96,11 +101,12 @@ for isubject = 1:size(subject_ID,1) % For each subject...
 %         
        %% Hit and False Alarm Windows
 
-       threshold_window_start = 0.2; %0.2
+       threshold_window_start = 0.1; %0.2
        threshold_window_end =  1.1; % 1.0
-       tVec = 1:1/44100:14;
+       tVec = 1:1/44100:16;
        hit_windows = zeros(1,length(tVec)); % create an empty array to define hit windows
        FA_windows = zeros(1,length(tVec)); % create an empty array to define false alarm windows
+       object_windows = zeros(1,length(tVec));
 
         % specify hit windows
         for i = 1:length(this_trial_target_color_times) % for each of the current target color times...
@@ -113,12 +119,23 @@ for isubject = 1:size(subject_ID,1) % For each subject...
         % specify false alarm windows
         for i = 1:length(this_trial_masker_color_times) % for each of the current masker times...
             [~,start_index_FA_window] = min(abs(tVec - (this_trial_masker_color_times(i)+threshold_window_start))); % ...the false alarm window will start threshold_window_start seconds after the word onset
-            [~,end_index_FA_window] = min(abs(tVec - (this_trial_masker_color_times(i)+threshold_window_end))); % ...the false alarm window will end threshold_window_end seconds after the word onset
+            [~,end_index_FA_window] = min(abs(tVec - (this_trial_masker_color_times(i)+(threshold_window_end-0.3)))); % ...the false alarm window will end threshold_window_end seconds after the word onset
 
             FA_windows(start_index_FA_window:end_index_FA_window) = 1;
         end
 
+        % specify object windows
+
+       for i = 1:length(this_trial_target_object_times)
+           [~,start_index_object_window] = min(abs(tVec - (this_trial_target_object_times(i)+threshold_window_start))); % ...the object window will start threshold_window_start seconds after the word onset
+           [~,end_index_object_window] = min(abs(tVec - (this_trial_target_object_times(i)+threshold_window_end))); % ...the object window will end threshold_window_end seconds after the word onset
+
+           object_windows(start_index_object_window:end_index_object_window) = 1;
+        end
+
         FA_windows(hit_windows == 1) = 0; % any time there is a hit window, there should not be an FA window
+        %FA_windows(object_windows == 1) = 0;
+        object_windows(hit_windows == 1) = 0;
 
         % ...Calculate the hit rate, FA rate in this trial
         for iclick = 1:length(this_trial_click_times)
@@ -129,7 +146,10 @@ for isubject = 1:size(subject_ID,1) % For each subject...
                 all_hits(isubject,string(all_maskers) == string(this_trial_masker)) = all_hits(isubject,string(all_maskers) == string(this_trial_masker)) + 1;
             elseif FA_windows(current_click_index) == 1 %...otherwise if that click falls within a false alarm window...
                 all_FAs(isubject,string(all_maskers) == string(this_trial_masker)) = all_FAs(isubject,string(all_maskers) == string(this_trial_masker)) + 1;
-            else % ...if the click is not counted as either
+            elseif object_windows(current_click_index) == 1
+                all_objects(isubject,string(all_maskers) == string(this_trial_masker)) = all_objects(isubject,string(all_maskers) == string(this_trial_masker)) + 1;
+
+            else% ...if the click is not counted as either
                 clicks_not_counted = clicks_not_counted + 1;
             end
             total_clicks = total_clicks + 1;
@@ -164,6 +184,16 @@ all_FAs_collapsed_left_and_right(6,:) = sum(all_FAs(:,[1,7]),2);% itd500 speech
 all_FAs_collapsed_left_and_right(7,:) = sum(all_FAs(:,[4,20]),2);% ildnat speech
 all_FAs_collapsed_left_and_right(8,:) = sum(all_FAs(:,[6,13]),2);% ild10 speech
 
+all_objects_collapsed_left_and_right = [];
+all_objects_collapsed_left_and_right(1,:) = sum(all_objects(:,[2,3]),2); % itd50 noise
+all_objects_collapsed_left_and_right(2,:) = sum(all_objects(:,[10,19]),2); % itd500 noise
+all_objects_collapsed_left_and_right(3,:) = sum(all_objects(:,[11,17]),2); % ildnat noise
+all_objects_collapsed_left_and_right(4,:) = sum(all_objects(:,[12,14]),2);% ild10 noise
+all_objects_collapsed_left_and_right(5,:) = sum(all_objects(:,[5,15]),2); % itd50 speech
+all_objects_collapsed_left_and_right(6,:) = sum(all_objects(:,[1,7]),2);% itd500 speech
+all_objects_collapsed_left_and_right(7,:) = sum(all_objects(:,[4,20]),2);% ildnat speech
+all_objects_collapsed_left_and_right(8,:) = sum(all_objects(:,[6,13]),2);% ild10 speech
+
 
 all_num_target_color_words_collapsed_left_and_right = [];
 all_num_target_color_words_collapsed_left_and_right(1,:) = sum(all_num_target_color_words(:,[2,3]),2);% itd50 noise
@@ -186,246 +216,61 @@ all_num_masker_color_words_collapsed_left_and_right(6,:) = sum(all_num_masker_co
 all_num_masker_color_words_collapsed_left_and_right(7,:) = sum(all_num_masker_color_words(:,[4,20]),2);% ildnat speech
 all_num_masker_color_words_collapsed_left_and_right(8,:) = sum(all_num_masker_color_words(:,[6,13]),2);% ild10 speech
 
+
+all_num_target_object_words_collapsed_left_and_right = [];
+all_num_target_object_words_collapsed_left_and_right(1,:) = sum(all_num_target_object_words(:,[2,3]),2);% itd50 noise
+all_num_target_object_words_collapsed_left_and_right(2,:) = sum(all_num_target_object_words(:,[10,19]),2); % itd500 noise
+all_num_target_object_words_collapsed_left_and_right(3,:) = sum(all_num_target_object_words(:,[11,17]),2);% ildnat noise
+all_num_target_object_words_collapsed_left_and_right(4,:) = sum(all_num_target_object_words(:,[12,14]),2);% ild10 noise
+all_num_target_object_words_collapsed_left_and_right(5,:) = sum(all_num_target_object_words(:,[5,15]),2);% itd50 speech
+all_num_target_object_words_collapsed_left_and_right(6,:) = sum(all_num_target_object_words(:,[1,7]),2);% itd500 speech
+all_num_target_object_words_collapsed_left_and_right(7,:) = sum(all_num_target_object_words(:,[4,20]),2);% ildnat speech
+all_num_target_object_words_collapsed_left_and_right(8,:) = sum(all_num_target_object_words(:,[6,13]),2);% ild10 speech
+
 all_hit_rates = all_hits./all_num_target_color_words;
 all_hit_rates_collapsed = all_hits_collapsed_left_and_right./all_num_target_color_words_collapsed_left_and_right;
+all_hit_rates(all_hit_rates == 0) = 0.001;
+all_hit_rates(all_hit_rates >= 1) = 0.999;
 all_hit_rates_collapsed(all_hit_rates_collapsed == 0) = 0.001;
 all_hit_rates_collapsed(all_hit_rates_collapsed >= 1) = 0.999;
 
 all_FA_rates = all_FAs./all_num_masker_color_words;
 all_FA_rates_collapsed = all_FAs_collapsed_left_and_right./all_num_masker_color_words_collapsed_left_and_right;
+all_FA_rates(all_FA_rates == 0) = 0.001;
+all_FA_rates(all_FA_rates >= 1) = 0.999;
 all_FA_rates_collapsed(all_FA_rates_collapsed == 0) = 0.001;
-%% Hit Rate Figure
-figure;boxplot(all_hit_rates_collapsed')
-xticks([1:8])
-xticklabels({'ITD 50 Noise','ITD 500 Noise','ILD Nat Noise','ILD 10 Noise','ITD 50 Speech','ITD 500 Speech','ILD Nat Speech','ILD 10 Speech'})
-ylabel('Hit Rate','FontSize',18)
-xlabel('Condition','FontSize',18)
 
-%% D-Prime Figure (Just Speech)
+all_object_rates = all_objects./all_num_target_object_words;
+all_object_rates_collapsed = all_objects_collapsed_left_and_right./all_num_target_object_words_collapsed_left_and_right;
+all_object_rates(all_object_rates == 0) = 0.001;
+all_object_rates(all_object_rates >= 1) = 0.999;
+all_object_rates_collapsed(all_object_rates_collapsed == 0) = 0.001;
+all_object_rates_collapsed(all_object_rates_collapsed >= 1) = 0.999;
+
+%% D-prime calculation
+d_primes_all = norminv(all_hit_rates) - norminv(all_FA_rates);
+d_primes_collapsed = [];
+d_primes_collapsed(1,:) = mean(d_primes_all(:,[2,3]),2); % itd50 noise
+d_primes_collapsed(2,:) = mean(d_primes_all(:,[10,19]),2); % itd500 noise
+d_primes_collapsed(3,:) = mean(d_primes_all(:,[11,17]),2); % ildnat noise
+d_primes_collapsed(4,:) = mean(d_primes_all(:,[12,14]),2); % ild10 noise
+d_primes_collapsed(5,:) = mean(d_primes_all(:,[5,15]),2); % itd50 speech
+d_primes_collapsed(6,:) = mean(d_primes_all(:,[1,7]),2); % itd500 speech
+d_primes_collapsed(7,:) = mean(d_primes_all(:,[4,20]),2); % ildnat speech
+d_primes_collapsed(8,:) = mean(d_primes_all(:,[6,13]),2); % ild10 speech
 d_primes_speech_masker = norminv(all_hit_rates_collapsed(5:end,:)) - norminv(all_FA_rates_collapsed(5:end,:));
-figure;
-hold on
-for i = 1:size(d_primes_speech_masker,2)
-    if d_primes_speech_masker(1,i) > d_primes_speech_masker(2,i) % plot in red
-        plot([1:2],d_primes_speech_masker(1:2,i),'Color',[0.4 0.4 0.4])
-    else % plot in blue
-        plot([1:2],d_primes_speech_masker(1:2,i),'Color',[0.4 0.4 0.4])
-    end
-    if d_primes_speech_masker(3,i) > d_primes_speech_masker(4,i) % plot in red
-       plot([2.5:3.5],d_primes_speech_masker(3:4,i),'Color',[0.4 0.4 0.4])
-    else % plot in blue
-        plot([2.5:3.5],d_primes_speech_masker(3:4,i),'Color',[0.4 0.4 0.4])
-    end
-end
-e1 = errorbar(1,mean(d_primes_speech_masker(1,:),2,'omitnan'),std(d_primes_speech_masker(1,:),[],2,'omitnan')./(sqrt(size(subject_ID,1))-1));
-e2 = errorbar(2,mean(d_primes_speech_masker(2,:),2,'omitnan'),std(d_primes_speech_masker(2,:),[],2,'omitnan')./(sqrt(size(subject_ID,1))-1));
-e3 = errorbar(2.5,mean(d_primes_speech_masker(3,:),2,'omitnan'),std(d_primes_speech_masker(3,:),[],2,'omitnan')./(sqrt(size(subject_ID,1))-1));
-e4 = errorbar(3.5,mean(d_primes_speech_masker(4,:),2,'omitnan'),std(d_primes_speech_masker(4,:),[],2,'omitnan')./(sqrt(size(subject_ID,1))-1));
 
-e1.Marker = 'o';
-e1.MarkerSize = 10;
-e1.MarkerFaceColor = 'red';
-e1.Color = 'red';
-e1.CapSize = 15;
-e1.LineWidth = 2;
-e2.Marker = 'o';
-e2.MarkerSize = 10;
-e2.MarkerFaceColor = 'blue';
-e2.Color = 'blue';
-e2.CapSize = 15;
-e2.LineWidth = 2;
-e3.Marker = 'o';
-e3.MarkerSize = 10;
-e3.MarkerFaceColor = 'red';
-e3.Color = 'red';
-e3.CapSize = 15;
-e3.LineWidth = 2;
-e4.Marker = 'o';
-e4.MarkerSize = 10;
-e4.MarkerFaceColor = 'blue';
-e4.Color = 'blue';
-e4.CapSize = 15;
-e4.LineWidth = 2;
-ax = gca;
-ax.LineWidth = 2;
-ax.XTickLabel = cellfun(@(a) ['\bf{' a '}'], ax.XTickLabel, 'UniformOutput',false);
-
-xticks([1,2,2.5,3.5])
-xlim([0.75 3.75])
-xticklabels({'Small ITD','Large ITD','Natural ILD','Broadband ILD'})
-ylabel("Behavioral Sensitivity (d')",'FontSize',18,'FontWeight','bold')
-xlabel('Condition','FontSize',18,'FontWeight','bold')
-title('Speech Masker Behavior','FontSize',18,'FontWeight','bold')
-% % Statistics
-% [p,tbl,stats] = anova1(d_primes_speech_masker');
-% c = multcompare(stats,'Display','off');
-% tbl = array2table(c,"VariableNames", ...
-%     ["Group A","Group B","Lower Limit","A-B","Upper Limit","P-value"]);
-% p_values = c(:,6);
-% significant_comparisons = find(p_values < 0.05);
-% for i = 1:length(significant_comparisons)
-%     xtickvalues = [1,2,2.5,3.5];
-%     group_a = c(significant_comparisons(i),1);
-%     group_b = c(significant_comparisons(i),2);
-%     height = max(d_primes_speech_masker(group_a,:)) + (0.25 - 0.1)*rand(1,1);
-%     line([xtickvalues(group_a),xtickvalues(group_b)],[height,height],'Color','k')
-%     text(mean([xtickvalues(group_a),xtickvalues(group_b)]),height+0.3,'*','FontSize',24)
-% end
-%% Hit Rate Figure (Just Noise Masker)
-figure;
-hold on
-for i = 1:size(all_hit_rates_collapsed,2)
-    if all_hit_rates_collapsed(1,i) > all_hit_rates_collapsed(2,i) % plot in red
-        plot([1:2],all_hit_rates_collapsed(1:2,i),'Color',[0.4 0.4 0.4])
-    else % plot in blue
-        plot([1:2],all_hit_rates_collapsed(1:2,i),'Color',[0.4 0.4 0.4])
-    end
-    if all_hit_rates_collapsed(3,i) > all_hit_rates_collapsed(4,i) % plot in red
-       plot([2.5:3.5],all_hit_rates_collapsed(3:4,i),'Color',[0.4 0.4 0.4])
-    else % plot in blue
-        plot([2.5:3.5],all_hit_rates_collapsed(3:4,i),'Color',[0.4 0.4 0.4])
-    end
-end
-e1 = errorbar(1,mean(all_hit_rates_collapsed(1,:),2,'omitnan'),std(all_hit_rates_collapsed(1,:),[],2,'omitnan')./(sqrt(size(subject_ID,1))-1));
-e2 = errorbar(2,mean(all_hit_rates_collapsed(2,:),2,'omitnan'),std(all_hit_rates_collapsed(2,:),[],2,'omitnan')./(sqrt(size(subject_ID,1))-1));
-e3 = errorbar(2.5,mean(all_hit_rates_collapsed(3,:),2,'omitnan'),std(all_hit_rates_collapsed(3,:),[],2,'omitnan')./(sqrt(size(subject_ID,1))-1));
-e4 = errorbar(3.5,mean(all_hit_rates_collapsed(4,:),2,'omitnan'),std(all_hit_rates_collapsed(4,:),[],2,'omitnan')./(sqrt(size(subject_ID,1))-1));
-
-e1.Marker = 'o';
-e1.MarkerSize = 10;
-e1.MarkerFaceColor = 'red';
-e1.Color = 'red';
-e1.CapSize = 15;
-e1.LineWidth = 2;
-e2.Marker = 'o';
-e2.MarkerSize = 10;
-e2.MarkerFaceColor = 'blue';
-e2.Color = 'blue';
-e2.CapSize = 15;
-e2.LineWidth = 2;
-e3.Marker = 'o';
-e3.MarkerSize = 10;
-e3.MarkerFaceColor = 'red';
-e3.Color = 'red';
-e3.CapSize = 15;
-e3.LineWidth = 2;
-e4.Marker = 'o';
-e4.MarkerSize = 10;
-e4.MarkerFaceColor = 'blue';
-e4.Color = 'blue';
-e4.CapSize = 15;
-e4.LineWidth = 2;
-ax = gca;
-ax.LineWidth = 2;
-ax.XTickLabel = cellfun(@(a) ['\bf{' a '}'], ax.XTickLabel, 'UniformOutput',false);
-
-xticks([1,2,2.5,3.5])
-xlim([0.75 3.75])
-xticklabels({'Small ITD','Large ITD','Natural ILD','Broadband ILD'})
-ylabel('Hit Rate (%)','FontSize',18,'FontWeight','bold')
-xlabel('Condition','FontSize',18,'FontWeight','bold')
-title('Noise Masker Behavior','FontSize',18)
-% % Statistics
-% [p,tbl,stats] = anova2(all_hit_rates_collapsed(1:4,:)',1,'off');
-% c = multcompare(stats,'Display','off');
-% tbl = array2table(c,"VariableNames", ...
-%     ["Group A","Group B","Lower Limit","A-B","Upper Limit","P-value"]);
-% p_values = c(:,6);
-% significant_comparisons = find(p_values < 0.05);
-% for i = 1:length(significant_comparisons)
-%     xtickvalues = [1,2,2.5,3.5];
-%     group_a = c(significant_comparisons(i),1);
-%     group_b = c(significant_comparisons(i),2);
-%     height = max(all_hit_rates_collapsed(group_a,:)) + (0.25 - 0.1)*rand(1,1);
-%     line([group_a,group_b],[height,height],'Color','k')
-%     text(mean([group_a,group_b]),height+0.3,'*','FontSize',24)
-% end
-
-%% Hit Rates (Speech Masker)
-figure;
-hold on
-for i = 1:size(all_hit_rates_collapsed,2)
-    if all_hit_rates_collapsed(5,i) > all_hit_rates_collapsed(6,i) % plot in red
-        plot([1:2],all_hit_rates_collapsed(5:6,i),'Color',[0.4 0.4 0.4])
-    else % plot in blue
-        plot([1:2],all_hit_rates_collapsed(5:6,i),'Color',[0.4 0.4 0.4])
-    end
-    if all_hit_rates_collapsed(7,i) > all_hit_rates_collapsed(8,i) % plot in red
-       plot([2.5:3.5],all_hit_rates_collapsed(7:8,i),'Color',[0.4 0.4 0.4])
-    else % plot in blue
-        plot([2.5:3.5],all_hit_rates_collapsed(7:8,i),'Color',[0.4 0.4 0.4])
-    end
-end
-e1 = errorbar(1,mean(all_hit_rates_collapsed(5,:),2,'omitnan'),std(all_hit_rates_collapsed(5,:),[],2,'omitnan')./(sqrt(size(subject_ID,1))-1));
-e2 = errorbar(2,mean(all_hit_rates_collapsed(6,:),2,'omitnan'),std(all_hit_rates_collapsed(6,:),[],2,'omitnan')./(sqrt(size(subject_ID,1))-1));
-e3 = errorbar(2.5,mean(all_hit_rates_collapsed(7,:),2,'omitnan'),std(all_hit_rates_collapsed(7,:),[],2,'omitnan')./(sqrt(size(subject_ID,1))-1));
-e4 = errorbar(3.5,mean(all_hit_rates_collapsed(8,:),2,'omitnan'),std(all_hit_rates_collapsed(8,:),[],2,'omitnan')./(sqrt(size(subject_ID,1))-1));
-
-e1.Marker = 'o';
-e1.MarkerSize = 10;
-e1.MarkerFaceColor = 'red';
-e1.Color = 'red';
-e1.CapSize = 15;
-e1.LineWidth = 2;
-e2.Marker = 'o';
-e2.MarkerSize = 10;
-e2.MarkerFaceColor = 'blue';
-e2.Color = 'blue';
-e2.CapSize = 15;
-e2.LineWidth = 2;
-e3.Marker = 'o';
-e3.MarkerSize = 10;
-e3.MarkerFaceColor = 'red';
-e3.Color = 'red';
-e3.CapSize = 15;
-e3.LineWidth = 2;
-e4.Marker = 'o';
-e4.MarkerSize = 10;
-e4.MarkerFaceColor = 'blue';
-e4.Color = 'blue';
-e4.CapSize = 15;
-e4.LineWidth = 2;
-ax = gca;
-ax.LineWidth = 2;
-ax.XTickLabel = cellfun(@(a) ['\bf{' a '}'], ax.XTickLabel, 'UniformOutput',false);
-
-xticks([1,2,2.5,3.5])
-xlim([0.75 3.75])
-xticklabels({'Small ITD','Large ITD','Natural ILD','Broadband ILD'})
-ylabel('Hit Rate (%)','FontSize',18,'FontWeight','bold')
-xlabel('Condition','FontSize',18,'FontWeight','bold')
-title('Speech Masker Behavior (HIT RATE)','FontSize',18)
-% % Statistics
-% [p,tbl,stats] = anova2(all_hit_rates_collapsed(1:4,:)',1,'off');
-% c = multcompare(stats,'Display','off');
-% tbl = array2table(c,"VariableNames", ...
-%     ["Group A","Group B","Lower Limit","A-B","Upper Limit","P-value"]);
-% p_values = c(:,6);
-% significant_comparisons = find(p_values < 0.05);
-% for i = 1:length(significant_comparisons)
-%     xtickvalues = [1,2,2.5,3.5];
-%     group_a = c(significant_comparisons(i),1);
-%     group_b = c(significant_comparisons(i),2);
-%     height = max(all_hit_rates_collapsed(group_a,:)) + (0.25 - 0.1)*rand(1,1);
-%     line([group_a,group_b],[height,height],'Color','k')
-%     text(mean([group_a,group_b]),height+0.3,'*','FontSize',24)
-% end
-
-
-%% Plot hit-rate vs d-prime for speech masker
-figure;
-hold on
-colors = {'r','g','b','m'};
-for icondition = 1:4
-    curr_d_primes = d_primes_speech_masker(icondition,:);
-    curr_hit_rates = all_hit_rates_collapsed(icondition+4,:);
-    scatter(curr_d_primes,curr_hit_rates,'filled',string(colors(icondition)))
-end
-legend({'Small ITD','Large ITD','Natural ILD','Broadband ILD'})
-title('Hit Rate vs. D-prime (speech masker only)', 'FontSize',18)
-xlabel('D-prime','FontSize',18)
-ylabel('Hit Rate','FontSize',18)
 %% Save data
-save('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\SRM-NIRS-EEG-1_Behavior_Results.mat','d_primes_speech_masker','all_hit_rates_collapsed','all_FA_rates_collapsed')
+save('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\SRM-NIRS-EEG-1_Behavior_Results.mat','d_primes_speech_masker','d_primes_collapsed','all_hit_rates_collapsed','all_FA_rates_collapsed', 'all_object_rates_collapsed')
+
 hit_rate_table = array2table(all_hit_rates_collapsed);
 writetable(rows2vars(hit_rate_table),'C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\SRM-NIRS-EEG-1_Hit_Rates.csv')
+
+FA_rate_table = array2table(all_FA_rates_collapsed(5:end,:));
+writetable(rows2vars(FA_rate_table),'C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\SRM-NIRS-EEG-1_FA_Rates.csv')
+
+object_rate_table = array2table(all_object_rates_collapsed);
+writetable(rows2vars(object_rate_table),'C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\SRM-NIRS-EEG-1_object_Rates.csv')
+
+d_prime_table = array2table(d_primes_collapsed(5:end,:));
+writetable(rows2vars(d_prime_table),'C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\SRM-NIRS-EEG-1_d_primes.csv')

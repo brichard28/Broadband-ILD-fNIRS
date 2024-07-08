@@ -32,7 +32,7 @@ for isubject = 0:length(subject_ID)-1
     end
 end
 
-% PFC
+%% PFC
 figure;
 for ichannel = 1:6
     subplot(2,3,ichannel);
@@ -52,7 +52,7 @@ for ichannel = 1:6
 end
 sgtitle('PFC','FontSize',24)
 
-% Mean over all pfc channels?
+%% Mean over all pfc channels?
 
 figure;
 colors = {'r','g','b','m'};
@@ -68,9 +68,9 @@ for isubject = 1:length(subject_ID)
         hold on
     end
 end
+title('Mean across PFC Channels')
 
-
-% STG
+%% STG
 figure;
 for ichannel = 7:14
     subplot(2,4,ichannel-6);

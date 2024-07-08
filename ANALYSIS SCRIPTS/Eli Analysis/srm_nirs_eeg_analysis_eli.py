@@ -66,30 +66,25 @@ all_fnirs_data_folders = [data_root + '2023-09-21/2023-09-21_001',
                           data_root + '2023-11-27/2023-11-27_001',
                           data_root + '2023-12-04/2023-12-04_001',
                           data_root + '2024-01-30/2024-01-30_001',
-                          # data_root + '2024-01-31/2024-01-31_001',
                           data_root + '2024-02-01/2024-02-01_001',
                           data_root + '2024-04-09/2024-04-09_001',
                           data_root + '2024-04-16/2024-04-16_001',
                           data_root + '2024-04-24/2024-04-24_001',
                           data_root + '2024-04-24/2024-04-24_002',
-                          data_root + '2024-04-25/2024-04-25_002']
+                          data_root + '2024-04-25/2024-04-25_002',
+                          data_root + '2024-06-14/2024-06-14_001',
+                          data_root + '2024-07-01/2024-07-01_001',
+                          data_root + '2024-07-01/2024-07-01_002',
+                          data_root + '2024-07-02/2024-07-02_001',
+                          data_root + '2024-07-02/2024-07-02_002']
 
-subject_ID = ['NDARVX753BR6', 'NDARZD647HJ1', 'NDARBL382XK5', 'NDARGF569BF3', 'NDARBA306US5', 'NDARFD284ZP3',
-              'NDARAS648DT4',
-              'NDARLM531OY3', 'NDARXL287BE1', 'NDARRF358KO3', 'NDARGT639XS6',
-              'NDARDC882NK4', 'NDARWB491KR3', 'NDARNL224RR9', 'NDARTT639AB1', 'NDARAZC45TW3', 'NDARNS784LM2',
-              'NDARLB144ZM4',
-              'NDARTP382XC8', 'NDARLJ581GD7', 'NDARGS283RM9', 'NDARRED356WS', 'NDARHUG535MO','NDARFIN244AL',
-              'NDARKAI888JU','NDARBAA679HA']  # 'NDARSZ622LR8',
-# The subjects we would like to run right now
-curr_subject_ID = ['NDARVX753BR6', 'NDARZD647HJ1', 'NDARBL382XK5', 'NDARGF569BF3', 'NDARBA306US5', 'NDARFD284ZP3',
-                   'NDARAS648DT4',
-                   'NDARLM531OY3', 'NDARXL287BE1', 'NDARRF358KO3', 'NDARGT639XS6', 'NDARDC882NK4',
-                   'NDARWB491KR3',
-                   'NDARNL224RR9', 'NDARTT639AB1', 'NDARAZC45TW3', 'NDARNS784LM2', 'NDARLB144ZM4', 'NDARTP382XC8',
-                   'NDARLJ581GD7',
-                   'NDARGS283RM9', 'NDARRED356WS', 'NDARHUG535MO','NDARFIN244AL',
-                   'NDARKAI888JU','NDARBAA679HA']
+subject_ID = ['NDARVX753BR6','NDARZD647HJ1','NDARBL382XK5','NDARGF569BF3','NDARBA306US5',
+                'NDARFD284ZP3','NDARAS648DT4','NDARLM531OY3','NDARXL287BE1','NDARRF358KO3','NDARGT639XS6','NDARDC882NK4',
+                'NDARWB491KR3','NDARNL224RR9','NDARTT639AB1','NDARAZC45TW3',
+                'NDARNS784LM2','NDARLB144ZM4','NDARTP382XC8',
+                'NDARLJ581GD7','NDARGS283RM9','NDARRED356WS','NDARHUG535MO',
+                'NDARFIN244AL','NDARKAI888JU','NDARBAA679HA','NDARUXL573SS',
+                'NDARBOT739ST','NDARMOL966PB','NDARGHM426BL','NDARSEW256ZA']  
 
 masker_type = 'speech' # type of masker to analyze on this run
 glm_dur = 7
@@ -146,6 +141,7 @@ subject_data_ild10_GLM_bh_corr = np.full((n_subjects, n_long_channels), np.nan)
 range_BH_response = np.zeros((n_subjects, n_long_channels))
 
 all_evokeds = defaultdict(list)
+subject_info = []
 # loop through all subjects and all sessions (takes a while)
 for ii, subject_num in enumerate(range(n_subjects)):
     
@@ -178,7 +174,7 @@ for ii, subject_num in enumerate(range(n_subjects)):
         data_snirf = mne.io.read_raw_snirf(f"{all_fnirs_data_folders[ii]}/{all_fnirs_data_folders[ii][-14:]}.snirf",
                                            optode_frame="mri", preload=True)
     
-
+    subject_info.append(data.info['subject_info'])
     # ---------------------------------------------------------------
     # -----------------      Preprocess the Data            ---------
     # ---------------------------------------------------------------  

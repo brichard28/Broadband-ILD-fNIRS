@@ -11,7 +11,7 @@ subject_ID = subject_ID';
 % left column = speech masker, right column = noise masker
 % top row = color word hit rate, bottom row = object rate
 figure;
-tiledlayout(2,2, 'TileSpacing','compact');
+tiledlayout(1,2, 'TileSpacing','compact');
 nexttile
 hold on
 for i = 1:size(all_hit_rates_collapsed,2)
@@ -32,27 +32,27 @@ e3 = errorbar(2.5,mean(all_hit_rates_collapsed(7,:),2,'omitnan'),std(all_hit_rat
 e4 = errorbar(3.5,mean(all_hit_rates_collapsed(8,:),2,'omitnan'),std(all_hit_rates_collapsed(8,:),[],2,'omitnan')./(sqrt(size(subject_ID,1))-1));
 
 e1.Marker = 'o';
-e1.MarkerSize = 2;
-e1.MarkerFaceColor = 'm';
-e1.Color = 'm';
+e1.MarkerSize = 4;
+e1.MarkerFaceColor = 'r';
+e1.Color = 'r';
 e1.CapSize = 2;
 e1.LineWidth = 2;
 e2.Marker = 'o';
-e2.MarkerSize = 2;
+e2.MarkerSize = 4;
 e2.MarkerFaceColor = 'blue';
 e2.Color = 'blue';
 e2.CapSize = 2;
 e2.LineWidth = 2;
 e3.Marker = 'o';
-e3.MarkerSize = 2;
+e3.MarkerSize = 4;
 e3.MarkerFaceColor = 'm';
 e3.Color = 'm';
 e3.CapSize = 2;
 e3.LineWidth = 2;
 e4.Marker = 'o';
-e4.MarkerSize = 2;
-e4.MarkerFaceColor = 'blue';
-e4.Color = 'blue';
+e4.MarkerSize = 4;
+e4.MarkerFaceColor = 'g';
+e4.Color = 'g';
 e4.CapSize = 2;
 e4.LineWidth = 2;
 ax = gca;
@@ -60,7 +60,7 @@ ax.LineWidth = 1;
 ax.XTickLabel = cellfun(@(a) ['\bf{' a '}'], ax.XTickLabel, 'UniformOutput',false);
 
 xticks([1,2,2.5,3.5])
-xticklabels({'','','',''})
+xticklabels({'Small ITD','Large ITD','Natural ILD','Broadband ILD'})
 xlim([0.75 3.75])
 ylabel('Hit Rate (%)','FontSize',18,'FontWeight','bold')
 ylim([0.3,1])
@@ -87,27 +87,27 @@ e3 = errorbar(2.5,mean(all_hit_rates_collapsed(3,:),2,'omitnan'),std(all_hit_rat
 e4 = errorbar(3.5,mean(all_hit_rates_collapsed(4,:),2,'omitnan'),std(all_hit_rates_collapsed(4,:),[],2,'omitnan')./(sqrt(size(subject_ID,1))-1));
 
 e1.Marker = 'o';
-e1.MarkerSize = 2;
-e1.MarkerFaceColor = 'm';
-e1.Color = 'm';
+e1.MarkerSize = 4;
+e1.MarkerFaceColor = 'r';
+e1.Color = 'r';
 e1.CapSize = 2;
 e1.LineWidth = 2;
 e2.Marker = 'o';
-e2.MarkerSize = 2;
+e2.MarkerSize = 4;
 e2.MarkerFaceColor = 'blue';
 e2.Color = 'blue';
 e2.CapSize = 2;
 e2.LineWidth = 2;
 e3.Marker = 'o';
-e3.MarkerSize = 2;
+e3.MarkerSize = 4;
 e3.MarkerFaceColor = 'm';
 e3.Color = 'm';
 e3.CapSize = 2;
 e3.LineWidth = 2;
 e4.Marker = 'o';
-e4.MarkerSize = 2;
-e4.MarkerFaceColor = 'blue';
-e4.Color = 'blue';
+e4.MarkerSize = 4;
+e4.MarkerFaceColor = 'g';
+e4.Color = 'g';
 e4.CapSize = 2;
 e4.LineWidth = 2;
 ax = gca;
@@ -115,176 +115,123 @@ ax.LineWidth = 1;
 ax.XTickLabel = cellfun(@(a) ['\bf{' a '}'], ax.XTickLabel, 'UniformOutput',false);
 
 xticks([1,2,2.5,3.5])
-xticklabels({'','','',''})
+xticklabels({'Small ITD','Large ITD','Natural ILD','Broadband ILD'})
 xlim([0.75 3.75])
 title('Noise Masker','FontSize',18)
 ylim([0.3,1])
-
-nexttile
- % Speech Masker Object Rate
-hold on
-for i = 1:size(all_object_rates_collapsed,2)
-    if all_object_rates_collapsed(5,i) > all_object_rates_collapsed(6,i) % plot in red
-        plot([1:2],all_object_rates_collapsed(5:6,i),'Color',[0.8 0.8 0.8])
-    else % plot in blue
-        plot([1:2],all_object_rates_collapsed(5:6,i),'Color',[0.8 0.8 0.8])
-    end
-    if all_object_rates_collapsed(7,i) > all_object_rates_collapsed(8,i) % plot in red
-       plot([2.5:3.5],all_object_rates_collapsed(7:8,i),'Color',[0.8 0.8 0.8])
-    else % plot in blue
-        plot([2.5:3.5],all_object_rates_collapsed(7:8,i),'Color',[0.8 0.8 0.8])
-    end
-end
-e1 = errorbar(1,mean(all_object_rates_collapsed(5,:),2,'omitnan'),std(all_object_rates_collapsed(5,:),[],2,'omitnan')./(sqrt(size(subject_ID,1))-1));
-e2 = errorbar(2,mean(all_object_rates_collapsed(6,:),2,'omitnan'),std(all_object_rates_collapsed(6,:),[],2,'omitnan')./(sqrt(size(subject_ID,1))-1));
-e3 = errorbar(2.5,mean(all_object_rates_collapsed(7,:),2,'omitnan'),std(all_object_rates_collapsed(7,:),[],2,'omitnan')./(sqrt(size(subject_ID,1))-1));
-e4 = errorbar(3.5,mean(all_object_rates_collapsed(8,:),2,'omitnan'),std(all_object_rates_collapsed(8,:),[],2,'omitnan')./(sqrt(size(subject_ID,1))-1));
-
-e1.Marker = 'o';
-e1.MarkerSize = 2;
-e1.MarkerFaceColor = 'm';
-e1.Color = 'm';
-e1.CapSize = 2;
-e1.LineWidth = 2;
-e2.Marker = 'o';
-e2.MarkerSize = 2;
-e2.MarkerFaceColor = 'blue';
-e2.Color = 'blue';
-e2.CapSize = 2;
-e2.LineWidth = 2;
-e3.Marker = 'o';
-e3.MarkerSize = 2;
-e3.MarkerFaceColor = 'm';
-e3.Color = 'm';
-e3.CapSize = 2;
-e3.LineWidth = 2;
-e4.Marker = 'o';
-e4.MarkerSize = 2;
-e4.MarkerFaceColor = 'blue';
-e4.Color = 'blue';
-e4.CapSize = 2;
-e4.LineWidth = 2;
-ax = gca;
-ax.LineWidth = 1;
-ax.XTickLabel = cellfun(@(a) ['\bf{' a '}'], ax.XTickLabel, 'UniformOutput',false);
-
-ylabel('Object Rate (%)','FontSize',18,'FontWeight','bold')
-xticks([1,2,2.5,3.5])
-xlim([0.75 3.75])
-xticklabels({'Small ITD','Large ITD','Natural ILD','Broadband ILD'})
-ylim([-0.005,0.3])
-
-nexttile
- % Noise Masker Object Rate
-hold on
-for i = 1:size(all_object_rates_collapsed,2)
-    if all_object_rates_collapsed(1,i) > all_object_rates_collapsed(2,i) % plot in red
-        plot([1:2],all_object_rates_collapsed(1:2,i),'Color',[0.8 0.8 0.8])
-    else % plot in blue
-        plot([1:2],all_object_rates_collapsed(1:2,i),'Color',[0.8 0.8 0.8])
-    end
-    if all_object_rates_collapsed(3,i) > all_object_rates_collapsed(4,i) % plot in red
-       plot([2.5:3.5],all_object_rates_collapsed(3:4,i),'Color',[0.8 0.8 0.8])
-    else % plot in blue
-        plot([2.5:3.5],all_object_rates_collapsed(3:4,i),'Color',[0.8 0.8 0.8])
-    end
-end
-e1 = errorbar(1,mean(all_object_rates_collapsed(1,:),2,'omitnan'),std(all_object_rates_collapsed(1,:),[],2,'omitnan')./(sqrt(size(subject_ID,1))-1));
-e2 = errorbar(2,mean(all_object_rates_collapsed(2,:),2,'omitnan'),std(all_object_rates_collapsed(2,:),[],2,'omitnan')./(sqrt(size(subject_ID,1))-1));
-e3 = errorbar(2.5,mean(all_object_rates_collapsed(3,:),2,'omitnan'),std(all_object_rates_collapsed(3,:),[],2,'omitnan')./(sqrt(size(subject_ID,1))-1));
-e4 = errorbar(3.5,mean(all_object_rates_collapsed(4,:),2,'omitnan'),std(all_object_rates_collapsed(4,:),[],2,'omitnan')./(sqrt(size(subject_ID,1))-1));
-
-e1.Marker = 'o';
-e1.MarkerSize = 2;
-e1.MarkerFaceColor = 'm';
-e1.Color = 'm';
-e1.CapSize = 2;
-e1.LineWidth = 2;
-e2.Marker = 'o';
-e2.MarkerSize = 2;
-e2.MarkerFaceColor = 'blue';
-e2.Color = 'blue';
-e2.CapSize = 2;
-e2.LineWidth = 2;
-e3.Marker = 'o';
-e3.MarkerSize = 2;
-e3.MarkerFaceColor = 'm';
-e3.Color = 'm';
-e3.CapSize = 2;
-e3.LineWidth = 2;
-e4.Marker = 'o';
-e4.MarkerSize = 2;
-e4.MarkerFaceColor = 'blue';
-e4.Color = 'blue';
-e4.CapSize = 2;
-e4.LineWidth = 2;
-ax = gca;
-ax.LineWidth = 1;
-ax.XTickLabel = cellfun(@(a) ['\bf{' a '}'], ax.XTickLabel, 'UniformOutput',false);
-
-xticks([1,2,2.5,3.5])
-xlim([0.75 3.75])
-xticklabels({'Small ITD','Large ITD','Natural ILD','Broadband ILD'})
-ylim([-0.005,0.3])
+% 
+% nexttile
+%  % Speech Masker Object Rate
+% hold on
+% for i = 1:size(all_object_rates_collapsed,2)
+%     if all_object_rates_collapsed(5,i) > all_object_rates_collapsed(6,i) % plot in red
+%         plot([1:2],all_object_rates_collapsed(5:6,i),'Color',[0.8 0.8 0.8])
+%     else % plot in blue
+%         plot([1:2],all_object_rates_collapsed(5:6,i),'Color',[0.8 0.8 0.8])
+%     end
+%     if all_object_rates_collapsed(7,i) > all_object_rates_collapsed(8,i) % plot in red
+%        plot([2.5:3.5],all_object_rates_collapsed(7:8,i),'Color',[0.8 0.8 0.8])
+%     else % plot in blue
+%         plot([2.5:3.5],all_object_rates_collapsed(7:8,i),'Color',[0.8 0.8 0.8])
+%     end
+% end
+% e1 = errorbar(1,mean(all_object_rates_collapsed(5,:),2,'omitnan'),std(all_object_rates_collapsed(5,:),[],2,'omitnan')./(sqrt(size(subject_ID,1))-1));
+% e2 = errorbar(2,mean(all_object_rates_collapsed(6,:),2,'omitnan'),std(all_object_rates_collapsed(6,:),[],2,'omitnan')./(sqrt(size(subject_ID,1))-1));
+% e3 = errorbar(2.5,mean(all_object_rates_collapsed(7,:),2,'omitnan'),std(all_object_rates_collapsed(7,:),[],2,'omitnan')./(sqrt(size(subject_ID,1))-1));
+% e4 = errorbar(3.5,mean(all_object_rates_collapsed(8,:),2,'omitnan'),std(all_object_rates_collapsed(8,:),[],2,'omitnan')./(sqrt(size(subject_ID,1))-1));
+% 
+% e1.Marker = 'o';
+% e1.MarkerSize = 4;
+% e1.MarkerFaceColor = 'r';
+% e1.Color = 'r';
+% e1.CapSize = 2;
+% e1.LineWidth = 2;
+% e2.Marker = 'o';
+% e2.MarkerSize = 4;
+% e2.MarkerFaceColor = 'blue';
+% e2.Color = 'blue';
+% e2.CapSize = 2;
+% e2.LineWidth = 2;
+% e3.Marker = 'o';
+% e3.MarkerSize = 4;
+% e3.MarkerFaceColor = 'm';
+% e3.Color = 'm';
+% e3.CapSize = 2;
+% e3.LineWidth = 2;
+% e4.Marker = 'o';
+% e4.MarkerSize = 4;
+% e4.MarkerFaceColor = 'g';
+% e4.Color = 'g';
+% e4.CapSize = 2;
+% e4.LineWidth = 2;
+% ax = gca;
+% ax.LineWidth = 1;
+% ax.XTickLabel = cellfun(@(a) ['\bf{' a '}'], ax.XTickLabel, 'UniformOutput',false);
+% 
+% ylabel('Object Rate (%)','FontSize',18,'FontWeight','bold')
+% xticks([1,2,2.5,3.5])
+% xlim([0.75 3.75])
+% xticklabels({'Small ITD','Large ITD','Natural ILD','Broadband ILD'})
+% ylim([-0.005,0.3])
+% 
+% nexttile
+%  % Noise Masker Object Rate
+% hold on
+% for i = 1:size(all_object_rates_collapsed,2)
+%     if all_object_rates_collapsed(1,i) > all_object_rates_collapsed(2,i) % plot in red
+%         plot([1:2],all_object_rates_collapsed(1:2,i),'Color',[0.8 0.8 0.8])
+%     else % plot in blue
+%         plot([1:2],all_object_rates_collapsed(1:2,i),'Color',[0.8 0.8 0.8])
+%     end
+%     if all_object_rates_collapsed(3,i) > all_object_rates_collapsed(4,i) % plot in red
+%        plot([2.5:3.5],all_object_rates_collapsed(3:4,i),'Color',[0.8 0.8 0.8])
+%     else % plot in blue
+%         plot([2.5:3.5],all_object_rates_collapsed(3:4,i),'Color',[0.8 0.8 0.8])
+%     end
+% end
+% e1 = errorbar(1,mean(all_object_rates_collapsed(1,:),2,'omitnan'),std(all_object_rates_collapsed(1,:),[],2,'omitnan')./(sqrt(size(subject_ID,1))-1));
+% e2 = errorbar(2,mean(all_object_rates_collapsed(2,:),2,'omitnan'),std(all_object_rates_collapsed(2,:),[],2,'omitnan')./(sqrt(size(subject_ID,1))-1));
+% e3 = errorbar(2.5,mean(all_object_rates_collapsed(3,:),2,'omitnan'),std(all_object_rates_collapsed(3,:),[],2,'omitnan')./(sqrt(size(subject_ID,1))-1));
+% e4 = errorbar(3.5,mean(all_object_rates_collapsed(4,:),2,'omitnan'),std(all_object_rates_collapsed(4,:),[],2,'omitnan')./(sqrt(size(subject_ID,1))-1));
+% 
+% e1.Marker = 'o';
+% e1.MarkerSize = 4;
+% e1.MarkerFaceColor = 'r';
+% e1.Color = 'r';
+% e1.CapSize = 2;
+% e1.LineWidth = 2;
+% e2.Marker = 'o';
+% e2.MarkerSize = 4;
+% e2.MarkerFaceColor = 'blue';
+% e2.Color = 'blue';
+% e2.CapSize = 2;
+% e2.LineWidth = 2;
+% e3.Marker = 'o';
+% e3.MarkerSize = 4;
+% e3.MarkerFaceColor = 'm';
+% e3.Color = 'm';
+% e3.CapSize = 2;
+% e3.LineWidth = 2;
+% e4.Marker = 'o';
+% e4.MarkerSize = 4;
+% e4.MarkerFaceColor = 'g';
+% e4.Color = 'g';
+% e4.CapSize = 2;
+% e4.LineWidth = 2;
+% ax = gca;
+% ax.LineWidth = 1;
+% ax.XTickLabel = cellfun(@(a) ['\bf{' a '}'], ax.XTickLabel, 'UniformOutput',false);
+% 
+% xticks([1,2,2.5,3.5])
+% xlim([0.75 3.75])
+% xticklabels({'Small ITD','Large ITD','Natural ILD','Broadband ILD'})
+% ylim([-0.005,0.3])
 
 
 %% Speech Masker Figure
 % FA Rate and D-prime
 figure;
 tiledlayout(1,2,'TileSpacing','compact');
-nexttile
-hold on
-for i = 1:size(d_primes_collapsed,2)
-    if d_primes_collapsed(5,i) > d_primes_collapsed(6,i) % plot in red
-        plot([1:2],d_primes_collapsed(5:6,i),'Color',[0.8 0.8 0.8])
-    else % plot in blue
-        plot([1:2],d_primes_collapsed(5:6,i),'Color',[0.8 0.8 0.8])
-    end
-    if d_primes_collapsed(7,i) > d_primes_collapsed(8,i) % plot in red
-       plot([2.5:3.5],d_primes_collapsed(7:8,i),'Color',[0.8 0.8 0.8])
-    else % plot in blue
-        plot([2.5:3.5],d_primes_collapsed(7:8,i),'Color',[0.8 0.8 0.8])
-    end
-end
-e1 = errorbar(1,mean(d_primes_collapsed(5,:),2,'omitnan'),std(d_primes_collapsed(5,:),[],2,'omitnan')./(sqrt(size(subject_ID,1))-1));
-e2 = errorbar(2,mean(d_primes_collapsed(6,:),2,'omitnan'),std(d_primes_collapsed(6,:),[],2,'omitnan')./(sqrt(size(subject_ID,1))-1));
-e3 = errorbar(2.5,mean(d_primes_collapsed(7,:),2,'omitnan'),std(d_primes_collapsed(7,:),[],2,'omitnan')./(sqrt(size(subject_ID,1))-1));
-e4 = errorbar(3.5,mean(d_primes_collapsed(8,:),2,'omitnan'),std(d_primes_collapsed(8,:),[],2,'omitnan')./(sqrt(size(subject_ID,1))-1));
-
-e1.Marker = 'o';
-e1.MarkerSize = 2;
-e1.MarkerFaceColor = 'm';
-e1.Color = 'm';
-e1.CapSize = 2;
-e1.LineWidth = 2;
-e2.Marker = 'o';
-e2.MarkerSize = 2;
-e2.MarkerFaceColor = 'blue';
-e2.Color = 'blue';
-e2.CapSize = 2;
-e2.LineWidth = 2;
-e3.Marker = 'o';
-e3.MarkerSize = 2;
-e3.MarkerFaceColor = 'm';
-e3.Color = 'm';
-e3.CapSize = 2;
-e3.LineWidth = 2;
-e4.Marker = 'o';
-e4.MarkerSize = 2;
-e4.MarkerFaceColor = 'blue';
-e4.Color = 'blue';
-e4.CapSize = 2;
-e4.LineWidth = 2;
-ax = gca;
-ax.LineWidth = 1;
-ax.XTickLabel = cellfun(@(a) ['\bf{' a '}'], ax.XTickLabel, 'UniformOutput',false);
-
-xticks([1,2,2.5,3.5])
-xlim([0.75 3.75])
-xticklabels({'Small ITD','Large ITD','Natural ILD','Broadband ILD'})
-ylabel("Behavioral Sensitivity (d')",'FontSize',18,'FontWeight','bold')
-
-
 nexttile
 hold on
 for i = 1:size(all_FA_rates_collapsed,2)
@@ -305,27 +252,27 @@ e3 = errorbar(2.5,mean(all_FA_rates_collapsed(7,:),2,'omitnan'),std(all_FA_rates
 e4 = errorbar(3.5,mean(all_FA_rates_collapsed(8,:),2,'omitnan'),std(all_FA_rates_collapsed(8,:),[],2,'omitnan')./(sqrt(size(subject_ID,1))-1));
 
 e1.Marker = 'o';
-e1.MarkerSize = 2;
-e1.MarkerFaceColor = 'm';
-e1.Color = 'm';
+e1.MarkerSize = 4;
+e1.MarkerFaceColor = 'r';
+e1.Color = 'r';
 e1.CapSize = 2;
 e1.LineWidth = 2;
 e2.Marker = 'o';
-e2.MarkerSize = 2;
+e2.MarkerSize = 4;
 e2.MarkerFaceColor = 'blue';
 e2.Color = 'blue';
 e2.CapSize = 2;
 e2.LineWidth = 2;
 e3.Marker = 'o';
-e3.MarkerSize = 2;
+e3.MarkerSize = 4;
 e3.MarkerFaceColor = 'm';
 e3.Color = 'm';
 e3.CapSize = 2;
 e3.LineWidth = 2;
 e4.Marker = 'o';
-e4.MarkerSize = 2;
-e4.MarkerFaceColor = 'blue';
-e4.Color = 'blue';
+e4.MarkerSize = 4;
+e4.MarkerFaceColor = 'g';
+e4.Color = 'g';
 e4.CapSize = 2;
 e4.LineWidth = 2;
 ax = gca;
@@ -338,11 +285,64 @@ xticklabels({'Small ITD','Large ITD','Natural ILD','Broadband ILD'})
 ylabel('FA Rate (%)','FontSize',18,'FontWeight','bold')
 sgtitle('Speech Masker Behavior','FontSize',18,'FontWeight','bold')
 
+nexttile
+hold on
+for i = 1:size(d_primes_collapsed,2)
+    if d_primes_collapsed(5,i) > d_primes_collapsed(6,i) % plot in red
+        plot([1:2],d_primes_collapsed(5:6,i),'Color',[0.8 0.8 0.8])
+    else % plot in blue
+        plot([1:2],d_primes_collapsed(5:6,i),'Color',[0.8 0.8 0.8])
+    end
+    if d_primes_collapsed(7,i) > d_primes_collapsed(8,i) % plot in red
+       plot([2.5:3.5],d_primes_collapsed(7:8,i),'Color',[0.8 0.8 0.8])
+    else % plot in blue
+        plot([2.5:3.5],d_primes_collapsed(7:8,i),'Color',[0.8 0.8 0.8])
+    end
+end
+e1 = errorbar(1,mean(d_primes_collapsed(5,:),2,'omitnan'),std(d_primes_collapsed(5,:),[],2,'omitnan')./(sqrt(size(subject_ID,1))-1));
+e2 = errorbar(2,mean(d_primes_collapsed(6,:),2,'omitnan'),std(d_primes_collapsed(6,:),[],2,'omitnan')./(sqrt(size(subject_ID,1))-1));
+e3 = errorbar(2.5,mean(d_primes_collapsed(7,:),2,'omitnan'),std(d_primes_collapsed(7,:),[],2,'omitnan')./(sqrt(size(subject_ID,1))-1));
+e4 = errorbar(3.5,mean(d_primes_collapsed(8,:),2,'omitnan'),std(d_primes_collapsed(8,:),[],2,'omitnan')./(sqrt(size(subject_ID,1))-1));
+
+e1.Marker = 'o';
+e1.MarkerSize = 4;
+e1.MarkerFaceColor = 'r';
+e1.Color = 'r';
+e1.CapSize = 2;
+e1.LineWidth = 2;
+e2.Marker = 'o';
+e2.MarkerSize = 4;
+e2.MarkerFaceColor = 'blue';
+e2.Color = 'blue';
+e2.CapSize = 2;
+e2.LineWidth = 2;
+e3.Marker = 'o';
+e3.MarkerSize = 4;
+e3.MarkerFaceColor = 'm';
+e3.Color = 'm';
+e3.CapSize = 2;
+e3.LineWidth = 2;
+e4.Marker = 'o';
+e4.MarkerSize = 4;
+e4.MarkerFaceColor = 'g';
+e4.Color = 'g';
+e4.CapSize = 2;
+e4.LineWidth = 2;
+ax = gca;
+ax.LineWidth = 1;
+ax.XTickLabel = cellfun(@(a) ['\bf{' a '}'], ax.XTickLabel, 'UniformOutput',false);
+
+xticks([1,2,2.5,3.5])
+xlim([0.75 3.75])
+xticklabels({'Small ITD','Large ITD','Natural ILD','Broadband ILD'})
+ylabel("Behavioral Sensitivity (d')",'FontSize',18,'FontWeight','bold')
+
+
 %% Plot hit-rate vs d-prime for speech masker
 figure;
 tiledlayout(2,2)
 hold on
-colors = {'r','g','b','m'};
+colors = {'r','b','m','g'};
 leg_labels = {'Small ITD','Large ITD','Natural ILD','Broadband ILD'};
 
 for icondition = 1:4
@@ -351,8 +351,9 @@ for icondition = 1:4
     curr_d_primes = d_primes_collapsed(icondition+4,:);
     curr_hit_rates = all_hit_rates_collapsed(icondition+4,:);
     scatter(curr_d_primes,curr_hit_rates,'filled',string(colors(icondition)))
-    [p,S] = polyfit(curr_d_primes,curr_hit_rates,1);
-    [fit_line,delta] = polyval(p,curr_d_primes,S);
+    [R,P] = corrcoef(curr_d_primes,curr_hit_rates);
+    [p_fit,S] = polyfit(curr_d_primes,curr_hit_rates,1);
+    [fit_line,delta] = polyval(p_fit,curr_d_primes,S);
     R_squared = 1 - (S.normr/norm(curr_hit_rates - mean(curr_hit_rates)))^2;
     plot(curr_d_primes,fit_line,'-k')
     
@@ -366,7 +367,7 @@ for icondition = 1:4
     xlim([-2,5.5])
     ylim([0,1])
     text(1,0.2,"R^2 = " + num2str(R_squared))
-    text(1,0.1,"slope = " + num2str(p(1)))
+    text(1,0.1,"P = " + num2str(P(2)))
 
 end
 

@@ -5,7 +5,7 @@ load('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\SRM-NIRS-EEG-1_B
 % ORDER: itd50, itd500, ildnat, ild10
 
 % load beta values
-mean_hbo_table = readtable('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\ANALYSIS SCRIPTS\Eli Analysis\all_subjects_mean_during_stim_speech_masker.csv');
+mean_hbo_table = readtable('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\ANALYSIS SCRIPTS\Eli Analysis\all_subjects_mean_during_stim_noise_masker.csv');
 mean_hbo_table(1,:) = [];
 mean_hbo_table = table2array(mean_hbo_table);
 % col 1= subject, col 2= channel, col 3= itd50, col 4 = itd500, col 5 =
@@ -13,35 +13,51 @@ mean_hbo_table = table2array(mean_hbo_table);
 % ORDER: itd50, itd500, ildnat, ild10
 
 % Define current subjects
-subject_ID = char('NDARVX753BR6', 'NDARZD647HJ1', 'NDARBL382XK5', 'NDARGF569BF3', 'NDARBA306US5', 'NDARFD284ZP3',...
-                   'NDARAS648DT4','NDARLM531OY3', 'NDARXL287BE1', 'NDARRF358KO3', 'NDARGT639XS6', 'NDARDC882NK4',...
-                   'NDARWB491KR3','NDARNL224RR9', 'NDARTT639AB1', 'NDARAZC45TW3', 'NDARNS784LM2', 'NDARLB144ZM4', 'NDARTP382XC8',...
-                   'NDARLJ581GD7','NDARGS283RM9', 'NDARRED356WS', 'NDARHUG535MO','NDARFIN244AL',...
-                   'NDARKAI888JU','NDARBAA679HA');
-conditions = string({'itd50','itd500','ildnat','ild10'});
+subject_ID = char('NDARVX753BR6','NDARZD647HJ1','NDARBL382XK5','NDARGF569BF3','NDARBA306US5',...
+                'NDARFD284ZP3','NDARAS648DT4','NDARLM531OY3','NDARXL287BE1','NDARRF358KO3','NDARGT639XS6','NDARDC882NK4',...
+                'NDARWB491KR3','NDARNL224RR9','NDARTT639AB1','NDARAZC45TW3',...
+                'NDARNS784LM2','NDARLB144ZM4','NDARTP382XC8',...
+                'NDARLJ581GD7','NDARGS283RM9','NDARRED356WS',...
+                'NDARHUG535MO',...
+                'NDARFIN244AL','NDARKAI888JU','NDARBAA679HA',...
+                'NDARUXL573SS',...
+                'NDARMOL966PB','NDARGHM426BL','NDARSEW256ZA');
+conditions = string({'itd50_noise','itd500_noise','ildnat_noise','ild10_noise','itd50_speech','itd500_speech','ildnat_speech','ild10_speech'});
 
 pfc_means_to_plot = nan(14,4,length(subject_ID));
 stg_means_to_plot = nan(14,4,length(subject_ID));
 
 % Turn mean_hbo_table into 14 channels x 4 conditions x n subjects
+% fill in noise data
 for isubject = 0:length(subject_ID)-1
     for ichannel = 1:14
         this_subject_data = mean_hbo_table(mean_hbo_table(:,1) == isubject,3:end);
-        pfc_means_to_plot(ichannel,:,isubject+1) = this_subject_data(ichannel,:);
-        stg_means_to_plot(ichannel,:,isubject+1) = this_subject_data(ichannel,:);
+        pfc_means_to_plot(ichannel,1:4,isubject+1) = this_subject_data(ichannel,:);
+        stg_means_to_plot(ichannel,1:4,isubject+1) = this_subject_data(ichannel,:);
+    end
+end
+
+% fill in speech data
+mean_hbo_table = readtable('C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\ANALYSIS SCRIPTS\Eli Analysis\all_subjects_mean_during_stim_speech_masker.csv');
+mean_hbo_table(1,:) = [];
+mean_hbo_table = table2array(mean_hbo_table);
+for isubject = 0:length(subject_ID)-1
+    for ichannel = 1:14
+        this_subject_data = mean_hbo_table(mean_hbo_table(:,1) == isubject,3:end);
+        pfc_means_to_plot(ichannel,5:8,isubject+1) = this_subject_data(ichannel,:);
+        stg_means_to_plot(ichannel,5:8,isubject+1) = this_subject_data(ichannel,:);
     end
 end
 
 %% PFC
 figure;
 for ichannel = 1:6
-    subplot(2,3,ichannel);
-    colors = {'r','g','b','m'};
+    colors = {'r','g','b','m','r','g','b','m'};
     for isubject = 1:length(subject_ID)
-        for icondition = 1:4
+        for icondition = 1:8
             % get d-prime for this subject and this condition
-            this_subject_d_prime = nanmean(d_primes_speech_masker(icondition,isubject),1);
-            this_subject_hit_rate = nanmean(all_hit_rates_collapsed(icondition+4, isubject),1);
+            %this_subject_d_prime = nanmean(d_primes_speech_masker(icondition,isubject),1);
+            this_subject_hit_rate = nanmean(all_hit_rates_collapsed(icondition, isubject),1);
             % get pfc AUC for this subject and this condition
             this_subject_pfc_mean = pfc_means_to_plot(ichannel,icondition,isubject);
 
@@ -52,34 +68,16 @@ for ichannel = 1:6
 end
 sgtitle('PFC','FontSize',24)
 
-%% Mean over all pfc channels?
-
-figure;
-colors = {'r','g','b','m'};
-for isubject = 1:length(subject_ID)
-    for icondition = 1:4
-        % get d-prime for this subject and this condition
-        this_subject_d_prime = nanmean(d_primes_speech_masker(icondition,isubject),1);
-        this_subject_hit_rate = nanmean(all_hit_rates_collapsed(icondition+4, isubject),1);
-        % get pfc AUC for this subject and this condition
-        this_subject_pfc_mean = nanmean(pfc_means_to_plot(:,icondition,isubject),1);
-
-        scatter(this_subject_hit_rate,this_subject_pfc_mean,'filled','MarkerFaceColor',string(colors(icondition)))
-        hold on
-    end
-end
-title('Mean across PFC Channels')
 
 %% STG
 figure;
 for ichannel = 7:14
-    subplot(2,4,ichannel-6);
-    colors = {'r','g','b','m'};
+    colors = {'r','g','b','m','r','g','b','m'};
     for isubject = 1:length(subject_ID)
         for icondition = 1:4
             % get d-prime for this subject and this condition
-            this_subject_d_prime = nanmean(d_primes_speech_masker(icondition,isubject),1);
-            this_subject_hit_rate = nanmean(all_hit_rates_collapsed(icondition+4, isubject),1);
+            %this_subject_d_prime = nanmean(d_primes_speech_masker(icondition,isubject),1);
+            this_subject_hit_rate = nanmean(all_hit_rates_collapsed(icondition, isubject),1);
             % get pfc AUC for this subject and this condition
             this_subject_stg_mean = stg_means_to_plot(ichannel,icondition,isubject);
 

@@ -149,7 +149,7 @@ model_farate
 
 # Post hocs
 # ITD50 as reference
-hit_rates$Spatialization <- relevel(hit_rates$Spatialization, "ITD50")
+FA_rates$Spatialization <- relevel(FA_rates$Spatialization, "ITD50")
 posthoc_farate_itd50 <- lmer(FARate ~ Spatialization + (1|S),
                         data= FA_rates, 
                         control = lmerControl(optimizer = "bobyqa"))
@@ -157,7 +157,7 @@ posthoc_farate_itd50 <- lmer(FARate ~ Spatialization + (1|S),
 summary(posthoc_farate_itd50)
 
 # ITD500 as reference
-hit_rates$Spatialization <- relevel(hit_rates$Spatialization, "ITD500")
+FA_rates$Spatialization <- relevel(FA_rates$Spatialization, "ITD500")
 posthoc_farate_itd500 <- lmer(FARate ~ Spatialization + (1|S),
                              data= FA_rates, 
                              control = lmerControl(optimizer = "bobyqa"))
@@ -165,12 +165,20 @@ posthoc_farate_itd500 <- lmer(FARate ~ Spatialization + (1|S),
 summary(posthoc_farate_itd500)
 
 # ILD70n as reference
-hit_rates$Spatialization <- relevel(hit_rates$Spatialization, "ILD70n")
+FA_rates$Spatialization <- relevel(FA_rates$Spatialization, "ILD70n")
 posthoc_farate_ild70n <- lmer(FARate ~ Spatialization + (1|S),
                               data= FA_rates, 
                               control = lmerControl(optimizer = "bobyqa"))
 
 summary(posthoc_farate_ild70n)
+
+# ILD10 as reference
+FA_rates$Spatialization <- relevel(FA_rates$Spatialization, "ILD10")
+posthoc_farate_ild10 <- lmer(FARate ~ Spatialization + (1|S),
+                              data= FA_rates, 
+                              control = lmerControl(optimizer = "bobyqa"))
+
+summary(posthoc_farate_ild10)
 
 
 ####################################################

@@ -142,6 +142,7 @@ subject_data_ild10_GLM_bh_corr = np.full((n_subjects, n_long_channels), np.nan)
 
 num_channels_removed = np.full(n_subjects, np.nan)
 age = np.full(n_subjects, np.nan)
+sex = np.full(n_subjects, np.nan)
 
 range_BH_response = np.zeros((n_subjects, n_long_channels))
 
@@ -397,6 +398,7 @@ for ii, subject_num in enumerate(range(n_subjects)):
         
         num_channels_removed[ii] = len(list(raw_haemo_filt.info['bads']))/2
         age[ii] = 2024 - data.info['subject_info']['birthday'][0]
+        sex[ii] = data.info['subject_info']['sex']
 
 
     # ---------------------------------------------------------------

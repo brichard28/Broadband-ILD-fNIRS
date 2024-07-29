@@ -88,7 +88,7 @@ for isubject = 1:size(subject_ID,1) % For each subject...
         % Store number of color words in the target and masker
         all_num_target_color_words(isubject,string(all_maskers) == string(this_trial_masker)) = all_num_target_color_words(isubject,string(all_maskers) == string(this_trial_masker)) + sum(ismember(this_trial_target_words,color_words));
         all_num_masker_color_words(isubject,string(all_maskers) == string(this_trial_masker)) = all_num_masker_color_words(isubject,string(all_maskers) == string(this_trial_masker)) + sum(ismember(this_trial_masker_words,color_words));
-        all_num_target_object_words(isubject,string(all_maskers) == string(this_trial_masker)) = all_num_masker_color_words(isubject,string(all_maskers) == string(this_trial_masker)) + sum(~ismember(this_trial_target_words,color_words));
+        all_num_target_object_words(isubject,string(all_maskers) == string(this_trial_masker)) = all_num_target_object_words(isubject,string(all_maskers) == string(this_trial_masker)) + sum(~ismember(this_trial_target_words,color_words));
         
         % Find just color times in target and masker
         this_trial_target_color_times = this_trial_target_times(ismember(this_trial_target_words,color_words));
@@ -136,6 +136,7 @@ for isubject = 1:size(subject_ID,1) % For each subject...
         FA_windows(hit_windows == 1) = 0; % any time there is a hit window, there should not be an FA window
         %FA_windows(object_windows == 1) = 0;
         object_windows(hit_windows == 1) = 0;
+        object_windows(FA_windows == 1) = 0;
 
         % ...Calculate the hit rate, FA rate in this trial
         for iclick = 1:length(this_trial_click_times)

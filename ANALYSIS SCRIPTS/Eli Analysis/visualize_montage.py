@@ -93,6 +93,30 @@ view_map = {
 "right-lat": np.r_[11, 12, 14, 15],
 }
 
+ch_names_dict = {'S1_D1': '1',
+ 'S1_D2': '2',
+ 'S1_D8': '',
+ 'S2_D1': '3',
+ 'S2_D2': '4',
+ 'S2_D9': '',
+ 'S3_D3': '5',
+ 'S3_D10': '',
+ 'S4_D3': '6',
+ 'S4_D11': '',
+ 'S5_D4': '7',
+ 'S5_D5': '8',
+ 'S5_D12': '',
+ 'S6_D4': '9',
+ 'S6_D5': '10',
+ 'S6_D13': '',
+ 'S7_D6': '11',
+ 'S7_D7': '12',
+ 'S7_D14': '',
+ 'S8_D6': '13',
+ 'S8_D7': '14',
+ 'S8_D15': ''}
 
 fig_montage = mne_nirs.visualisation.plot_3d_montage(
-    data.info, view_map=view_map, subjects_dir=subjects_dir, src_det_names=None, ch_names=defaultdict(lambda: ''))
+    data.info, view_map=view_map, subjects_dir=subjects_dir, src_det_names=defaultdict(lambda: ''), ch_names=ch_names_dict)
+
+fig_montage.set_tight_layout(tight=True)

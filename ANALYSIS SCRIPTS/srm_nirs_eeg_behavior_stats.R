@@ -241,40 +241,92 @@ summary(posthoc_farate_ild10)
 ##    Object Rates    ##
 ####################################################
 # 
-# object_rates <- read.csv("C:\\Users\\benri\\Documents\\GitHub\\SRM-NIRS-EEG\\RESULTS DATA\\SRM-NIRS-EEG-1_object_Rates.csv")
-# 
-# # Remove unneeded columns, put in long format
-# object_rates$OriginalVariableNames <- array(1:30)
-# colnames(object_rates) <- c("S","ITD50_Noise","ITD500_Noise","ILD70n_Noise","ILD10_Noise","ITD50_Speech","ITD500_Speech","ILD70n_Speech","ILD10_Speech")
-# object_rates <- pivot_longer(object_rates, cols=c("ITD50_Noise","ITD500_Noise","ILD70n_Noise","ILD10_Noise","ITD50_Speech","ITD500_Speech","ILD70n_Speech","ILD10_Speech"),
-#                           names_to = c("Condition","Masker"), names_sep = "_", values_to = "ObjectRate")
-# 
-# # Organize Factors
-# to.factor <- c('S','Masker','Condition')
-# object_rates[, to.factor] <- lapply(object_rates[, to.factor], as.factor)
-# 
-# # Summary Statistics
-# object_rates %>% group_by(Condition, Masker) %>% get_summary_stats(ObjectRate, type = "mean_sd")
-# 
-# # Boxplot
-# bxp <- ggboxplot(object_rates, x = "Condition", y = "ObjectRate", color = "Masker", palette = "jco")
-# bxp
-# 
-# # Check for normality, remove outliers
-# object_rates %>% group_by(Condition, Masker) %>% shapiro_test(ObjectRate)
-# 
-# 
-# # Create a QQ plot
-# ggqqplot(object_rates, "ObjectRate", ggtheme = theme_bw()) + facet_grid(Condition ~ Masker, labeller = "label_both")
-# 
-# # Run ANOVA
-# res.aov <- anova_test(data = object_rates, dv = ObjectRate, wid = S, within = c(Condition, Masker))
-# get_anova_table(res.aov)
-# 
-# # Pairwise comparisons between maskers, given conditions
-# pwc_masker <- object_rates  %>% pairwise_t_test(ObjectRate ~ Masker, paired = TRUE, p.adjust.method = "bonferroni")
-# print(pwc_masker)
-# 
-# # Pairwise comparisons between conditions, given masker
-# pwc_condition <- object_rates  %>% pairwise_t_test(ObjectRate ~ Condition, paired = TRUE,  p.adjust.method = "bonferroni") # comparisons = list(c("ITD50","ITD500"),c("ILD70n","ILD10")),
-# print(pwc_condition)
+object_rates <- read.csv("C:\\Users\\benri\\Documents\\GitHub\\SRM-NIRS-EEG\\RESULTS DATA\\SRM-NIRS-EEG-1_object_Rates.csv")
+
+# Remove unneeded columns, put in long format
+object_rates$OriginalVariableNames <- array(1:30)
+colnames(object_rates) <- c("S","ITD50_Noise","ITD500_Noise","ILD70n_Noise","ILD10_Noise","ITD50_Speech","ITD500_Speech","ILD70n_Speech","ILD10_Speech")
+object_rates <- pivot_longer(object_rates, cols=c("ITD50_Noise","ITD500_Noise","ILD70n_Noise","ILD10_Noise","ITD50_Speech","ITD500_Speech","ILD70n_Speech","ILD10_Speech"),
+                          names_to = c("Spatialization","Masker"), names_sep = "_", values_to = "ObjectRate")
+
+# Organize Factors
+to.factor <- c('S','Masker','Spatialization')
+object_rates[, to.factor] <- lapply(object_rates[, to.factor], as.factor)
+
+# Summary Statistics
+object_rates %>% group_by(Spatialization, Masker) %>% get_summary_stats(ObjectRate, type = "mean_sd")
+
+
+# LMEM
+model_objectrate <- mixed(ObjectRate ~ Spatialization*Masker + (1|S),
+                      data= object_rates, 
+                      control = lmerControl(optimizer = "bobyqa"), method = 'LRT')
+
+model_objectrate
+
+# Post hocs
+
+# ITD50 as reference
+object_rates$Spatialization <- relevel(object_rates$Spatialization, "ITD50")
+posthoc_objectrate_itd50_speech <- lmer(ObjectRate ~ Spatialization + (1|S),
+                             data= subset(object_rates, Masker == "Speech"), 
+                             control = lmerControl(optimizer = "bobyqa"))
+
+summary(posthoc_objectrate_itd50_speech)
+
+# ITD500 as reference
+object_rates$Spatialization <- relevel(object_rates$Spatialization, "ITD500")
+posthoc_objectrate_itd500_speech <- lmer(ObjectRate ~ Spatialization + (1|S),
+                              data= subset(object_rates, Masker == "Speech"), 
+                              control = lmerControl(optimizer = "bobyqa"))
+
+summary(posthoc_objectrate_itd500_speech)
+
+# ILD70n as reference
+object_rates$Spatialization <- relevel(object_rates$Spatialization, "ILD70n")
+posthoc_objectrate_ild70n_speech <- lmer(ObjectRate ~ Spatialization + (1|S),
+                              data= subset(object_rates, Masker == "Speech"), 
+                              control = lmerControl(optimizer = "bobyqa"))
+
+summary(posthoc_objectrate_ild70n_speech)
+
+# ILD10 as reference
+object_rates$Spatialization <- relevel(object_rates$Spatialization, "ILD10")
+posthoc_objectrate_ild10_speech <- lmer(ObjectRate ~ Spatialization + (1|S),
+                             data= subset(object_rates, Masker == "Speech"), 
+                             control = lmerControl(optimizer = "bobyqa"))
+
+summary(posthoc_objectrate_ild10_speech)
+
+
+# ITD50 as reference
+object_rates$Spatialization <- relevel(object_rates$Spatialization, "ITD50")
+posthoc_objectrate_itd50_noise <- lmer(ObjectRate ~ Spatialization + (1|S),
+                                        data= subset(object_rates, Masker == "Noise"), 
+                                        control = lmerControl(optimizer = "bobyqa"))
+
+summary(posthoc_objectrate_itd50_noise)
+
+# ITD500 as reference
+object_rates$Spatialization <- relevel(object_rates$Spatialization, "ITD500")
+posthoc_objectrate_itd500_noise <- lmer(ObjectRate ~ Spatialization + (1|S),
+                                         data= subset(object_rates, Masker == "Noise"), 
+                                         control = lmerControl(optimizer = "bobyqa"))
+
+summary(posthoc_objectrate_itd500_noise)
+
+# ILD70n as reference
+object_rates$Spatialization <- relevel(object_rates$Spatialization, "ILD70n")
+posthoc_objectrate_ild70n_noise <- lmer(ObjectRate ~ Spatialization + (1|S),
+                                         data= subset(object_rates, Masker == "Noise"), 
+                                         control = lmerControl(optimizer = "bobyqa"))
+
+summary(posthoc_objectrate_ild70n_noise)
+
+# ILD10 as reference
+object_rates$Spatialization <- relevel(object_rates$Spatialization, "ILD10")
+posthoc_objectrate_ild10_noise <- lmer(ObjectRate ~ Spatialization + (1|S),
+                                        data= subset(object_rates, Masker == "Noise"), 
+                                        control = lmerControl(optimizer = "bobyqa"))
+
+summary(posthoc_objectrate_ild10_noise)

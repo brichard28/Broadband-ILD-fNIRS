@@ -101,9 +101,9 @@ for isubject = 1:size(subject_ID,1) % For each subject...
 %         
        %% Hit and False Alarm Windows
 
-       threshold_window_start = 0.1; %0.2
-       threshold_window_end =  1.1; % 1.0
-       tVec = 1:1/44100:16;
+       threshold_window_start = 0.2; %0.2
+       threshold_window_end =  1.0; % 1.0
+       tVec = 0:1/44100:16;
        hit_windows = zeros(1,length(tVec)); % create an empty array to define hit windows
        FA_windows = zeros(1,length(tVec)); % create an empty array to define false alarm windows
        object_windows = zeros(1,length(tVec));
@@ -119,24 +119,35 @@ for isubject = 1:size(subject_ID,1) % For each subject...
         % specify false alarm windows
         for i = 1:length(this_trial_masker_color_times) % for each of the current masker times...
             [~,start_index_FA_window] = min(abs(tVec - (this_trial_masker_color_times(i)+threshold_window_start))); % ...the false alarm window will start threshold_window_start seconds after the word onset
-            [~,end_index_FA_window] = min(abs(tVec - (this_trial_masker_color_times(i)+(threshold_window_end-0.3)))); % ...the false alarm window will end threshold_window_end seconds after the word onset
+            [~,end_index_FA_window] = min(abs(tVec - (this_trial_masker_color_times(i)+(threshold_window_end -0.3)))); % ...the false alarm window will end threshold_window_end seconds after the word onset
 
-            FA_windows(start_index_FA_window:end_index_FA_window) = 1;
+            if any(hit_windows(start_index_FA_window:end_index_FA_window) == 1)
+                continue
+            else
+                FA_windows(start_index_FA_window:end_index_FA_window) = 1;
+            end
         end
 
         % specify object windows
 
-       for i = 1:length(this_trial_target_object_times)
-           [~,start_index_object_window] = min(abs(tVec - (this_trial_target_object_times(i)+threshold_window_start))); % ...the object window will start threshold_window_start seconds after the word onset
-           [~,end_index_object_window] = min(abs(tVec - (this_trial_target_object_times(i)+threshold_window_end))); % ...the object window will end threshold_window_end seconds after the word onset
+        for i = 1:length(this_trial_target_object_times)
+            [~,start_index_object_window] = min(abs(tVec - (this_trial_target_object_times(i)+threshold_window_start))); % ...the object window will start threshold_window_start seconds after the word onset
+            [~,end_index_object_window] = min(abs(tVec - (this_trial_target_object_times(i)+threshold_window_end))); % ...the object window will end threshold_window_end seconds after the word onset
 
-           object_windows(start_index_object_window:end_index_object_window) = 1;
+            if any(hit_windows(start_index_object_window:end_index_object_window) == 1)
+                continue
+            elseif any(FA_windows(start_index_object_window:end_index_object_window) == 1)
+                continue
+            else
+                object_windows(start_index_object_window:end_index_object_window) = 1;
+            end
         end
 
-        FA_windows(hit_windows == 1) = 0; % any time there is a hit window, there should not be an FA window
-        %FA_windows(object_windows == 1) = 0;
-        object_windows(hit_windows == 1) = 0;
-        object_windows(FA_windows == 1) = 0;
+        %         FA_windows(hit_windows == 1) = 0; % any time there is a hit window, there should not be an FA window
+        %         object_windows(hit_windows == 1) = 0; % any time there is a hit window, there should not be an object window
+        %         object_windows(FA_windows == 1) = 0; % any time there is an FA window, there should not be an object window
+
+        test_vector(itrial,:,:) = FA_windows + hit_windows + object_windows;
 
         % ...Calculate the hit rate, FA rate in this trial
         for iclick = 1:length(this_trial_click_times)

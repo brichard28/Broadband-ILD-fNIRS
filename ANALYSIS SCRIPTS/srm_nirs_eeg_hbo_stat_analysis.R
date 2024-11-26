@@ -24,7 +24,7 @@ noise_masker_data$Masker<-"noise"
 all_data<-rbind(speech_masker_data,noise_masker_data)
 
 # Add ROI information
-all_data$Roi<-NA
+all_data$Roi<- "NA"
 pfc_channels <- c(0,1,2,3,4,5)
 stg_channels <- c(6,7,8,9,10,11,12,13)
 all_data$Roi[which(all_data$Channel %in% pfc_channels)] <- "pfc"
@@ -58,7 +58,7 @@ r1<-with(all_data_cleaned, tapply(MeanHbO, Roi, mean))
 ##   conf.interval: the percent range of the confidence interval (default is 95%)
 summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
                       conf.interval=.95, .drop=TRUE) {
-  library(plyr)
+  #library(plyr)
   
   # New version of length which can handle NA's: if na.rm==T, don't count them
   length2 <- function (x, na.rm=FALSE) {
@@ -267,10 +267,10 @@ plotspeech <- ggplot(pfc_se_data_speech, aes(x=factor(Spatialization, level=c('I
   theme_bw() +
   theme(plot.title = element_text(size = 18), axis.title=element_text(size=18), axis.text.x= element_text(size=12), axis.text.y= element_text(size=12)) +
   scale_x_discrete(labels=c("ITD50" = "Small\nITD", "ITD500" = "Large\nITD","ILD70n" = "Natural\nILD","ILD10" = "Broadband\nILD")) +
-  theme(legend.position="none") +
-  geom_signif(comparisons = list(c("ITD50","ITD500")), y_position = 0.09, tip_length = 0, color="black", annotation = c("***"), textsize = 5) +
-  geom_signif(comparisons = list(c("ITD50","ILD70n")), y_position = 0.10, tip_length = 0, color="black", annotation = c("***"), textsize = 5) +
-  geom_signif(comparisons = list(c("ITD50","ILD10")), y_position = 0.11, tip_length = 0, color="black", annotation = c("***"), textsize = 5)
+  theme(legend.position="none")
+  #geom_signif(comparisons = list(c("ITD50","ITD500")), y_position = 0.09, tip_length = 0, color="black", annotation = c("***"), textsize = 5) +
+  #geom_signif(comparisons = list(c("ITD50","ILD70n")), y_position = 0.10, tip_length = 0, color="black", annotation = c("***"), textsize = 5) +
+  #geom_signif(comparisons = list(c("ITD50","ILD10")), y_position = 0.11, tip_length = 0, color="black", annotation = c("***"), textsize = 5)
 
 
 pfc_se_data_noise <- summarySE(all_data_cleaned_pfc_noise, measurevar="MeanHbO", groupvars=c("S","Masker","Spatialization"), na.rm = TRUE)
@@ -306,10 +306,10 @@ plotspeech <- ggplot(stg_se_data_speech, aes(x=factor(Spatialization, level=c('I
   theme_bw() +
   theme(plot.title = element_text(size = 18), axis.title=element_text(size=18), axis.text.x= element_text(size=12), axis.text.y= element_text(size=12)) +
   scale_x_discrete(labels=c("ITD50" = "Small\nITD", "ITD500" = "Large\nITD","ILD70n" = "Natural\nILD","ILD10" = "Broadband\nILD")) +
-  theme(legend.position="none") +
-  geom_signif(comparisons = list(c("ITD50","ILD10")), y_position = 0.090, tip_length = 0, color="black", annotation = c("**"), textsize = 5) +
-  geom_signif(comparisons = list(c("ITD500","ILD10")), y_position = 0.080, tip_length = 0, color="black", annotation =c("*"), textsize = 5) +
-  geom_signif(comparisons = list(c("ILD70n","ILD10")), y_position = 0.070, tip_length = 0, color="black", annotation =c("**"), textsize = 5) 
+  theme(legend.position="none")
+  #geom_signif(comparisons = list(c("ITD50","ILD10")), y_position = 0.090, tip_length = 0, color="black", annotation = c("**"), textsize = 5) +
+  #geom_signif(comparisons = list(c("ITD500","ILD10")), y_position = 0.080, tip_length = 0, color="black", annotation =c("*"), textsize = 5) +
+  #geom_signif(comparisons = list(c("ILD70n","ILD10")), y_position = 0.070, tip_length = 0, color="black", annotation =c("**"), textsize = 5) 
 
 
 stg_se_data_noise <- summarySE(all_data_cleaned_stg_noise, measurevar="MeanHbO", groupvars=c("S","Spatialization"), na.rm=TRUE)

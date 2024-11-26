@@ -44,7 +44,7 @@ from mpl_toolkits.mplot3d import Axes3D
 wdir = os.path.dirname(__file__)
 
 # Define Subject Files
-data_root = 'C:/Users/benri/Downloads/' #'C:/Users/elibu/Documents/NIRx/Data/Ben_SvN/'
+data_root = 'C:/Users/benri/Downloads/SRM-NIRS-EEG-RESULTS/' #'C:/Users/elibu/Documents/NIRx/Data/Ben_SvN/'
 
 all_fnirs_data_folders = [data_root + '2023-09-21/2023-09-21_001',
                           data_root + '2023-09-25/2023-09-25_001',
@@ -87,9 +87,9 @@ subject_ID = ['NDARVX753BR6','NDARZD647HJ1','NDARBL382XK5','NDARGF569BF3','NDARB
                 'NDARUXL573SS',
                 'NDARMOL966PB','NDARGHM426BL','NDARSEW256ZA']  
 
-masker_type = 'noise' # type of masker to analyze on this run
-glm_dur = 7
-preprocessing_type = "Ben"
+masker_type = 'speech' # type of masker to analyze on this run
+glm_dur = 5
+preprocessing_type = "Eli"
 
 n_subjects = len(all_fnirs_data_folders)
 n_long_channels = 14
@@ -163,7 +163,8 @@ for ii, subject_num in enumerate(range(n_subjects)):
     plot_dir = "C:/Users/benri/Documents/GitHub/SRM-NIRS-EEG/ANALYSIS SCRIPTS/Eli Analysis/Plots/"
     if not os.path.exists(plot_dir): os.makedirs(plot_dir)
 
-    plot_steps = False
+    
+    
 
     # ---------------------------------------------------------------
     # -----------------      Load the Data        ---------
@@ -339,12 +340,12 @@ for ii, subject_num in enumerate(range(n_subjects)):
         raw_haemo_temp, null = preprocess_NIRX(data, data_snirf, event_dict,
                                                save=True,
                                                savename=save_dir + f'{subject}_{task_type}_preproc_nirs.fif',
-                                               plot_steps=False,
+                                               plot_steps=True,
                                                crop=False, crop_low=0, crop_high=0,
                                                events_modification=False, reject=True,
                                                short_regression=True, events_from_snirf=False,
                                                drop_short=False, negative_enhancement=False,
-                                               snr_thres=3, filter_type='iir')
+                                               snr_thres=3, sci_thres=0.8, filter_type='iir', filter_limits=[0.01, 0.3])
     
         raw_haemo_short = get_short_channels(raw_haemo_temp)
         raw_haemo_filt = get_long_channels(raw_haemo_temp)
@@ -546,28 +547,23 @@ for ii, subject_num in enumerate(range(n_subjects)):
     # -----------------     GLM                             ---------
     # ---------------------------------------------------------------
 
-    # try to remove some of the conditions in the raw_haemo_filt annotations
-
-    # raw_haemo_temp_crop = raw_haemo.crop(tmin=raw_haemo.annotations.onset[45] - 15)
-
-    # raw_haemo_short_crop = get_short_channels(raw_haemo_temp_crop)
-    # raw_haemo_filt_crop = get_long_channels(raw_haemo_temp_crop)
-
+    raw_haemo_filt_for_glm = raw_haemo_filt.copy()
+    raw_haemo_short_for_glm = raw_haemo_short.copy()
     # # try cropping
-    # raw_haemo_filt_crop.resample(5)
-    # raw_haemo_short_crop.resample(5)
+    raw_haemo_filt_for_glm.resample(5)
+    raw_haemo_short_for_glm.resample(5)
 
-    # raw_haemo_filt_crop.annotations.set_durations(glm_dur)
+    raw_haemo_filt_for_glm.annotations.set_durations(glm_dur)
 
-    # design_matrix_hbo = make_first_level_design_matrix(raw_haemo_filt_crop.pick(picks='hbo'),
-    #                                                    drift_model=None,
-    #                                                    high_pass=0.01,  # Must be specified per experiment
-    #                                                    hrf_model='spm',
-    #                                                    stim_dur=raw_haemo_filt_crop.annotations.duration)
+    design_matrix_hbo = make_first_level_design_matrix(raw_haemo_filt_for_glm.pick(picks='hbo'),
+                                                        drift_model=None,
+                                                        high_pass=0.01,  # Must be specified per experiment
+                                                        hrf_model='spm',
+                                                        stim_dur=raw_haemo_filt_for_glm.annotations.duration)
     # # add_regs=filtered_signals)
 
-    # design_matrix_hbo["Linear"] = np.arange(0, np.shape(design_matrix_hbo)[0])
-    # design_matrix_hbo["ShortHbO"] = np.mean(raw_haemo_short_crop.copy().pick(picks="hbo").get_data(), axis=0)
+    design_matrix_hbo["Linear"] = np.arange(0, np.shape(design_matrix_hbo)[0])
+    design_matrix_hbo["ShortHbO"] = np.mean(raw_haemo_short_for_glm.copy().pick(picks="hbo").get_data(), axis=0)
 
     # design_matrix["ShortHbR"] = np.mean(short_chs.copy().pick(
     #     picks="hbr").get_data(), axis=0)
@@ -592,20 +588,20 @@ for ii, subject_num in enumerate(range(n_subjects)):
     # print(f'running GLM for subject {ii + 1}')
 
     # # pre-whiten
-    # raw_haemo_filt_crop._data = np.subtract(raw_haemo_filt_crop._data,
-    #                                         np.mean(raw_haemo_filt_crop._data, axis=1)[:, np.newaxis])
-    # glm_est = run_glm(raw_haemo_filt_crop, design_matrix_hbo, noise_model='ar1')
+    raw_haemo_filt_for_glm._data = np.subtract(raw_haemo_filt_for_glm._data,
+                                            np.mean(raw_haemo_filt_for_glm._data, axis=1)[:, np.newaxis])
+    glm_est = run_glm(raw_haemo_filt_for_glm, design_matrix_hbo, noise_model='ar1')
 
     # record the glm est for each condition, for each subject
     # will adjust the beta values by the BH correction method
 
-    # glm_est_df = glm_est.pick(picks='data', exclude='bads').to_dataframe()
+    glm_est_df = glm_est.pick(picks='data', exclude='bads').to_dataframe()
 
     # # put into a larger array with all subjects data!
-    # subject_data_itd50_GLM[ii, chan_indices_good] = glm_est_df.loc[glm_est_df['Condition'] == 'ild_0__itd_50']['theta']
-    # subject_data_itd500_GLM[ii, chan_indices_good] = glm_est_df.loc[glm_est_df['Condition'] == 'ild_0__itd_500']['theta']
-    # subject_data_ild70n_GLM[ii, chan_indices_good] = glm_est_df.loc[glm_est_df['Condition'] == 'ild_70n__itd_0']['theta']
-    # subject_data_ild10_GLM[ii, chan_indices_good] = glm_est_df.loc[glm_est_df['Condition'] == 'ild_10__itd_0']['theta']
+    subject_data_itd50_GLM[ii, chan_indices_good] = glm_est_df.loc[glm_est_df['Condition'] == 'ild_0__itd_50']['theta']*10e6
+    subject_data_itd500_GLM[ii, chan_indices_good] = glm_est_df.loc[glm_est_df['Condition'] == 'ild_0__itd_500']['theta']*10e6
+    subject_data_ild70n_GLM[ii, chan_indices_good] = glm_est_df.loc[glm_est_df['Condition'] == 'ild_70n__itd_0']['theta']*10e6
+    subject_data_ild10_GLM[ii, chan_indices_good] = glm_est_df.loc[glm_est_df['Condition'] == 'ild_10__itd_0']['theta']*10e6
 
 
 
@@ -1369,14 +1365,14 @@ plt.savefig(f'C:\\Users\\benri\\Documents\\GitHub\\SRM-NIRS-EEG\\ANALYSIS SCRIPT
 
 
 # # Uncorrected GLM
-# names = ['S','Channel']
-# index = pd.MultiIndex.from_product([range(s) for s in subject_data_itd50_GLM.shape], names = names)
-# itd50_df_GLM = pd.DataFrame({'subject_data_itd50_GLM':subject_data_itd50_GLM.flatten()},index=index)['subject_data_itd50_GLM']
-# itd500_df_GLM = pd.DataFrame({'subject_data_itd500_GLM':subject_data_itd500_GLM.flatten()},index=index)['subject_data_itd500_GLM']
-# ild70n_df_GLM = pd.DataFrame({'subject_data_ild70n_GLM':subject_data_ild70n_GLM.flatten()},index=index)['subject_data_ild70n_GLM']
-# ild10_df_GLM = pd.DataFrame({'subject_data_ild10_GLM':subject_data_ild10_GLM.flatten()},index=index)['subject_data_ild10_GLM']
-# z = pd.concat([itd50_df_GLM,itd500_df_GLM,ild70n_df_GLM,ild10_df_GLM], ignore_index=True,axis=1)
-# z.to_csv(f'all_subjects_uncorr_GLM_{masker_type}_masker.csv',index=True)
+names = ['S','Channel']
+index = pd.MultiIndex.from_product([range(s) for s in subject_data_itd50_GLM.shape], names = names)
+itd50_df_GLM = pd.DataFrame({'subject_data_itd50_GLM':subject_data_itd50_GLM.flatten()},index=index)['subject_data_itd50_GLM']
+itd500_df_GLM = pd.DataFrame({'subject_data_itd500_GLM':subject_data_itd500_GLM.flatten()},index=index)['subject_data_itd500_GLM']
+ild70n_df_GLM = pd.DataFrame({'subject_data_ild70n_GLM':subject_data_ild70n_GLM.flatten()},index=index)['subject_data_ild70n_GLM']
+ild10_df_GLM = pd.DataFrame({'subject_data_ild10_GLM':subject_data_ild10_GLM.flatten()},index=index)['subject_data_ild10_GLM']
+z = pd.concat([itd50_df_GLM,itd500_df_GLM,ild70n_df_GLM,ild10_df_GLM], ignore_index=True,axis=1)
+z.to_csv(f'all_subjects_uncorr_GLM_{masker_type}_masker.csv',index=True)
 
 
 # # Corrected GLM

@@ -87,7 +87,7 @@ subject_ID = ['NDARVX753BR6','NDARZD647HJ1','NDARBL382XK5','NDARGF569BF3','NDARB
                 'NDARUXL573SS',
                 'NDARMOL966PB','NDARGHM426BL','NDARSEW256ZA']  
 
-masker_type = 'speech' # type of masker to analyze on this run
+masker_type = 'noise' # type of masker to analyze on this run
 glm_dur = 5
 preprocessing_type = "Eli"
 
@@ -633,6 +633,7 @@ mean_during_stim_ild10_hbr = np.nanmean(subject_data_ild10_hbr_baselined[:,:,ind
 ## Save breath uncorrected and corrected GLM data
 
 # Uncorrected block averages
+# HbO
 names = ['S','Channel','Time_Index']
 index = pd.MultiIndex.from_product([range(s) for s in subject_data_hold.shape], names = names)
 hold_df = pd.DataFrame({'subject_data_hold':subject_data_hold.flatten()},index=index)['subject_data_hold']
@@ -642,6 +643,17 @@ ild70n_df = pd.DataFrame({'subject_data_ild70n':subject_data_ild70n_baselined.fl
 ild10_df = pd.DataFrame({'subject_data_ild10':subject_data_ild10_baselined.flatten()},index=index)['subject_data_ild10']
 z = pd.concat([itd50_df,itd500_df,ild70n_df,ild10_df], ignore_index=True,axis=1)
 z.to_csv(f'all_subjects_uncorr_block_average_{masker_type}_masker.csv',index=True)
+
+# HbR
+names = ['S','Channel','Time_Index']
+index = pd.MultiIndex.from_product([range(s) for s in subject_data_itd50_hbr_baselined.shape], names = names)
+itd50_df = pd.DataFrame({'subject_data_itd50':subject_data_itd50_hbr_baselined.flatten()},index=index)['subject_data_itd50']
+itd500_df = pd.DataFrame({'subject_data_itd500':subject_data_itd500_hbr_baselined.flatten()},index=index)['subject_data_itd500']
+ild70n_df = pd.DataFrame({'subject_data_ild70n':subject_data_ild70n_hbr_baselined.flatten()},index=index)['subject_data_ild70n']
+ild10_df = pd.DataFrame({'subject_data_ild10':subject_data_ild10_hbr_baselined.flatten()},index=index)['subject_data_ild10']
+z = pd.concat([itd50_df,itd500_df,ild70n_df,ild10_df], ignore_index=True,axis=1)
+z.to_csv(f'all_subjects_uncorr_block_average_hbr_{masker_type}_masker.csv',index=True)
+
 
 # Corrected block averages
 names = ['S','Channel','Time_Index']

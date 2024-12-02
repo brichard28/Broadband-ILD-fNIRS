@@ -1,4 +1,3 @@
-
 library(tidyverse)
 library(ggpubr)
 library(ggplot2)
@@ -6,6 +5,7 @@ library(rstatix)
 library(afex)
 library(dplyr)
 library(car)
+require(gridExtra)
 
 # Load in Data
 speech_masker_data <- read.csv("C:\\Users\\benri\\Documents\\GitHub\\SRM-NIRS-EEG\\ANALYSIS SCRIPTS\\Eli Analysis\\all_subjects_mean_during_stim_speech_masker_hbr.csv")
@@ -100,101 +100,121 @@ summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
 }
 
 
-
-# Scatterplot Speech vs. Noise
-#ggplot(all_data_cleaned) +
-#  geom_point(aes(x = Masker, y= MeanHbR)) + ggtitle("Speech vs. Noise Masker")
-
-# Scatterplot PFC vs. STG
-#ggplot(all_data_cleaned) +
-#  geom_point(aes(x = Roi, y= MeanHbR)) + ggtitle("PFC vs. STG")
-
-# Scatterplot across Spatialization in speech masker, PFC
-#ggplot(subset(all_data_cleaned, Masker == "speech" & Roi == "pfc")) +
-#  geom_point(aes(x = Spatialization, y= MeanHbR)) + ggtitle("Speech Masker, PFC")
-
-# Scatterplot across Spatialization in speech masker, STG
-#ggplot(subset(all_data_cleaned, Masker == "speech" & Roi == "stg")) +
-#  geom_point(aes(x = Spatialization, y= MeanHbR)) + ggtitle("Speech Masker, STG")
-
-# Scatterplot across Spatialization in noise masker, PFC
-#ggplot(subset(all_data_cleaned, Masker == "noise" & Roi == "pfc")) +
-#  geom_point(aes(x = Spatialization, y= MeanHbR)) + ggtitle("Noise Masker, PFC")
-
-# Scatterplot across Spatialization in noise masker, STG
-#ggplot(subset(all_data_cleaned, Masker == "noise" & Roi == "stg")) +
-#  geom_point(aes(x = Spatialization, y= MeanHbR)) + ggtitle("Noise Masker, STG")
-
 # Check for normality, remove outliers
 all_data_cleaned %>% group_by(Spatialization, Masker,Roi) %>% shapiro_test(MeanHbR)
-
-
-## ANOVA with factors of Masker Type, ROI, and spatial Spatialization
-
-# Run ANOVA
-#res.aov <- anova_test(data = all_data_cleaned, dv = MeanHbR, wid = S, within = c(Spatialization, Masker, Roi))
-#get_anova_table(res.aov)
-
-#perform three-way ANOVA
-model <- aov(MeanHbR ~ Spatialization * Masker * Roi, data=all_data_cleaned)
-
-#view summary of three-way ANOVA
-summary(model)
-
-
-# Pairwise comparisons between spatializations, given maskers
-pwc_speech_masker <- subset(all_data_cleaned, Masker == "speech")  %>% pairwise_t_test(MeanHbR ~ Spatialization, paired = TRUE, p.adjust.method = "bonferroni")
-print(pwc_speech_masker)
-
-pwc_noise_masker <- subset(all_data_cleaned, Masker == "noise")  %>% pairwise_t_test(MeanHbR ~ Spatialization, paired = TRUE, p.adjust.method = "bonferroni")
-print(pwc_noise_masker)
-
-
-
-
-speech_se_data <- summarySE(subset(all_data_cleaned, Masker == "speech"), measurevar="MeanHbR", groupvars=c("Roi","Spatialization"))
-ggplot(speech_se_data, aes(x=factor(Spatialization, level=c('ITD50', 'ITD500', 'ILD70n', 'ILD10')), y=MeanHbR, color=Roi)) + 
-  geom_errorbar(aes(ymin=MeanHbR-se, ymax=MeanHbR+se), width=.1) +
-  geom_line() +
-  geom_point() + 
-  ggtitle("Speech Masker") +
-  ylim(-0.025,0.01)
-
-
-noise_se_data <- summarySE(subset(all_data_cleaned, Masker == "noise"), measurevar="MeanHbR", groupvars=c("Roi","Spatialization"))
-ggplot(noise_se_data, aes(x=factor(Spatialization, level=c('ITD50', 'ITD500', 'ILD70n', 'ILD10')), y=MeanHbR, color=Roi)) + 
-  geom_errorbar(aes(ymin=MeanHbR-se, ymax=MeanHbR+se), width=.1) +
-  geom_line() +
-  geom_point() + 
-  ggtitle("Noise Masker") +
-  ylim(-0.025,0.01)
+all_data_cleaned_pfc_speech <- subset(all_data_cleaned, Roi == "pfc" & Masker == "speech")
+all_data_cleaned_pfc_noise <- subset(all_data_cleaned, Roi == "pfc" & Masker == "noise")
+all_data_cleaned_stg_speech <- subset(all_data_cleaned, Roi == "stg" & Masker == "speech")
+all_data_cleaned_stg_noise <- subset(all_data_cleaned, Roi == "stg" & Masker == "noise")
 
 
 
 #########################
-# Mixed Effects model #
+# Mixed Effects models #
 #########################
 
-# R relevel factor will help reorder Spatializations if needed for contrast coding
+# PFC Speech
+model_pfc_speech <- mixed(MeanHbR ~ Spatialization + (1|S) + (1|Channel),
+                       data= all_data_cleaned_pfc_speech, 
+                       control = lmerControl(optimizer = "bobyqa"), method = 'LRT')
+model_pfc_speech
 
-# Simplest Model
-z <- mixed(MeanHbR ~ Spatialization*Roi*Masker + (1|S),
-           data= all_data_cleaned, 
-           control = lmerControl(optimizer = "bobyqa"), 
-           method = 'LRT')
 
-z
+# PFC Noise
+model_pfc_noise <- mixed(MeanHbR ~ Spatialization + (1|S) + (1|Channel),
+                          data= all_data_cleaned_pfc_noise, 
+                          control = lmerControl(optimizer = "bobyqa"), method = 'LRT')
+model_pfc_noise
 
-# Full Model
-#z_full <- mixed(MeanHbR ~ Spatialization*Roi*Masker + (Spatialization*Roi*Masker|S),
-#           data= all_data, 
-#           control = lmerControl(optimizer = "bobyqa"), 
-#           method = 'LRT')
-#anova(z_full, z)
+# STG Speech
+model_stg_speech <- mixed(MeanHbR ~ Spatialization + (1|S) + (1|Channel),
+                          data= all_data_cleaned_stg_speech, 
+                          control = lmerControl(optimizer = "bobyqa"), method = 'LRT')
+model_stg_speech
 
-# What if we use Channel instead of ROI?
-#z_channel <- mixed(MeanHbR ~ Spatialization*Channel*Masker + (1|S),
-#           data= all_data, 
-#           control = lmerControl(optimizer = "bobyqa"), 
-#           method = 'LRT')
+# STG Noise
+model_stg_noise <- mixed(MeanHbR ~ Spatialization + (1|S) + (1|Channel),
+                          data= all_data_cleaned_stg_noise, 
+                          control = lmerControl(optimizer = "bobyqa"), method = 'LRT')
+model_stg_noise
+
+
+#########################
+#        Plots          #
+#########################
+
+
+##### PFC Plot ##########
+pfc_se_data_speech <- summarySE(all_data_cleaned_pfc_speech, measurevar="MeanHbR", groupvars=c("S","Masker","Spatialization"), na.rm = TRUE)
+pfc_se_data_speech <- summarySE(pfc_se_data_speech, measurevar="MeanHbR", groupvars=c("Masker","Spatialization"), na.rm = TRUE)
+plotspeech <- ggplot(pfc_se_data_speech, aes(x=factor(Spatialization, level=c('ITD50', 'ITD500', 'ILD70n', 'ILD10')), y=MeanHbR, color = Spatialization)) + 
+  scale_color_manual(values = c("ITD50" = "red","ITD500" =  "blue","ILD70n" = "magenta","ILD10" = "green")) +
+  geom_errorbar(aes(ymin=MeanHbR-se, ymax=MeanHbR+se, color=Spatialization), width=.1, position=position_dodge(width=0.5)) +
+  geom_point(aes(color = Spatialization),size = 4, position=position_dodge(width=0.5)) + 
+  ggtitle("Speech Masker PFC") +
+  labs(x="",y="Mean \u0394HbR (\u03BCM)") +
+  ylim(-0.03,0.03) +
+  theme_bw() +
+  theme(plot.title = element_text(size = 18), axis.title=element_text(size=18), axis.text.x= element_text(size=12), axis.text.y= element_text(size=12)) +
+  scale_x_discrete(labels=c("ITD50" = "Small\nITD", "ITD500" = "Large\nITD","ILD70n" = "Natural\nILD","ILD10" = "Broadband\nILD")) +
+  theme(legend.position="none")
+#geom_signif(comparisons = list(c("ITD50","ITD500")), y_position = 0.09, tip_length = 0, color="black", annotation = c("***"), textsize = 5) +
+#geom_signif(comparisons = list(c("ITD50","ILD70n")), y_position = 0.10, tip_length = 0, color="black", annotation = c("***"), textsize = 5) +
+#geom_signif(comparisons = list(c("ITD50","ILD10")), y_position = 0.11, tip_length = 0, color="black", annotation = c("***"), textsize = 5)
+
+
+pfc_se_data_noise <- summarySE(all_data_cleaned_pfc_noise, measurevar="MeanHbR", groupvars=c("S","Masker","Spatialization"), na.rm = TRUE)
+pfc_se_data_noise <- summarySE(pfc_se_data_noise, measurevar="MeanHbR", groupvars=c("Masker","Spatialization"), na.rm = TRUE)
+plotnoise <- ggplot(pfc_se_data_noise, aes(x=factor(Spatialization, level=c('ITD50', 'ITD500', 'ILD70n', 'ILD10')), y=MeanHbR, color = Spatialization)) + 
+  scale_color_manual(values = c("ITD50" = "red","ITD500" =  "blue","ILD70n" = "magenta","ILD10" = "green")) +
+  geom_errorbar(aes(ymin=MeanHbR-se, ymax=MeanHbR+se, color=Spatialization), width=.1, position=position_dodge(width=0.5)) +
+  geom_point(aes(color = Spatialization),size = 4, position=position_dodge(width=0.5)) + 
+  ggtitle("Noise Masker PFC") +
+  labs(x="",y="") +
+  ylim(-0.03,0.03) +
+  theme_bw() +
+  theme(plot.title = element_text(size = 18), axis.title=element_text(size=18), axis.text.x= element_text(size=12), axis.text.y= element_blank()) +
+  scale_x_discrete(labels=c("ITD50" = "Small\nITD", "ITD500" = "Large\nITD","ILD70n" = "Natural\nILD","ILD10" = "Broadband\nILD")) +
+  theme(legend.position="none")
+
+grid.arrange(plotspeech,plotnoise, ncol=2, widths = c(1,0.9))
+
+
+
+
+######### STG Plot ###############
+
+stg_se_data_speech <- summarySE(all_data_cleaned_stg_speech, measurevar="MeanHbR", groupvars=c("S","Spatialization"), na.rm=TRUE)
+stg_se_data_speech <- summarySE(stg_se_data_speech, measurevar="MeanHbR", groupvars=c("Spatialization"),  na.rm=TRUE)
+plotspeech <- ggplot(stg_se_data_speech, aes(x=factor(Spatialization, level=c('ITD50', 'ITD500', 'ILD70n', 'ILD10')), y=MeanHbR, color = Spatialization)) + 
+  scale_color_manual(values = c("ITD50" = "red","ITD500" =  "blue","ILD70n" = "magenta","ILD10" = "green")) +
+  geom_errorbar(aes(ymin=MeanHbR-se, ymax=MeanHbR+se, color=Spatialization), width=.1, position=position_dodge(width=0.5)) +
+  geom_point(aes(color = Spatialization),size = 4, position=position_dodge(width=0.5)) +  
+  ggtitle("Speech Masker STG") +
+  labs(x="",y="Mean \u0394HbR (\u03BCM)", parse=TRUE) +
+  ylim(-0.03,0.03) +
+  theme_bw() +
+  theme(plot.title = element_text(size = 18), axis.title=element_text(size=18), axis.text.x= element_text(size=12), axis.text.y= element_text(size=12)) +
+  scale_x_discrete(labels=c("ITD50" = "Small\nITD", "ITD500" = "Large\nITD","ILD70n" = "Natural\nILD","ILD10" = "Broadband\nILD")) +
+  theme(legend.position="none")
+#geom_signif(comparisons = list(c("ITD50","ILD10")), y_position = 0.090, tip_length = 0, color="black", annotation = c("**"), textsize = 5) +
+#geom_signif(comparisons = list(c("ITD500","ILD10")), y_position = 0.080, tip_length = 0, color="black", annotation =c("*"), textsize = 5) +
+#geom_signif(comparisons = list(c("ILD70n","ILD10")), y_position = 0.070, tip_length = 0, color="black", annotation =c("**"), textsize = 5) 
+
+
+stg_se_data_noise <- summarySE(all_data_cleaned_stg_noise, measurevar="MeanHbR", groupvars=c("S","Spatialization"), na.rm=TRUE)
+stg_se_data_noise <- summarySE(stg_se_data_noise, measurevar="MeanHbR", groupvars=c("Spatialization"),  na.rm=TRUE)
+plotnoise <- ggplot(stg_se_data_noise, aes(x=factor(Spatialization, level=c('ITD50', 'ITD500', 'ILD70n', 'ILD10')), y=MeanHbR, color = Spatialization)) + 
+  scale_color_manual(values = c("ITD50" = "red","ITD500" =  "blue","ILD70n" = "magenta","ILD10" = "green")) +
+  geom_errorbar(aes(ymin=MeanHbR-se, ymax=MeanHbR+se, color=Spatialization), width=.1, position=position_dodge(width=0.5)) +
+  geom_point(aes(color = Spatialization),size = 4, position=position_dodge(width=0.5)) +  
+  ggtitle("Noise Masker STG") +
+  labs(x="", y="") +
+  ylim(-0.03,0.03) +
+  theme_bw() +
+  theme(plot.title = element_text(size = 18), axis.title=element_text(size=18), axis.text.x= element_text(size=12), axis.text.y= element_blank()) +
+  scale_x_discrete(labels=c("ITD50" = "Small\nITD", "ITD500" = "Large\nITD","ILD70n" = "Natural\nILD","ILD10" = "Broadband\nILD")) +
+  theme(legend.position="none") 
+
+grid.arrange(plotspeech,plotnoise, ncol=2, widths = c(1,0.9))
 

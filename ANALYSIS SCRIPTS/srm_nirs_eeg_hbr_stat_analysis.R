@@ -8,26 +8,26 @@ library(car)
 require(gridExtra)
 
 # Load in Data
-speech_masker_data <- read.csv("C:\\Users\\benri\\Documents\\GitHub\\SRM-NIRS-EEG\\ANALYSIS SCRIPTS\\Eli Analysis\\all_subjects_mean_during_stim_speech_masker_hbr.csv")
-noise_masker_data <- read.csv("C:\\Users\\benri\\Documents\\GitHub\\SRM-NIRS-EEG\\ANALYSIS SCRIPTS\\Eli Analysis\\all_subjects_mean_during_stim_noise_masker_hbr.csv")
+speech_masker_data_hbr <- read.csv("C:\\Users\\benri\\Documents\\GitHub\\SRM-NIRS-EEG\\ANALYSIS SCRIPTS\\Eli Analysis\\all_subjects_mean_during_stim_speech_masker_hbr.csv")
+noise_masker_data_hbr <- read.csv("C:\\Users\\benri\\Documents\\GitHub\\SRM-NIRS-EEG\\ANALYSIS SCRIPTS\\Eli Analysis\\all_subjects_mean_during_stim_noise_masker_hbr.csv")
 
-colnames(speech_masker_data) <- c("S","Channel","ITD50","ITD500","ILD70n","ILD10")
-colnames(noise_masker_data) <- c("S","Channel","ITD50","ITD500","ILD70n","ILD10")
-speech_masker_data <- pivot_longer(speech_masker_data, cols=c("ITD50","ITD500","ILD70n","ILD10"), names_to = "Spatialization", values_to = "MeanHbR")
-noise_masker_data <- pivot_longer(noise_masker_data, cols=c("ITD50","ITD500","ILD70n","ILD10"), names_to = "Spatialization", values_to = "MeanHbR")
+colnames(speech_masker_data_hbr) <- c("S","Channel","ITD50","ITD500","ILD70n","ILD10")
+colnames(noise_masker_data_hbr) <- c("S","Channel","ITD50","ITD500","ILD70n","ILD10")
+speech_masker_data_hbr <- pivot_longer(speech_masker_data_hbr, cols=c("ITD50","ITD500","ILD70n","ILD10"), names_to = "Spatialization", values_to = "MeanHbR")
+noise_masker_data_hbr <- pivot_longer(noise_masker_data_hbr, cols=c("ITD50","ITD500","ILD70n","ILD10"), names_to = "Spatialization", values_to = "MeanHbR")
 
 
 # Combine speech and noise
-speech_masker_data$Masker<-"speech"
-noise_masker_data$Masker<-"noise"
-all_data<-rbind(speech_masker_data,noise_masker_data)
+speech_masker_data_hbr$Masker<-"speech"
+noise_masker_data_hbr$Masker<-"noise"
+all_data_hbr<-rbind(speech_masker_data_hbr,noise_masker_data_hbr)
 
 # Add ROI information
 all_data$Roi<-NA
 pfc_channels <- c(0,1,2,3,4,5)
 stg_channels <- c(6,7,8,9,10,11,12,13)
-all_data$Roi[which(all_data$Channel %in% pfc_channels)] <- "pfc"
-all_data$Roi[which(all_data$Channel %in% stg_channels)] <- "stg"
+all_data_hbr$Roi[which(all_data$Channel %in% pfc_channels)] <- "pfc"
+all_data_hbr$Roi[which(all_data$Channel %in% stg_channels)] <- "stg"
 
 # Change ROI information
 
@@ -36,14 +36,10 @@ all_data$Roi[which(all_data$Channel %in% stg_channels)] <- "stg"
 
 # Organize Factors
 to.factor <- c('S', 'Roi','Spatialization')
-all_data[, to.factor] <- lapply(all_data[, to.factor], as.factor)
-#noise_masker_data[, to.factor] <- lapply(noise_masker_data[, to.factor], as.factor)
+all_data_hbr[, to.factor] <- lapply(all_data_hbr[, to.factor], as.factor)
 
-
-
-
-all_data$Masker <- as.factor(all_data$Masker)
-all_data_cleaned <- na.omit(all_data)
+all_data_hbr$Masker <- as.factor(all_data_hbr$Masker)
+all_data_cleaned_hbr <- na.omit(all_data_hbr)
 
 # Take mean across ROI
 #r1<-with(all_data_cleaned, tapply(MeanHbR, Roi, mean))
@@ -101,11 +97,11 @@ summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
 
 
 # Check for normality, remove outliers
-all_data_cleaned %>% group_by(Spatialization, Masker,Roi) %>% shapiro_test(MeanHbR)
-all_data_cleaned_pfc_speech <- subset(all_data_cleaned, Roi == "pfc" & Masker == "speech")
-all_data_cleaned_pfc_noise <- subset(all_data_cleaned, Roi == "pfc" & Masker == "noise")
-all_data_cleaned_stg_speech <- subset(all_data_cleaned, Roi == "stg" & Masker == "speech")
-all_data_cleaned_stg_noise <- subset(all_data_cleaned, Roi == "stg" & Masker == "noise")
+all_data_cleaned_hbr %>% group_by(Spatialization, Masker,Roi) %>% shapiro_test(MeanHbR)
+all_data_cleaned_pfc_speech_hbr <- subset(all_data_cleaned_hbr, Roi == "pfc" & Masker == "speech")
+all_data_cleaned_pfc_noise_hbr <- subset(all_data_cleaned_hbr, Roi == "pfc" & Masker == "noise")
+all_data_cleaned_stg_speech_hbr <- subset(all_data_cleaned_hbr, Roi == "stg" & Masker == "speech")
+all_data_cleaned_stg_noise_hbr <- subset(all_data_cleaned_hbr, Roi == "stg" & Masker == "noise")
 
 
 
@@ -114,29 +110,29 @@ all_data_cleaned_stg_noise <- subset(all_data_cleaned, Roi == "stg" & Masker == 
 #########################
 
 # PFC Speech
-model_pfc_speech <- mixed(MeanHbR ~ Spatialization + (1|S) + (1|Channel),
-                       data= all_data_cleaned_pfc_speech, 
+model_pfc_speech_hbr <- mixed(MeanHbR ~ Spatialization + (1|S) + (1|Channel),
+                       data= all_data_cleaned_pfc_speech_hbr, 
                        control = lmerControl(optimizer = "bobyqa"), method = 'LRT')
-model_pfc_speech
+model_pfc_speech_hbr
 
 
 # PFC Noise
-model_pfc_noise <- mixed(MeanHbR ~ Spatialization + (1|S) + (1|Channel),
-                          data= all_data_cleaned_pfc_noise, 
+model_pfc_noise_hbr <- mixed(MeanHbR ~ Spatialization + (1|S) + (1|Channel),
+                          data= all_data_cleaned_pfc_noise_hbr, 
                           control = lmerControl(optimizer = "bobyqa"), method = 'LRT')
-model_pfc_noise
+model_pfc_noise_hbr
 
 # STG Speech
-model_stg_speech <- mixed(MeanHbR ~ Spatialization + (1|S) + (1|Channel),
-                          data= all_data_cleaned_stg_speech, 
+model_stg_speech_hbr <- mixed(MeanHbR ~ Spatialization + (1|S) + (1|Channel),
+                          data= all_data_cleaned_stg_speech_hbr, 
                           control = lmerControl(optimizer = "bobyqa"), method = 'LRT')
-model_stg_speech
+model_stg_speech_hbr
 
 # STG Noise
-model_stg_noise <- mixed(MeanHbR ~ Spatialization + (1|S) + (1|Channel),
-                          data= all_data_cleaned_stg_noise, 
+model_stg_noise_hbr <- mixed(MeanHbR ~ Spatialization + (1|S) + (1|Channel),
+                          data= all_data_cleaned_stg_noise_hbr, 
                           control = lmerControl(optimizer = "bobyqa"), method = 'LRT')
-model_stg_noise
+model_stg_noise_hbr
 
 
 #########################

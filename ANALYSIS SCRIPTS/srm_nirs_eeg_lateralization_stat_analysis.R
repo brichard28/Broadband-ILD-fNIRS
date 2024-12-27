@@ -261,10 +261,12 @@ grid.arrange(plotspeech, plotnoise, ncol=2,  widths = c(0.75, 1))
 # STG Plot ####
 stg_se_data_speech <- summarySE(all_data_cleaned_stg_speech, measurevar="MeanHbO", groupvars=c("S","Hemisphere","Spatialization"), na.rm = TRUE)
 stg_se_data_speech <- summarySE(stg_se_data_speech, measurevar="MeanHbO", groupvars=c("Hemisphere","Spatialization"), na.rm = TRUE)
-plotspeech <- ggplot(stg_se_data_speech, aes(x=factor(Spatialization, level=c('ITD50', 'ITD500', 'ILD70n', 'ILD10')), y=MeanHbO, shape = Hemisphere, color = Spatialization)) + 
-  scale_color_manual(values = c("ITD50" = "red","ITD500" =  "blue","ILD70n" = "magenta","ILD10" = "green")) +
+plotspeech <- ggplot(stg_se_data_speech, aes(x=factor(Spatialization, level=c('ITD50', 'ITD500', 'ILD70n', 'ILD10')), y=MeanHbO, color = Hemisphere, fill = Hemisphere, shape = Spatialization)) + 
+  scale_shape_manual(values = c("ITD50"=21, "ITD500" = 24, "ILD70n" = 22, "ILD10" = 25)) +
+  scale_color_manual(values = c("Contralateral"="green","Ipsilateral" = "magenta")) +
+  scale_fill_manual(values = c("Contralateral"="green","Ipsilateral" = "magenta")) +
   geom_errorbar(aes(ymin=MeanHbO-se, ymax=MeanHbO+se), width=.1, position=position_dodge(width=0.5)) +
-  geom_point(aes(color = Spatialization),size = 4, position=position_dodge(width=0.5)) + 
+  geom_point(aes(color = Hemisphere, shape = Spatialization),size = 4, position=position_dodge(width=0.5)) + 
   ggtitle("Speech Masker STG") +
   labs(x="",y="Mean \u0394HbO") +
   ylim(-0.005,0.12) +
@@ -277,10 +279,12 @@ plotspeech <- ggplot(stg_se_data_speech, aes(x=factor(Spatialization, level=c('I
 
 stg_se_data_noise <- summarySE(all_data_cleaned_stg_noise, measurevar="MeanHbO", groupvars=c("S","Hemisphere","Spatialization"), na.rm = TRUE)
 stg_se_data_noise <- summarySE(stg_se_data_noise, measurevar="MeanHbO", groupvars=c("Hemisphere","Spatialization"), na.rm = TRUE)
-plotnoise <- ggplot(stg_se_data_noise, aes(x=factor(Spatialization, level=c('ITD50', 'ITD500', 'ILD70n', 'ILD10')), y=MeanHbO, shape = Hemisphere, color = Spatialization)) + 
-  scale_color_manual(values = c("ITD50" = "red","ITD500" =  "blue","ILD70n" = "magenta","ILD10" = "green"), guide = 'none') +
+plotnoise <- ggplot(stg_se_data_noise, aes(x=factor(Spatialization, level=c('ITD50', 'ITD500', 'ILD70n', 'ILD10')), y=MeanHbO, color = Hemisphere, fill = Hemisphere, shape  = Spatialization)) + 
+  scale_shape_manual(values = c("ITD50"=21, "ITD500" = 24, "ILD70n" = 22, "ILD10" = 25)) +
+  scale_color_manual(values = c("Contralateral"="green","Ipsilateral" = "magenta")) +
+  scale_fill_manual(values = c("Contralateral"="green","Ipsilateral" = "magenta")) +
   geom_errorbar(aes(ymin=MeanHbO-se, ymax=MeanHbO+se), width=.1, position=position_dodge(width=0.5)) +
-  geom_point(aes(color = Spatialization),size = 4, position=position_dodge(width=0.5)) + 
+  geom_point(aes(color = Hemisphere, shape = Spatialization),size = 4, position=position_dodge(width=0.5)) + 
   ggtitle("Noise Masker STG") +
   labs(x="",y="") +
   ylim(-0.005,0.12) +

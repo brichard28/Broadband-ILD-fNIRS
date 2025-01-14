@@ -24,6 +24,10 @@ all_num_target_color_words = zeros(size(subject_ID,1),num_conditions);
 all_num_masker_color_words = zeros(size(subject_ID,1),num_conditions);
 all_num_target_object_words = zeros(size(subject_ID,1),num_conditions);
 
+all_num_hit_windows =  zeros(size(subject_ID,1),num_conditions);
+all_num_object_windows =  zeros(size(subject_ID,1),num_conditions);
+all_num_FA_windows =  zeros(size(subject_ID,1),num_conditions);
+
 all_maskers = {'m_speech__ild_0__itd_500__targ_r__control_0',...
 'm_noise__ild_0__itd_50__targ_l__control_0',...
 'm_noise__ild_0__itd_50__targ_r__control_0',...
@@ -90,6 +94,9 @@ for isubject = 1:size(subject_ID,1) % For each subject...
         all_num_masker_color_words(isubject,string(all_maskers) == string(this_trial_masker)) = all_num_masker_color_words(isubject,string(all_maskers) == string(this_trial_masker)) + sum(ismember(this_trial_masker_words,color_words));
         all_num_target_object_words(isubject,string(all_maskers) == string(this_trial_masker)) = all_num_target_object_words(isubject,string(all_maskers) == string(this_trial_masker)) + sum(~ismember(this_trial_target_words,color_words));
         
+        
+
+
         % Find just color times in target and masker
         this_trial_target_color_times = this_trial_target_times(ismember(this_trial_target_words,color_words));
         this_trial_target_object_times = this_trial_target_times(~ismember(this_trial_target_words,color_words));
@@ -113,18 +120,22 @@ for isubject = 1:size(subject_ID,1) % For each subject...
             [~,start_index_hit_window] = min(abs(tVec - (this_trial_target_color_times(i)+threshold_window_start))); % ...the hit window will start threshold_window_start seconds after the word onset
             [~,end_index_hit_window] = min(abs(tVec - (this_trial_target_color_times(i)+threshold_window_end))); % ...the hit window will end threshold_window_end seconds after the word onset
 
-            hit_windows(start_index_hit_window:end_index_hit_window) = 1; % a value of 1 in the vector hit_windows indicate an area where, if a click falls, it will be counted as a hit
+            if all(hit_windows(start_index_hit_window:end_index_hit_window) == 0) % if there is not already a hit window here...
+                hit_windows(start_index_hit_window:end_index_hit_window) = 1; % a value of 1 in the vector hit_windows indicate an area where, if a click falls, it will be counted as a hit
+                all_num_hit_windows(isubject,string(all_maskers) == string(this_trial_masker)) = all_num_hit_windows(isubject,string(all_maskers) == string(this_trial_masker)) + 1;
+            end
         end
 
         % specify false alarm windows
         for i = 1:length(this_trial_masker_color_times) % for each of the current masker times...
             [~,start_index_FA_window] = min(abs(tVec - (this_trial_masker_color_times(i)+threshold_window_start))); % ...the false alarm window will start threshold_window_start seconds after the word onset
-            [~,end_index_FA_window] = min(abs(tVec - (this_trial_masker_color_times(i)+(threshold_window_end -0.3)))); % ...the false alarm window will end threshold_window_end seconds after the word onset
+            [~,end_index_FA_window] = min(abs(tVec - (this_trial_masker_color_times(i)+(threshold_window_end)))); % ...the false alarm window will end threshold_window_end seconds after the word onset
 
             if any(hit_windows(start_index_FA_window:end_index_FA_window) == 1)
                 continue
-            else
+            elseif all(FA_windows(start_index_FA_window:end_index_FA_window) == 0)
                 FA_windows(start_index_FA_window:end_index_FA_window) = 1;
+                all_num_FA_windows(isubject,string(all_maskers) == string(this_trial_masker)) = all_num_FA_windows(isubject,string(all_maskers) == string(this_trial_masker)) + 1;
             end
         end
 
@@ -138,8 +149,9 @@ for isubject = 1:size(subject_ID,1) % For each subject...
                 continue
             elseif any(FA_windows(start_index_object_window:end_index_object_window) == 1)
                 continue
-            else
+            elseif all(object_windows(start_index_object_window:end_index_object_window) == 0)
                 object_windows(start_index_object_window:end_index_object_window) = 1;
+                all_num_object_windows(isubject,string(all_maskers) == string(this_trial_masker)) = all_num_object_windows(isubject,string(all_maskers) == string(this_trial_masker)) + 1;
             end
         end
 
@@ -239,21 +251,53 @@ all_num_target_object_words_collapsed_left_and_right(6,:) = sum(all_num_target_o
 all_num_target_object_words_collapsed_left_and_right(7,:) = sum(all_num_target_object_words(:,[4,20]),2);% ildnat speech
 all_num_target_object_words_collapsed_left_and_right(8,:) = sum(all_num_target_object_words(:,[6,13]),2);% ild10 speech
 
-all_hit_rates = all_hits./all_num_target_color_words;
-all_hit_rates_collapsed = all_hits_collapsed_left_and_right./all_num_target_color_words_collapsed_left_and_right;
+all_num_hit_windows_collapsed_left_and_right = [];
+all_num_hit_windows_collapsed_left_and_right(1,:) = sum(all_num_hit_windows(:,[2,3]),2);% itd50 noise
+all_num_hit_windows_collapsed_left_and_right(2,:) = sum(all_num_hit_windows(:,[10,19]),2); % itd500 noise
+all_num_hit_windows_collapsed_left_and_right(3,:) = sum(all_num_hit_windows(:,[11,17]),2);% ildnat noise
+all_num_hit_windows_collapsed_left_and_right(4,:) = sum(all_num_hit_windows(:,[12,14]),2);% ild10 noise
+all_num_hit_windows_collapsed_left_and_right(5,:) = sum(all_num_hit_windows(:,[5,15]),2);% itd50 speech
+all_num_hit_windows_collapsed_left_and_right(6,:) = sum(all_num_hit_windows(:,[1,7]),2);% itd500 speech
+all_num_hit_windows_collapsed_left_and_right(7,:) = sum(all_num_hit_windows(:,[4,20]),2);% ildnat speech
+all_num_hit_windows_collapsed_left_and_right(8,:) = sum(all_num_hit_windows(:,[6,13]),2);% ild10 speech
+
+all_num_FA_windows_collapsed_left_and_right = [];
+all_num_FA_windows_collapsed_left_and_right(1,:) = sum(all_num_FA_windows(:,[2,3]),2);% itd50 noise
+all_num_FA_windows_collapsed_left_and_right(2,:) = sum(all_num_FA_windows(:,[10,19]),2); % itd500 noise
+all_num_FA_windows_collapsed_left_and_right(3,:) = sum(all_num_FA_windows(:,[11,17]),2);% ildnat noise
+all_num_FA_windows_collapsed_left_and_right(4,:) = sum(all_num_FA_windows(:,[12,14]),2);% ild10 noise
+all_num_FA_windows_collapsed_left_and_right(5,:) = sum(all_num_FA_windows(:,[5,15]),2);% itd50 speech
+all_num_FA_windows_collapsed_left_and_right(6,:) = sum(all_num_FA_windows(:,[1,7]),2);% itd500 speech
+all_num_FA_windows_collapsed_left_and_right(7,:) = sum(all_num_FA_windows(:,[4,20]),2);% ildnat speech
+all_num_FA_windows_collapsed_left_and_right(8,:) = sum(all_num_FA_windows(:,[6,13]),2);% ild10 speech
+
+all_num_object_windows_collapsed_left_and_right = [];
+all_num_object_windows_collapsed_left_and_right(1,:) = sum(all_num_object_windows(:,[2,3]),2);% itd50 noise
+all_num_object_windows_collapsed_left_and_right(2,:) = sum(all_num_object_windows(:,[10,19]),2); % itd500 noise
+all_num_object_windows_collapsed_left_and_right(3,:) = sum(all_num_object_windows(:,[11,17]),2);% ildnat noise
+all_num_object_windows_collapsed_left_and_right(4,:) = sum(all_num_object_windows(:,[12,14]),2);% ild10 noise
+all_num_object_windows_collapsed_left_and_right(5,:) = sum(all_num_object_windows(:,[5,15]),2);% itd50 speech
+all_num_object_windows_collapsed_left_and_right(6,:) = sum(all_num_object_windows(:,[1,7]),2);% itd500 speech
+all_num_object_windows_collapsed_left_and_right(7,:) = sum(all_num_object_windows(:,[4,20]),2);% ildnat speech
+all_num_object_windows_collapsed_left_and_right(8,:) = sum(all_num_object_windows(:,[6,13]),2);% ild10 speech
+
+
+all_hit_rates = all_hits./all_num_hit_windows;
+all_hit_rates_collapsed = all_hits_collapsed_left_and_right./all_num_hit_windows_collapsed_left_and_right;
 all_hit_rates(all_hit_rates == 0) = 0.001;
 all_hit_rates(all_hit_rates >= 1) = 0.999;
 all_hit_rates_collapsed(all_hit_rates_collapsed == 0) = 0.001;
 all_hit_rates_collapsed(all_hit_rates_collapsed >= 1) = 0.999;
 
-all_FA_rates = all_FAs./all_num_masker_color_words;
-all_FA_rates_collapsed = all_FAs_collapsed_left_and_right./all_num_masker_color_words_collapsed_left_and_right;
+all_FA_rates = all_FAs./all_num_FA_windows;
+all_FA_rates_collapsed = all_FAs_collapsed_left_and_right./all_num_FA_windows_collapsed_left_and_right;
 all_FA_rates(all_FA_rates == 0) = 0.001;
 all_FA_rates(all_FA_rates >= 1) = 0.999;
+all_FA_rates_collapsed(all_FA_rates_collapsed >= 1) = 0.999;
 all_FA_rates_collapsed(all_FA_rates_collapsed == 0) = 0.001;
 
-all_object_rates = all_objects./all_num_target_object_words;
-all_object_rates_collapsed = all_objects_collapsed_left_and_right./all_num_target_object_words_collapsed_left_and_right;
+all_object_rates = all_objects./all_num_object_windows;
+all_object_rates_collapsed = all_objects_collapsed_left_and_right./all_num_object_windows_collapsed_left_and_right;
 all_object_rates(all_object_rates == 0) = 0.001;
 all_object_rates(all_object_rates >= 1) = 0.999;
 all_object_rates_collapsed(all_object_rates_collapsed == 0) = 0.001;

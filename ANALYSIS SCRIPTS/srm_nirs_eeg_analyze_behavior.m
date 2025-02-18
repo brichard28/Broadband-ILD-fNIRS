@@ -49,7 +49,10 @@ all_maskers = {'m_speech__ild_0__itd_500__targ_r__control_0',...
 'm_noise__ild_0__itd_500__targ_l__control_0',...
 'm_speech__ild_70n__itd_0__targ_l__control_0'}; % we will maintain this order throughout
 
+rt_fig = figure();
+
 for isubject = 1:size(subject_ID,1) % For each subject...
+    disp(subject_ID(isubject,:))
     clicks_not_counted = 0;
     total_clicks = 0;
 
@@ -66,6 +69,7 @@ for isubject = 1:size(subject_ID,1) % For each subject...
     color_words = ["red","white","green","blue"];
     object_words = [];
 
+    this_subject_color_click_distances = [];
     % For each trial....
     for itrial = 1:length(rows_this_subject)
 
@@ -80,6 +84,8 @@ for isubject = 1:size(subject_ID,1) % For each subject...
         click_distances = diff(this_trial_click_times);
         click_distances_to_remove = find(click_distances < 0.2);
         this_trial_click_times(click_distances_to_remove + 1) = [];
+
+        this_trial_click_times = this_trial_click_times + 0.702;
 
         this_trial_target_all = WordTimesTable(string(WordTimesTable.Condition) == this_trial_masker & WordTimesTable.Run == this_trial_run & string(WordTimesTable.Type) == 'Target',4:end);
         this_trial_target_words = table2array(this_trial_target_all(:,1:2:end));
@@ -108,8 +114,8 @@ for isubject = 1:size(subject_ID,1) % For each subject...
 %         
        %% Hit and False Alarm Windows
 
-       threshold_window_start = 0.2; %0.2
-       threshold_window_end =  1.0; % 1.0
+       threshold_window_start = 1.0; %0.2
+       threshold_window_end =  2.0; % 1.0
        tVec = 0:1/44100:16;
        hit_windows = zeros(1,length(tVec)); % create an empty array to define hit windows
        FA_windows = zeros(1,length(tVec)); % create an empty array to define false alarm windows
@@ -163,7 +169,6 @@ for isubject = 1:size(subject_ID,1) % For each subject...
 
         % ...Calculate the hit rate, FA rate in this trial
         for iclick = 1:length(this_trial_click_times)
-
             [~,current_click_index] = min(abs(tVec - this_trial_click_times(iclick))); % ...find the time index of that click...
 
             if hit_windows(current_click_index) == 1 % ...if that click falls within a hit window...
@@ -179,12 +184,47 @@ for isubject = 1:size(subject_ID,1) % For each subject...
             total_clicks = total_clicks + 1;
         end
 
-        % associate it with the correct condition
+        % Calculate the distances to the nearest target color word
+        distances_click_to_target_color= [];
+        for icolortime = 1:length(this_trial_target_color_times)
+            distances_click_to_target_color(icolortime,:) = this_trial_click_times - this_trial_target_color_times(icolortime);
+        end
+        distances_click_to_target_color(distances_click_to_target_color < 0) = nan;
+
+        %% Find the nearest color time to each click (minimum positive value of click_distances in each column)
+
+
+        [~,nearest_click] = min(abs(distances_click_to_target_color),[],1); % find the nearest click to each target word
+        for i = 1:length(this_trial_click_times)
+            if isnan(distances_click_to_target_color(:,i)) == ones(1,length(this_trial_target_color_times)) % all of these clicks were before the first word
+                nearest_click(i) = nan;
+            else
+
+                this_subject_color_click_distances = [this_subject_color_click_distances, distances_click_to_target_color(nearest_click(i),i)];
+            end
+
+        end
+
 
         
     end
 
-disp([string(subject_ID(isubject,:)),': ', num2str((clicks_not_counted/total_clicks)*100), '% of clicks not counted'])
+    save(append(string(subject_ID(isubject,:)),'color_click_distances.mat'),'this_subject_color_click_distances');
+    figure(rt_fig)
+    subplot(round(size(subject_ID,1)/4),4,isubject)
+    histogram(this_subject_color_click_distances,100)
+    xlim([0,3])
+
+    [counts,edges] = histcounts(this_subject_color_click_distances,100);
+    %[peakValue, peakIndex] = findpeaks(counts); % Find peak value and index
+    [peakValue, peakIndex] = max(counts);
+    peakXValue = edges(peakIndex); % Get the x-axis value corresponding to the peak
+
+
+
+    disp(append(string(subject_ID(isubject,:)),' most frequent color reaction time: ',num2str(peakXValue*1000),' ms '))
+    disp(append(string(subject_ID(isubject,:)),': ', num2str((clicks_not_counted/total_clicks)*100), '% of clicks not counted'))
+
 end
 
 %% NEW ORDER = itd50 noise, itd500 noise, ildnat noise, ild10 noise, itd50 speech, itd500 speech, ildnat speech, ild10 speech
@@ -305,15 +345,7 @@ all_object_rates_collapsed(all_object_rates_collapsed >= 1) = 0.999;
 
 %% D-prime calculation
 d_primes_all = norminv(all_hit_rates) - norminv(all_FA_rates);
-d_primes_collapsed = [];
-d_primes_collapsed(1,:) = mean(d_primes_all(:,[2,3]),2); % itd50 noise
-d_primes_collapsed(2,:) = mean(d_primes_all(:,[10,19]),2); % itd500 noise
-d_primes_collapsed(3,:) = mean(d_primes_all(:,[11,17]),2); % ildnat noise
-d_primes_collapsed(4,:) = mean(d_primes_all(:,[12,14]),2); % ild10 noise
-d_primes_collapsed(5,:) = mean(d_primes_all(:,[5,15]),2); % itd50 speech
-d_primes_collapsed(6,:) = mean(d_primes_all(:,[1,7]),2); % itd500 speech
-d_primes_collapsed(7,:) = mean(d_primes_all(:,[4,20]),2); % ildnat speech
-d_primes_collapsed(8,:) = mean(d_primes_all(:,[6,13]),2); % ild10 speech
+d_primes_collapsed = norminv(all_hit_rates_collapsed) - norminv(all_FA_rates_collapsed);
 d_primes_speech_masker = norminv(all_hit_rates_collapsed(5:end,:)) - norminv(all_FA_rates_collapsed(5:end,:));
 
 %% Save data

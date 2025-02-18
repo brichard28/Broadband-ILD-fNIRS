@@ -128,12 +128,12 @@ epoch_end_time = 20;
 num_timepoints = 255;
 time = linspace(epoch_start_time,epoch_end_time,num_timepoints);
 colors = {'r','b','m','g'};
-hbo_line_types = {'or','^r','squarer','vr'};
-hbr_line_types = {'ob','^b','squareb','vb'};
+hbo_line_types = {'-r','--r','-r','--r'};
+hbr_line_types = {'-b','--b','-b','--b'};
 ymin = -0.1;
 ymax = 0.15;
 dash_step = 22;
-sat_value = 0.15;
+sat_value = 0.05;
 
 figure;
 tiledlayout(2,4)
@@ -152,8 +152,10 @@ p1.mainLine.MarkerIndices = 1:dash_step:length(p1.mainLine.MarkerIndices);
 p2.mainLine.MarkerIndices = 1:dash_step:length(p2.mainLine.MarkerIndices);
 p1.mainLine.MarkerFaceColor = 'r';
 p2.mainLine.MarkerFaceColor = 'r';
-xline(0, '--','LineWidth',2)
-xline(12.8, '--','LineWidth',2)
+p1.mainLine.LineWidth = 2;
+p2.mainLine.LineWidth = 2;
+xline(0, '--','LineWidth',1.5)
+xline(12.8, '--','LineWidth',1.5)
 
 % HbR
 p3 = shadedErrorBar(time,squeeze(mean(speech_masker_plot_data_pfc_hbr(:,:,1,:),[1,2,3],'omitnan')),squeeze(std(speech_masker_plot_data_pfc_hbr(:,:,1,:),[],[1,2,3],'omitnan'))./sqrt(num_subjects-1), 'lineProps',hbr_line_types(1),'patchSaturation',sat_value);
@@ -165,9 +167,10 @@ p3.mainLine.MarkerIndices = 1:dash_step:length(p3.mainLine.MarkerIndices);
 p4.mainLine.MarkerIndices = 1:dash_step:length(p4.mainLine.MarkerIndices);
 p3.mainLine.MarkerFaceColor = 'b';
 p4.mainLine.MarkerFaceColor = 'b';
-xline(0, '--','LineWidth',2)
-xline(12.8, '--','LineWidth',2)
-
+p3.mainLine.LineWidth = 2;
+p4.mainLine.LineWidth = 2;
+xline(0, '--','LineWidth',1.5)
+xline(12.8, '--','LineWidth',1.5)
 
 
 % ILDNat/ILD10
@@ -183,8 +186,10 @@ p1.mainLine.MarkerIndices = 1:dash_step:length(p1.mainLine.MarkerIndices);
 p2.mainLine.MarkerIndices = 1:dash_step:length(p2.mainLine.MarkerIndices);
 p1.mainLine.MarkerFaceColor = 'r';
 p2.mainLine.MarkerFaceColor = 'r';
-xline(0, '--','LineWidth',2)
-xline(12.8, '--','LineWidth',2)
+p1.mainLine.LineWidth = 2;
+p2.mainLine.LineWidth = 2;
+xline(0, '--','LineWidth',1.5)
+xline(12.8, '--','LineWidth',1.5)
 
 % HbR
 p3 = shadedErrorBar(time,squeeze(mean(speech_masker_plot_data_pfc_hbr(:,:,3,:),[1,2,3],'omitnan')),squeeze(std(speech_masker_plot_data_pfc_hbr(:,:,3,:),[],[1,2,3],'omitnan'))./sqrt(num_subjects-1), 'lineProps',hbr_line_types(3),'patchSaturation',sat_value  );
@@ -196,8 +201,10 @@ p3.mainLine.MarkerIndices = 1:dash_step:length(p3.mainLine.MarkerIndices);
 p4.mainLine.MarkerIndices = 1:dash_step:length(p4.mainLine.MarkerIndices);
 p3.mainLine.MarkerFaceColor = 'b';
 p4.mainLine.MarkerFaceColor = 'b';
-xline(0, '--','LineWidth',2)
-xline(12.8, '--','LineWidth',2)
+p3.mainLine.LineWidth = 2;
+p4.mainLine.LineWidth = 2;
+xline(0, '--','LineWidth',1.5)
+xline(12.8, '--','LineWidth',1.5)
 
 legend([p1(1).mainLine, p3(1).mainLine],{'\DeltaHbO (\muM)','\DeltaHbR (\muM)'})
 
@@ -215,8 +222,10 @@ p1.mainLine.MarkerIndices = 1:dash_step:length(p1.mainLine.MarkerIndices);
 p2.mainLine.MarkerIndices = 1:dash_step:length(p2.mainLine.MarkerIndices);
 p1.mainLine.MarkerFaceColor = 'r';
 p2.mainLine.MarkerFaceColor = 'r';
-xline(0, '--','LineWidth',2)
-xline(12.8, '--','LineWidth',2)
+p1.mainLine.LineWidth = 2;
+p2.mainLine.LineWidth = 2;
+xline(0, '--','LineWidth',1.5)
+xline(12.8, '--','LineWidth',1.5)
 
 % HbR
 p3 = shadedErrorBar(time,squeeze(mean(speech_masker_plot_data_stg_hbr(:,:,1,:),[1,2,3],'omitnan')),squeeze(std(speech_masker_plot_data_stg_hbr(:,:,1,:),[],[1,2,3],'omitnan'))./sqrt(num_subjects-1), 'lineProps',hbr_line_types(1),'patchSaturation',sat_value );
@@ -228,8 +237,11 @@ p3.mainLine.MarkerIndices = 1:dash_step:length(p3.mainLine.MarkerIndices);
 p4.mainLine.MarkerIndices = 1:dash_step:length(p4.mainLine.MarkerIndices);
 p3.mainLine.MarkerFaceColor = 'b';
 p4.mainLine.MarkerFaceColor = 'b';
-xline(0, '--','LineWidth',2)
-xline(12.8, '--','LineWidth',2)
+p3.mainLine.LineWidth = 2;
+p4.mainLine.LineWidth = 2;
+xline(0, '--','LineWidth',1.5)
+xline(12.8, '--','LineWidth',1.5)
+
 
 % ILDNat/ILD10
 nexttile
@@ -244,8 +256,10 @@ p1.mainLine.MarkerIndices = 1:dash_step:length(p1.mainLine.MarkerIndices);
 p2.mainLine.MarkerIndices = 1:dash_step:length(p2.mainLine.MarkerIndices);
 p1.mainLine.MarkerFaceColor = 'r';
 p2.mainLine.MarkerFaceColor = 'r';
-xline(0, '--','LineWidth',2)
-xline(12.8, '--','LineWidth',2)
+p1.mainLine.LineWidth = 2;
+p2.mainLine.LineWidth = 2;
+xline(0, '--','LineWidth',1.5)
+xline(12.8, '--','LineWidth',1.5)
 
 % HbR
 p3 = shadedErrorBar(time,squeeze(mean(speech_masker_plot_data_stg_hbr(:,:,3,:),[1,2,3],'omitnan')),squeeze(std(speech_masker_plot_data_stg_hbr(:,:,3,:),[],[1,2,3],'omitnan'))./sqrt(num_subjects-1), 'lineProps',hbr_line_types(3),'patchSaturation',sat_value);
@@ -257,8 +271,11 @@ p3.mainLine.MarkerIndices = 1:dash_step:length(p3.mainLine.MarkerIndices);
 p4.mainLine.MarkerIndices = 1:dash_step:length(p4.mainLine.MarkerIndices);
 p3.mainLine.MarkerFaceColor = 'b';
 p4.mainLine.MarkerFaceColor = 'b';
-xline(0, '--','LineWidth',2)
-xline(12.8, '--','LineWidth',2)
+p3.mainLine.LineWidth = 2;
+p4.mainLine.LineWidth = 2;
+xline(0, '--','LineWidth',1.5)
+xline(12.8, '--','LineWidth',1.5)
+
 
 % PFC, noise masker
 % ITD50/500
@@ -274,8 +291,10 @@ p1.mainLine.MarkerIndices = 1:dash_step:length(p1.mainLine.MarkerIndices);
 p2.mainLine.MarkerIndices = 1:dash_step:length(p2.mainLine.MarkerIndices);
 p1.mainLine.MarkerFaceColor = 'r';
 p2.mainLine.MarkerFaceColor = 'r';
-xline(0, '--','LineWidth',2)
-xline(12.8, '--','LineWidth',2)
+p1.mainLine.LineWidth = 2;
+p2.mainLine.LineWidth = 2;
+xline(0, '--','LineWidth',1.5)
+xline(12.8, '--','LineWidth',1.5)
 
 % HbR
 p3 = shadedErrorBar(time,squeeze(mean(noise_masker_plot_data_pfc_hbr(:,:,1,:),[1,2,3],'omitnan')),squeeze(std(noise_masker_plot_data_pfc_hbr(:,:,1,:),[],[1,2,3],'omitnan'))./sqrt(num_subjects-1), 'lineProps',hbr_line_types(1),'patchSaturation',sat_value );
@@ -287,8 +306,11 @@ p3.mainLine.MarkerIndices = 1:dash_step:length(p3.mainLine.MarkerIndices);
 p4.mainLine.MarkerIndices = 1:dash_step:length(p4.mainLine.MarkerIndices);
 p3.mainLine.MarkerFaceColor = 'b';
 p4.mainLine.MarkerFaceColor = 'b';
-xline(0, '--','LineWidth',2)
-xline(12.8, '--','LineWidth',2)
+p3.mainLine.LineWidth = 2;
+p4.mainLine.LineWidth = 2;
+xline(0, '--','LineWidth',1.5)
+xline(12.8, '--','LineWidth',1.5)
+
 
 % ILDNat/ILD10
 nexttile
@@ -303,8 +325,10 @@ p1.mainLine.MarkerIndices = 1:dash_step:length(p1.mainLine.MarkerIndices);
 p2.mainLine.MarkerIndices = 1:dash_step:length(p2.mainLine.MarkerIndices);
 p1.mainLine.MarkerFaceColor = 'r';
 p2.mainLine.MarkerFaceColor = 'r';
-xline(0, '--','LineWidth',2)
-xline(12.8, '--','LineWidth',2)
+p1.mainLine.LineWidth = 2;
+p2.mainLine.LineWidth = 2;
+xline(0, '--','LineWidth',1.5)
+xline(12.8, '--','LineWidth',1.5)
 
 % HbR
 p3 = shadedErrorBar(time,squeeze(mean(noise_masker_plot_data_pfc_hbr(:,:,3,:),[1,2,3],'omitnan')),squeeze(std(noise_masker_plot_data_pfc_hbr(:,:,3,:),[],[1,2,3],'omitnan'))./sqrt(num_subjects-1), 'lineProps',hbr_line_types(3),'patchSaturation',sat_value  );
@@ -316,8 +340,11 @@ p3.mainLine.MarkerIndices = 1:dash_step:length(p3.mainLine.MarkerIndices);
 p4.mainLine.MarkerIndices = 1:dash_step:length(p4.mainLine.MarkerIndices);
 p3.mainLine.MarkerFaceColor = 'b';
 p4.mainLine.MarkerFaceColor = 'b';
-xline(0, '--','LineWidth',2)
-xline(12.8, '--','LineWidth',2)
+p3.mainLine.LineWidth = 2;
+p4.mainLine.LineWidth = 2;
+xline(0, '--','LineWidth',1.5)
+xline(12.8, '--','LineWidth',1.5)
+
 
 % STG, noise Masker
 % ITD50/500
@@ -333,8 +360,10 @@ p1.mainLine.MarkerIndices = 1:dash_step:length(p1.mainLine.MarkerIndices);
 p2.mainLine.MarkerIndices = 1:dash_step:length(p2.mainLine.MarkerIndices);
 p1.mainLine.MarkerFaceColor = 'r';
 p2.mainLine.MarkerFaceColor = 'r';
-xline(0, '--','LineWidth',2)
-xline(12.8, '--','LineWidth',2)
+p1.mainLine.LineWidth = 2;
+p2.mainLine.LineWidth = 2;
+xline(0, '--','LineWidth',1.5)
+xline(12.8, '--','LineWidth',1.5)
 
 % HbR
 p3 = shadedErrorBar(time,squeeze(mean(noise_masker_plot_data_stg_hbr(:,:,1,:),[1,2,3],'omitnan')),squeeze(std(noise_masker_plot_data_stg_hbr(:,:,1,:),[],[1,2,3],'omitnan'))./sqrt(num_subjects-1), 'lineProps',hbr_line_types(1),'patchSaturation',sat_value );
@@ -346,8 +375,10 @@ p3.mainLine.MarkerIndices = 1:dash_step:length(p3.mainLine.MarkerIndices);
 p4.mainLine.MarkerIndices = 1:dash_step:length(p4.mainLine.MarkerIndices);
 p3.mainLine.MarkerFaceColor = 'b';
 p4.mainLine.MarkerFaceColor = 'b';
-xline(0, '--','LineWidth',2)
-xline(12.8, '--','LineWidth',2)
+p3.mainLine.LineWidth = 2;
+p4.mainLine.LineWidth = 2;
+xline(0, '--','LineWidth',1.5)
+xline(12.8, '--','LineWidth',1.5)
 
 %ILDNat/ILD10
 nexttile
@@ -362,8 +393,10 @@ p1.mainLine.MarkerIndices = 1:dash_step:length(p1.mainLine.MarkerIndices);
 p2.mainLine.MarkerIndices = 1:dash_step:length(p2.mainLine.MarkerIndices);
 p1.mainLine.MarkerFaceColor = 'r';
 p2.mainLine.MarkerFaceColor = 'r';
-xline(0, '--','LineWidth',2)
-xline(12.8, '--','LineWidth',2)
+p1.mainLine.LineWidth = 2;
+p2.mainLine.LineWidth = 2;
+xline(0, '--','LineWidth',1.5)
+xline(12.8, '--','LineWidth',1.5)
 
 % HbR
 p3 = shadedErrorBar(time,squeeze(mean(noise_masker_plot_data_stg_hbr(:,:,3,:),[1,2,3],'omitnan')),squeeze(std(noise_masker_plot_data_stg_hbr(:,:,3,:),[],[1,2,3],'omitnan'))./sqrt(num_subjects-1), 'lineProps',hbr_line_types(3),'patchSaturation',sat_value  );
@@ -375,5 +408,8 @@ p3.mainLine.MarkerIndices = 1:dash_step:length(p3.mainLine.MarkerIndices);
 p4.mainLine.MarkerIndices = 1:dash_step:length(p4.mainLine.MarkerIndices);
 p3.mainLine.MarkerFaceColor = 'b';
 p4.mainLine.MarkerFaceColor = 'b';
-xline(0, '--','LineWidth',2)
-xline(12.8, '--','LineWidth',2)
+p3.mainLine.LineWidth = 2;
+p4.mainLine.LineWidth = 2;
+xline(0, '--','LineWidth',1.5)
+xline(12.8, '--','LineWidth',1.5)
+

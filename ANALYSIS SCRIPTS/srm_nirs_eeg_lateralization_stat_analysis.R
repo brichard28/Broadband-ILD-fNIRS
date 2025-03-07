@@ -188,8 +188,43 @@ z2_stg_speech <- mixed(MeanHb ~ Spatialization*Hemisphere + (1|S) + (1|Channel),
 z2_stg_speech
 
 # Significant interaction between spatialization and hemisphere
+# Pairwise Comparisons Spatialization
+all_data_cleaned_stg_speechhbo$Spatialization <- relevel(all_data_cleaned_stg_speechhbo$Spatialization, "ITD50")
+all_data_cleaned_stg_speechhbr$Spatialization <- relevel(all_data_cleaned_stg_speechhbr$Spatialization, "ITD50")
 
-# Pairwise Comparisons (treatment coding)
+stg_speech_lmer_spatialization_itd50 <- lmer(MeanHb ~ Spatialization + (1|S),
+                                             data= all_data_cleaned_stg_speechhbo,
+                                             control = lmerControl(optimizer = "bobyqa"))
+summary(stg_speech_lmer_spatialization_itd50)
+
+all_data_cleaned_stg_speechhbo$Spatialization <- relevel(all_data_cleaned_stg_speechhbo$Spatialization, "ITD500")
+all_data_cleaned_stg_speechhbr$Spatialization <- relevel(all_data_cleaned_stg_speechhbr$Spatialization, "ITD500")
+
+stg_speech_lmer_spatialization_itd500 <- lmer(MeanHb ~ Spatialization + (1|S),
+                                             data= all_data_cleaned_stg_speechhbo,
+                                             control = lmerControl(optimizer = "bobyqa"))
+summary(stg_speech_lmer_spatialization_itd500)
+
+
+all_data_cleaned_stg_speechhbo$Spatialization <- relevel(all_data_cleaned_stg_speechhbo$Spatialization, "ILD70n")
+all_data_cleaned_stg_speechhbr$Spatialization <- relevel(all_data_cleaned_stg_speechhbr$Spatialization, "ILD70n")
+
+stg_speech_lmer_spatialization_ild70n <- lmer(MeanHb ~ Spatialization + (1|S),
+                                              data= all_data_cleaned_stg_speechhbo,
+                                              control = lmerControl(optimizer = "bobyqa"))
+summary(stg_speech_lmer_spatialization_ild70n)
+
+
+all_data_cleaned_stg_speechhbo$Spatialization <- relevel(all_data_cleaned_stg_speechhbo$Spatialization, "ILD10")
+all_data_cleaned_stg_speechhbr$Spatialization <- relevel(all_data_cleaned_stg_speechhbr$Spatialization, "ILD10")
+
+stg_speech_lmer_spatialization_ild10 <- lmer(MeanHb ~ Spatialization + (1|S),
+                                              data= all_data_cleaned_stg_speechhbo,
+                                              control = lmerControl(optimizer = "bobyqa"))
+summary(stg_speech_lmer_spatialization_ild10)
+
+
+# Pairwise Comparisons Hemisphere (treatment coding)
 # Set contra always as reference
 all_data_cleaned_stg_speechhbo$Hemisphere <- relevel(all_data_cleaned_stg_speechhbo$Hemisphere, "Contralateral")
 all_data_cleaned_stg_speechhbr$Hemisphere <- relevel(all_data_cleaned_stg_speechhbr$Hemisphere, "Contralateral")
@@ -314,7 +349,7 @@ plotspeechhbo <- ggplot(stg_se_data_speechhbo, aes(x=factor(Spatialization, leve
   theme(plot.title = element_text(size = 18), axis.title=element_text(size=18), axis.text.x= element_text(size=12), axis.text.y= element_text(size=12)) +
   theme(legend.position="none") +
   geom_signif(xmin = c(0.9,1.9,2.9,3.9), xmax = c(1.1,2.1,3.1,4.1), y_position = c(0.11, 0.11, 0.11, 0.11), tip_length = 0.06, color="black", annotation = c("*","ns","ns","ns"), textsize = 5) +
-  geom_signif(xmin = c(1,2,3), xmax = c(4,4,4), y_position = c(0.13, 0.15, 0.17), tip_length = 0.06, color="black", annotation = c("**","**","**"), textsize = 5)
+  geom_signif(xmin = c(1,2,3), xmax = c(4,4,4), y_position = c(0.13, 0.15, 0.17), tip_length = 0.06, color="black", annotation = c("**","ns","p = 0.056"), textsize = 5)
 
 stg_se_data_noisehbo <- summarySE(all_data_cleaned_stg_noisehbo, measurevar="MeanHb", groupvars=c("S","Hemisphere","Spatialization"), na.rm = TRUE)
 stg_se_data_noisehbo <- summarySE(stg_se_data_noisehbo, measurevar="MeanHb", groupvars=c("Hemisphere","Spatialization"), na.rm = TRUE)

@@ -86,7 +86,7 @@ hit_rates[, to.factor] <- lapply(hit_rates[, to.factor], as.factor)
 
 model_hitrate <- mixed(HitRate ~ Spatialization*Masker + (1|S),
                 data= hit_rates, 
-                control = lmerControl(optimizer = "bobyqa"), method = 'LRT')
+                control = lmerControl(optimizer = "bobyqa"))
 
 model_hitrate
 
@@ -179,7 +179,7 @@ to.factor <- c('S','Spatialization')
 FA_rates[, to.factor] <- lapply(FA_rates[, to.factor], as.factor)
 
 # LMEM
-model_farate <- mixed(FARate ~ Spatialization + (1|S),data= FA_rates,control = lmerControl(optimizer = "bobyqa"), method = 'LRT')
+model_farate <- mixed(FARate ~ Spatialization + (1|S),data= FA_rates,control = lmerControl(optimizer = "bobyqa"))
 
 model_farate
 
@@ -221,46 +221,56 @@ summary(posthoc_farate_ild10)
 ##    D primes    ##
 ####################################################
 
-# d_primes <- read.csv("C:\\Users\\benri\\Documents\\GitHub\\SRM-NIRS-EEG\\RESULTS DATA\\SRM-NIRS-EEG-1_d_primes.csv")
-# 
-# # Remove unneeded columns, put in long format
-# d_primes$OriginalVariableNames <- array(1:30)
-# colnames(d_primes) <- c("S","ITD50","ITD500","ILD70n","ILD10")
-# d_primes <- pivot_longer(d_primes, cols=c("ITD50","ITD500","ILD70n","ILD10"),
-#                          names_to = c("Condition"), values_to = "DPrime")
-# 
-# # Organize Factors
-# to.factor <- c('S','Condition')
-# d_primes[, to.factor] <- lapply(d_primes[, to.factor], as.factor)
-# 
-# # Summary Statistics
-# d_primes %>% group_by(Condition) %>% get_summary_stats(DPrime, type = "mean_sd")
-# 
-# # Boxplot
-# bxp <- ggboxplot(d_primes, x = "Condition", y = "DPrime", palette = "jco")
-# bxp
-# 
-# # Check for normality, remove outliers
-# d_primes %>% group_by(Condition) %>% shapiro_test(DPrime)
-# 
-# # Create a QQ plot
-# ggqqplot(d_primes, "DPrime", ggtheme = theme_bw()) # + facet_grid(Condition) #, labeller = "label_both")
-# 
-# # Run ANOVA
-# res.aov <- anova_test(data = d_primes, dv = DPrime, wid = S, within = c(Condition))
-# get_anova_table(res.aov)
-# 
-# # Pairwise comparisons between conditions
-# pwc_masker <- d_primes  %>% pairwise_t_test(DPrime ~ Condition, paired = TRUE, p.adjust.method = "bonferroni")
-# print(pwc_masker)
-# 
-# 
-# 
-# 
+d_primes <- read.csv("C:\\Users\\benri\\Documents\\GitHub\\SRM-NIRS-EEG\\RESULTS DATA\\SRM-NIRS-EEG-1_d_primes.csv")
+
+# Remove unneeded columns, put in long format
+d_primes$OriginalVariableNames <- array(1:30)
+colnames(d_primes) <- c("S","ITD50","ITD500","ILD70n","ILD10")
+d_primes <- pivot_longer(d_primes, cols=c("ITD50","ITD500","ILD70n","ILD10"),
+                         names_to = c("Spatialization"), values_to = "DPrime")
+
+# Organize Factors
+to.factor <- c('S','Spatialization')
+d_primes[, to.factor] <- lapply(d_primes[, to.factor], as.factor)
+
+# LMEM
+model_dprime <- mixed(DPrime ~ Spatialization + (1|S),data= d_primes,control = lmerControl(optimizer = "bobyqa"))
+
+model_dprime
 
 
+# Post hocs
+# ITD50 as reference
+d_primes$Spatialization <- relevel(d_primes$Spatialization, "ITD50")
+posthoc_dprime_itd50 <- lmer(DPrime ~ Spatialization + (1|S),
+                             data= d_primes, 
+                             control = lmerControl(optimizer = "bobyqa"))
 
+summary(posthoc_dprime_itd50)
 
+# ITD500 as reference
+d_primes$Spatialization <- relevel(d_primes$Spatialization, "ITD500")
+posthoc_dprime_itd500 <- lmer(DPrime ~ Spatialization + (1|S),
+                             data= d_primes, 
+                             control = lmerControl(optimizer = "bobyqa"))
+
+summary(posthoc_dprime_itd500)
+
+# ILD70n as reference
+d_primes$Spatialization <- relevel(d_primes$Spatialization, "ILD70n")
+posthoc_dprime_ild70n <- lmer(DPrime ~ Spatialization + (1|S),
+                             data= d_primes, 
+                             control = lmerControl(optimizer = "bobyqa"))
+
+summary(posthoc_dprime_ild70n)
+
+# ILD10 as reference
+d_primes$Spatialization <- relevel(d_primes$Spatialization, "ILD10")
+posthoc_dprime_ild10 <- lmer(DPrime ~ Spatialization + (1|S),
+                              data= d_primes, 
+                              control = lmerControl(optimizer = "bobyqa"))
+
+summary(posthoc_dprime_ild10)
 
 
 

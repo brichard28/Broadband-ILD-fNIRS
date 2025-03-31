@@ -188,72 +188,11 @@ z2_stg_speech <- mixed(MeanHb ~ Spatialization*Hemisphere + (1|S) + (1|Channel),
 z2_stg_speech
 
 # Significant interaction between spatialization and hemisphere
-# Pairwise Comparisons Spatialization
-all_data_cleaned_stg_speechhbo$Spatialization <- relevel(all_data_cleaned_stg_speechhbo$Spatialization, "ITD50")
-all_data_cleaned_stg_speechhbr$Spatialization <- relevel(all_data_cleaned_stg_speechhbr$Spatialization, "ITD50")
+# Pairwise Comparisons
 
-stg_speech_lmer_spatialization_itd50 <- lmer(MeanHb ~ Spatialization + (1|S),
-                                             data= all_data_cleaned_stg_speechhbo,
-                                             control = lmerControl(optimizer = "bobyqa"))
-summary(stg_speech_lmer_spatialization_itd50)
-
-all_data_cleaned_stg_speechhbo$Spatialization <- relevel(all_data_cleaned_stg_speechhbo$Spatialization, "ITD500")
-all_data_cleaned_stg_speechhbr$Spatialization <- relevel(all_data_cleaned_stg_speechhbr$Spatialization, "ITD500")
-
-stg_speech_lmer_spatialization_itd500 <- lmer(MeanHb ~ Spatialization + (1|S),
-                                             data= all_data_cleaned_stg_speechhbo,
-                                             control = lmerControl(optimizer = "bobyqa"))
-summary(stg_speech_lmer_spatialization_itd500)
-
-
-all_data_cleaned_stg_speechhbo$Spatialization <- relevel(all_data_cleaned_stg_speechhbo$Spatialization, "ILD70n")
-all_data_cleaned_stg_speechhbr$Spatialization <- relevel(all_data_cleaned_stg_speechhbr$Spatialization, "ILD70n")
-
-stg_speech_lmer_spatialization_ild70n <- lmer(MeanHb ~ Spatialization + (1|S),
-                                              data= all_data_cleaned_stg_speechhbo,
-                                              control = lmerControl(optimizer = "bobyqa"))
-summary(stg_speech_lmer_spatialization_ild70n)
-
-
-all_data_cleaned_stg_speechhbo$Spatialization <- relevel(all_data_cleaned_stg_speechhbo$Spatialization, "ILD10")
-all_data_cleaned_stg_speechhbr$Spatialization <- relevel(all_data_cleaned_stg_speechhbr$Spatialization, "ILD10")
-
-stg_speech_lmer_spatialization_ild10 <- lmer(MeanHb ~ Spatialization + (1|S),
-                                              data= all_data_cleaned_stg_speechhbo,
-                                              control = lmerControl(optimizer = "bobyqa"))
-summary(stg_speech_lmer_spatialization_ild10)
-
-
-# Pairwise Comparisons Hemisphere (treatment coding)
-# Set contra always as reference
-all_data_cleaned_stg_speechhbo$Hemisphere <- relevel(all_data_cleaned_stg_speechhbo$Hemisphere, "Contralateral")
-all_data_cleaned_stg_speechhbr$Hemisphere <- relevel(all_data_cleaned_stg_speechhbr$Hemisphere, "Contralateral")
-
-# Ipsi vs. Contra within ITD50
-# LANGUAGE FOR PAPER: for analyses where we examined effects of lateralization, we only included random by subject intercepts because models with random by channel intercepts failed to converge
-stg_speech_lmer_itd50 <- lmer(MeanHb ~ Hemisphere + (1|S),
-                              data= subset(all_data_cleaned_stg_speechhbo, Spatialization == "ITD50"),
-                              control = lmerControl(optimizer = "bobyqa"))
-#summary(stg_speech_lmer_itd50)
-
-# Ipsi vs. Contra within ITD500
-stg_speech_lmer_itd500 <- lmer(MeanHb ~ Hemisphere + (1|S),
-                              data= subset(all_data_cleaned_stg_speechhbo, Spatialization == "ITD500"),
-                              control = lmerControl(optimizer = "bobyqa"))
-#summary(stg_speech_lmer_itd500)
-
-# Ipsi vs. Contra within ILD70n
-stg_speech_lmer_ild70n <- lmer(MeanHb ~ Hemisphere + (1|S),
-                               data= subset(all_data_cleaned_stg_speechhbo, Spatialization == "ILD70n"),
-                               control = lmerControl(optimizer = "bobyqa"))
-#summary(stg_speech_lmer_ild70n)
-
-# Ipsi vs. Contra within ITD500
-stg_speech_lmer_ild10 <- lmer(MeanHb ~ Hemisphere + (1|S),
-                               data= subset(all_data_cleaned_stg_speechhbo, Spatialization == "ILD10"),
-                               control = lmerControl(optimizer = "bobyqa"))
-#summary(stg_speech_lmer_ild10)
-
+EMM_stg_speech <- emmeans(z2_stg_speech, ~ Spatialization * Hemisphere)
+pairs(EMM_stg_speech, simple = "Spatialization", adjust = "bonferroni")
+pairs(EMM_stg_speech, simple = "Hemisphere", adjust = "bonferroni")
 
 
 # STG, Noise Masker Model ####
@@ -268,79 +207,17 @@ z2_stg_noise <- mixed(MeanHb ~ Spatialization*Hemisphere + (1|S) + (1|Channel),
 z2_stg_noise
 
 # Significant interaction between spatialization and hemisphere
-
-# Pairwise Comparisons (treatment coding)
-# Set contra always as reference
-all_data_cleaned_stg_noisehbo$Hemisphere <- relevel(all_data_cleaned_stg_noisehbo$Hemisphere, "Contralateral")
-all_data_cleaned_stg_noisehbr$Hemisphere <- relevel(all_data_cleaned_stg_noisehbr$Hemisphere, "Contralateral")
-
-# Ipsi vs. Contra within ITD50
-stg_noise_lmer_itd50 <- lmer(MeanHb ~ Hemisphere + (1|S),
-                              data= subset(all_data_cleaned_stg_noisehbo, Spatialization == "ITD50"),
-                              control = lmerControl(optimizer = "bobyqa"))
-#summary(stg_noise_lmer_itd50)
-
-# Ipsi vs. Contra within ITD500
-stg_noise_lmer_itd500 <- lmer(MeanHb ~ Hemisphere + (1|S),
-                               data= subset(all_data_cleaned_stg_noisehbo, Spatialization == "ITD500"),
-                               control = lmerControl(optimizer = "bobyqa"))
-#summary(stg_noise_lmer_itd500)
-
-# Ipsi vs. Contra within ILD70n
-stg_noise_lmer_ild70n <- lmer(MeanHb ~ Hemisphere + (1|S),
-                               data= subset(all_data_cleaned_stg_noisehbo, Spatialization == "ILD70n"),
-                               control = lmerControl(optimizer = "bobyqa"))
-#summary(stg_noise_lmer_ild70n)
-
-# Ipsi vs. Contra within ITD500
-stg_noise_lmer_ild10 <- lmer(MeanHb ~ Hemisphere + (1|S),
-                              data= subset(all_data_cleaned_stg_noisehbo, Spatialization == "ILD10"),
-                              control = lmerControl(optimizer = "bobyqa"))
-# summary(stg_noise_lmer_ild10)
-
-
-# PFC Plot ####
-pfc_se_data_speechhbo <- summarySE(all_data_cleaned_pfc_speechhbo, measurevar="MeanHb", groupvars=c("S","Hemisphere","Spatialization"), na.rm = TRUE)
-pfc_se_data_speechhbo <- summarySE(pfc_se_data_speechhbo, measurevar="MeanHb", groupvars=c("Hemisphere","Spatialization"), na.rm = TRUE)
-plotspeech <- ggplot(pfc_se_data_speechhbo, aes(x=factor(Spatialization, level=c('ITD50', 'ITD500', 'ILD70n', 'ILD10')), y=MeanHb, shape = Hemisphere, color = Spatialization)) + 
-  scale_color_manual(values = c("ITD50" = "red","ITD500" =  "blue","ILD70n" = "magenta","ILD10" = "green")) +
-  geom_errorbar(aes(ymin=MeanHb-se, ymax=MeanHb+se), width=.1, position=position_dodge(width=0.5)) +
-  geom_point(aes(color = Spatialization),size = 4, position=position_dodge(width=0.5)) + 
-  ggtitle("Speech Masker PFC") +
-  labs(x="",y="Mean \u0394HbO") +
-  ylim(-0.12,0.12) +
-  scale_x_discrete(labels=c("ITD50" = "Small\nITD", "ITD500" = "Large\nITD","ILD70n" = "Natural\nILD","ILD10" = "Broadband\nILD")) +
-  theme_bw() +
-  theme(plot.title = element_text(size = 18), axis.title=element_text(size=18), axis.text.x= element_text(size=12), axis.text.y= element_text(size=12)) +
-  theme(legend.position="none")
-
-pfc_se_data_noisehbo <- summarySE(all_data_cleaned_pfc_noisehbo, measurevar="MeanHb", groupvars=c("S","Hemisphere","Spatialization"), na.rm = TRUE)
-pfc_se_data_noisehbo <- summarySE(pfc_se_data_noisehbo, measurevar="MeanHb", groupvars=c("Hemisphere","Spatialization"), na.rm = TRUE)
-plotnoise <- ggplot(pfc_se_data_noisehbo, aes(x=factor(Spatialization, level=c('ITD50', 'ITD500', 'ILD70n', 'ILD10')), y=MeanHb, shape = Hemisphere, color = Spatialization)) + 
-  scale_color_manual(values = c("ITD50" = "red","ITD500" =  "blue","ILD70n" = "magenta","ILD10" = "green"), guide = 'none') +
-  geom_errorbar(aes(ymin=MeanHb-se, ymax=MeanHb+se), width=.1, position=position_dodge(width=0.5)) +
-  geom_point(aes(color = Spatialization),size = 4, position=position_dodge(width=0.5)) + 
-  ggtitle("Noise Masker PFC") +
-  labs(x="",y="") +
-  ylim(-0.12,0.12) +
-  scale_x_discrete(labels=c("ITD50" = "Small\nITD", "ITD500" = "Large\nITD","ILD70n" = "Natural\nILD","ILD10" = "Broadband\nILD")) + 
-  theme_bw() + 
-  theme(plot.title = element_text(size = 18), axis.title=element_text(size=18), axis.text.x= element_text(size=12), axis.text.y= element_blank())
-
-grid.arrange(plotspeech, plotnoise, ncol=2,  widths = c(0.75, 1))
-
-
-
-
-
+EMM_stg_noise <- emmeans(z2_stg_noise, ~ Spatialization * Hemisphere)
+pairs(EMM_stg_noise, simple = "Spatialization", adjust = "bonferroni")
+pairs(EMM_stg_noise, simple = "Hemisphere", adjust = "bonferroni")
 
 # STG Plot ####
 stg_se_data_speechhbo <- summarySE(all_data_cleaned_stg_speechhbo, measurevar="MeanHb", groupvars=c("S","Hemisphere","Spatialization"), na.rm = TRUE)
 stg_se_data_speechhbo <- summarySE(stg_se_data_speechhbo, measurevar="MeanHb", groupvars=c("Hemisphere","Spatialization"), na.rm = TRUE)
 plotspeechhbo <- ggplot(stg_se_data_speechhbo, aes(x=factor(Spatialization, level=c('ITD50', 'ITD500', 'ILD70n', 'ILD10')), y=MeanHb, shape = Hemisphere)) + 
   scale_shape_manual(values = c("Contralateral"=24, "Ipsilateral" = 22)) +
-  geom_errorbar(aes(ymin=MeanHb-se, ymax=MeanHb+se), width=.1, position=position_dodge(width=0.5), color = "red") +
-  geom_point(aes(shape = Hemisphere),size = 4, position=position_dodge(width=0.5), color="red", fill="red") + 
+  geom_errorbar(aes(ymin=MeanHb-se, ymax=MeanHb+se), width=.1, position=position_dodge(width=0.5)) +
+  geom_point(aes(),size = 4, position=position_dodge(width=0.5), color="red", fill="red") + 
   ggtitle("Speech Masker") +
   labs(x="",y="Mean \u0394HbO") +
   ylim(0,0.19) +
@@ -349,21 +226,21 @@ plotspeechhbo <- ggplot(stg_se_data_speechhbo, aes(x=factor(Spatialization, leve
   theme(plot.title = element_text(size = 18), axis.title=element_text(size=18), axis.text.x= element_text(size=12), axis.text.y= element_text(size=12)) +
   theme(legend.position="none") +
   geom_signif(xmin = c(0.9,1.9,2.9,3.9), xmax = c(1.1,2.1,3.1,4.1), y_position = c(0.11, 0.11, 0.11, 0.11), tip_length = 0.06, color="black", annotation = c("*","ns","ns","ns"), textsize = 5) +
-  geom_signif(xmin = c(1,2,3), xmax = c(4,4,4), y_position = c(0.13, 0.15, 0.17), tip_length = 0.06, color="black", annotation = c("**","ns","p = 0.056"), textsize = 5)
+  geom_signif(xmin = c(1,2,3), xmax = c(4,4,4), y_position = c(0.13, 0.15, 0.17), tip_length = 0.06, color="black", annotation = c("*","ns","p = 0.0624"), textsize = 5)
 
 stg_se_data_noisehbo <- summarySE(all_data_cleaned_stg_noisehbo, measurevar="MeanHb", groupvars=c("S","Hemisphere","Spatialization"), na.rm = TRUE)
 stg_se_data_noisehbo <- summarySE(stg_se_data_noisehbo, measurevar="MeanHb", groupvars=c("Hemisphere","Spatialization"), na.rm = TRUE)
 plotnoisehbo <- ggplot(stg_se_data_noisehbo, aes(x=factor(Spatialization, level=c('ITD50', 'ITD500', 'ILD70n', 'ILD10')), y=MeanHb, shape  = Hemisphere)) + 
   scale_shape_manual(values = c("Contralateral"=24, "Ipsilateral" = 22)) +
-  geom_errorbar(aes(ymin=MeanHb-se, ymax=MeanHb+se), width=.1, position=position_dodge(width=0.5), color = "red") +
-  geom_point(aes(shape = Hemisphere),size = 4, position=position_dodge(width=0.5), color="red", fill="red") + 
+  geom_errorbar(aes(ymin=MeanHb-se, ymax=MeanHb+se), width=.1, position=position_dodge(width=0.5)) +
+  geom_point(aes(),size = 4, position=position_dodge(width=0.5), color="red", fill="red") + 
   ggtitle("Noise Masker") +
   labs(x="",y="") +
   ylim(0,0.19) +
   scale_x_discrete(labels=c("ITD50" = "", "ITD500" = "","ILD70n" = "","ILD10" = "")) + 
   theme_bw() + 
   theme(plot.title = element_text(size = 18), axis.title=element_text(size=18), axis.text.x= element_text(size=12), axis.text.y= element_blank()) +
-  geom_signif(xmin = c(0.9,1.9,2.9,3.9), xmax = c(1.1,2.1,3.1,4.1), y_position = c(0.11, 0.11, 0.11, 0.11), tip_length = 0.06, color="black", annotation = c("**","ns","ns","ns"), textsize = 5)
+  geom_signif(xmin = c(0.9,1.9,2.9,3.9), xmax = c(1.1,2.1,3.1,4.1), y_position = c(0.11, 0.11, 0.11, 0.11), tip_length = 0.06, color="black", annotation = c("**","ns","ns","p = 0.077"), textsize = 5)
 
 
 stg_se_data_speechhbr <- summarySE(all_data_cleaned_stg_speechhbr, measurevar="MeanHb", groupvars=c("S","Hemisphere","Spatialization"), na.rm = TRUE)
@@ -371,8 +248,8 @@ stg_se_data_speechhbr <- summarySE(stg_se_data_speechhbr, measurevar="MeanHb", g
 
 plotspeechhbr <- ggplot(stg_se_data_speechhbr, aes(x=factor(Spatialization, level=c('ITD50', 'ITD500', 'ILD70n', 'ILD10')), y=MeanHb, shape = Hemisphere)) + 
   scale_shape_manual(values = c("Contralateral"=24, "Ipsilateral" = 22)) +
-  geom_errorbar(aes(ymin=MeanHb-se, ymax=MeanHb+se), width=.1, position=position_dodge(width=0.5), color = "blue") +
-  geom_point(aes(shape = Hemisphere),size = 4, position=position_dodge(width=0.5), color="blue", fill="blue") + 
+  geom_errorbar(aes(ymin=MeanHb-se, ymax=MeanHb+se), width=.1, position=position_dodge(width=0.5)) +
+  geom_point(aes(),size = 4, position=position_dodge(width=0.5), color="blue", fill="blue") + 
   labs(x="",y="Mean \u0394HbR") +
   ylim(-0.03,0.005) +
   scale_x_discrete(labels=c("ITD50" = "Small\nITD", "ITD500" = "Large\nITD","ILD70n" = "Natural\nILD","ILD10" = "Broadband\nILD")) +
@@ -386,8 +263,8 @@ stg_se_data_noisehbr <- summarySE(stg_se_data_noisehbr, measurevar="MeanHb", gro
 
 plotnoisehbr <- ggplot(stg_se_data_noisehbr, aes(x=factor(Spatialization, level=c('ITD50', 'ITD500', 'ILD70n', 'ILD10')), y=MeanHb, shape  = Hemisphere)) + 
   scale_shape_manual(values = c("Contralateral"=24, "Ipsilateral" = 22)) +
-  geom_errorbar(aes(ymin=MeanHb-se, ymax=MeanHb+se), width=.1, position=position_dodge(width=0.5), color = "blue") +
-  geom_point(aes(shape = Hemisphere),size = 4, position=position_dodge(width=0.5), color="blue", fill="blue") + 
+  geom_errorbar(aes(ymin=MeanHb-se, ymax=MeanHb+se), width=.1, position=position_dodge(width=0.5)) +
+  geom_point(aes(),size = 4, position=position_dodge(width=0.5), color="blue", fill="blue") + 
   labs(x="",y="") +
   ylim(-0.03,0.005) +
   scale_x_discrete(labels=c("ITD50" = "Small\nITD", "ITD500" = "Large\nITD","ILD70n" = "Natural\nILD","ILD10" = "Broadband\nILD")) + 

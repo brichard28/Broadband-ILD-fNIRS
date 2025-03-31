@@ -1,5 +1,3 @@
-
-
 library(tidyverse)
 library(ggpubr)
 library(ggplot2)
@@ -159,7 +157,7 @@ plotspeechhbo <- ggplot(subset(pfc_se_data_speech_all, chromophore == "HbO"), ae
   geom_point(aes(),size = 4, position=position_dodge(width=0.5)) +
   ggtitle("Speech Masker") +
   labs(x="",y="Mean \u0394HbO (\u03BCM)") + # 
-  ylim(0,0.12) +
+  ylim(0,0.125) +
   theme_bw() +
   theme(plot.title = element_text(size = 18), axis.title=element_text(size=18), axis.text.x= element_text(size=12), axis.text.y= element_text(size=12)) +
   scale_x_discrete(labels=c("ITD50" = "", "ITD500" = "","ILD70n" = "","ILD10" = "")) +
@@ -181,7 +179,7 @@ plotnoisehbo <- ggplot(subset(pfc_se_data_noise_all, chromophore == "HbO"), aes(
   geom_point(aes(),size = 4, position=position_dodge(width=0.5)) +
   ggtitle("Noise Masker") +
   labs(x="",y="") +
-  ylim(0,0.12) +
+  ylim(0,0.125) +
   theme_bw() +
   theme(plot.title = element_text(size = 18), axis.title=element_text(size=18), axis.text.x= element_text(size=12), axis.text.y= element_blank()) +
   scale_x_discrete(labels=c("ITD50" = "", "ITD500" = "","ILD70n" = "","ILD10" = "")) +
@@ -198,13 +196,89 @@ plotspeechhbr <- ggplot(subset(pfc_se_data_speech_all, chromophore == "HbR"), ae
   geom_errorbar(aes(ymin=MeanHb-se, ymax=MeanHb+se), width=.1, position=position_dodge(width=0.5)) +
   geom_point(aes(),size = 4, position=position_dodge(width=0.5)) +
   labs(x="",y="Mean \u0394HbR (\u03BCM)") + #
-  ylim(-0.025,0) +
+  ylim(-0.025,0.005) +
   theme_bw() +
   theme(plot.title = element_text(size = 18), axis.title=element_text(size=18), axis.text.x= element_text(size=12), axis.text.y= element_text(size=12)) +
   scale_x_discrete(labels=c("ITD50" = "Small\nITD", "ITD500" = "Large\nITD","ILD70n" = "Natural\nILD","ILD10" = "Broadband\nILD")) +
   theme(legend.position="none")
 # Noise HbR
 plotnoisehbr <- ggplot(subset(pfc_se_data_noise_all, chromophore == "HbR"), aes(x=factor(Spatialization, level=c('ITD50', 'ITD500', 'ILD70n', 'ILD10')), y=MeanHb, shape = Spatialization, fill = "blue")) + 
+  scale_shape_manual(values = c("ITD50"=21, "ITD500" = 21, "ILD70n" = 21, "ILD10" = 21)) +
+  scale_fill_manual(values = "blue") +
+  scale_color_manual(values = "blue") +
+  geom_errorbar(aes(ymin=MeanHb-se, ymax=MeanHb+se), width=.1, position=position_dodge(width=0.5)) +
+  geom_point(aes(),size = 4, position=position_dodge(width=0.5)) +
+  labs(x="",y="") +
+  ylim(-0.025,0.005) +
+  theme_bw() +
+  theme(plot.title = element_text(size = 18), axis.title=element_text(size=18), axis.text.x= element_text(size=12), axis.text.y= element_blank()) +
+  scale_x_discrete(labels=c("ITD50" = "Small\nITD", "ITD500" = "Large\nITD","ILD70n" = "Natural\nILD","ILD10" = "Broadband\nILD")) +
+  theme(legend.position="none")
+
+grid.arrange(plotspeechhbo,plotnoisehbo, plotspeechhbr,plotnoisehbr, ncol=2, widths = c(1,0.9), heights = c(4,2))
+
+
+
+
+
+
+##### STG Plot HbO ##########
+
+# Speech HbO
+stg_se_data_speech_all <- summarySE(all_data_stg_speech, measurevar="MeanHb", groupvars=c("S","Masker","Spatialization","chromophore"), na.rm = TRUE)
+stg_se_data_speech_all <- summarySE(stg_se_data_speech_all, measurevar="MeanHb", groupvars=c("Masker","Spatialization","chromophore"), na.rm = TRUE)
+
+plotspeechhbo <- ggplot(subset(stg_se_data_speech_all, chromophore == "HbO"), aes(x=factor(Spatialization, level=c('ITD50', 'ITD500', 'ILD70n', 'ILD10')), y=MeanHb, shape = Spatialization, fill = "red")) + 
+  scale_shape_manual(values = c("ITD50"=21, "ITD500" = 21, "ILD70n" = 21, "ILD10" = 21)) +
+  scale_fill_manual(values = "red") +
+  scale_color_manual(values = "red") +
+  geom_errorbar(aes(ymin=MeanHb-se, ymax=MeanHb+se), width=.1, position=position_dodge(width=0.5)) +
+  geom_point(aes(),size = 4, position=position_dodge(width=0.5)) +
+  ggtitle("Speech Masker STG") +
+  labs(x="",y="Mean \u0394HbO (\u03BCM)") + # 
+  ylim(0,0.12) +
+  theme_bw() +
+  theme(plot.title = element_text(size = 18), axis.title=element_text(size=18), axis.text.x= element_text(size=12), axis.text.y= element_text(size=12)) +
+  scale_x_discrete(labels=c("ITD50" = "", "ITD500" = "","ILD70n" = "","ILD10" = "")) +
+  theme(legend.position="none") +
+  
+  # Noise HbO
+  
+  stg_se_data_noise_all <- summarySE(all_data_stg_noise, measurevar="MeanHb", groupvars=c("S","Masker","Spatialization","chromophore"), na.rm = TRUE)
+stg_se_data_noise_all <- summarySE(stg_se_data_noise_all, measurevar="MeanHb", groupvars=c("Masker","Spatialization","chromophore"), na.rm = TRUE)
+
+plotnoisehbo <- ggplot(subset(stg_se_data_noise_all, chromophore == "HbO"), aes(x=factor(Spatialization, level=c('ITD50', 'ITD500', 'ILD70n', 'ILD10')), y=MeanHb, shape = Spatialization, fill = "red")) + 
+  scale_shape_manual(values = c("ITD50"=21, "ITD500" = 21, "ILD70n" = 21, "ILD10" = 21)) +
+  scale_fill_manual(values = "red") +
+  scale_color_manual(values = "red") +
+  geom_errorbar(aes(ymin=MeanHb-se, ymax=MeanHb+se), width=.1, position=position_dodge(width=0.5)) +
+  geom_point(aes(),size = 4, position=position_dodge(width=0.5)) +
+  ggtitle("Noise Masker STG") +
+  labs(x="",y="") +
+  ylim(0,0.12) +
+  theme_bw() +
+  theme(plot.title = element_text(size = 18), axis.title=element_text(size=18), axis.text.x= element_text(size=12), axis.text.y= element_blank()) +
+  scale_x_discrete(labels=c("ITD50" = "", "ITD500" = "","ILD70n" = "","ILD10" = "")) +
+  theme(legend.position="none")
+
+
+##### STG Plot HbR ##########
+
+# Speech HbR
+plotspeechhbr <- ggplot(subset(stg_se_data_speech_all, chromophore == "HbR"), aes(x=factor(Spatialization, level=c('ITD50', 'ITD500', 'ILD70n', 'ILD10')), y=MeanHb, shape = Spatialization, fill = "blue")) + 
+  scale_shape_manual(values = c("ITD50"=21, "ITD500" = 21, "ILD70n" = 21, "ILD10" = 21)) +
+  scale_fill_manual(values = "blue") +
+  scale_color_manual(values = "blue") +
+  geom_errorbar(aes(ymin=MeanHb-se, ymax=MeanHb+se), width=.1, position=position_dodge(width=0.5)) +
+  geom_point(aes(),size = 4, position=position_dodge(width=0.5)) +
+  labs(x="",y="Mean \u0394HbR (\u03BCM)") + #
+  ylim(-0.025,0) +
+  theme_bw() +
+  theme(plot.title = element_text(size = 18), axis.title=element_text(size=18), axis.text.x= element_text(size=12), axis.text.y= element_text(size=12)) +
+  scale_x_discrete(labels=c("ITD50" = "Small\nITD", "ITD500" = "Large\nITD","ILD70n" = "Natural\nILD","ILD10" = "Broadband\nILD")) +
+  theme(legend.position="none")
+# Noise HbR
+plotnoisehbr <- ggplot(subset(stg_se_data_noise_all, chromophore == "HbR"), aes(x=factor(Spatialization, level=c('ITD50', 'ITD500', 'ILD70n', 'ILD10')), y=MeanHb, shape = Spatialization, fill = "blue")) + 
   scale_shape_manual(values = c("ITD50"=21, "ITD500" = 21, "ILD70n" = 21, "ILD10" = 21)) +
   scale_fill_manual(values = "blue") +
   scale_color_manual(values = "blue") +
@@ -218,55 +292,7 @@ plotnoisehbr <- ggplot(subset(pfc_se_data_noise_all, chromophore == "HbR"), aes(
   theme(legend.position="none")
 
 grid.arrange(plotspeechhbo,plotnoisehbo, plotspeechhbr,plotnoisehbr, ncol=2, widths = c(1,0.9), heights = c(4,2))
-# plots <- list(plotspeechhbo,plotnoisehbo, plotspeechhbr,plotnoisehbr)
-# grobs <- lapply(plots, ggplotGrob)
-# # for gridExtra < v2.3, use do.call(gridExtra::rbind.gtable, grobs)
-# # for gridExtra >= v2.3 use:
-# g <- do.call(gridExtra::gtable_rbind, grobs)
-# 
-# library(grid)
-# grid.newpage()
-# grid.draw(g)
 
-######### STG Plot ###############
-
-stg_se_data_speech_all <- summarySE(all_data_stg_speech, measurevar="MeanHb", groupvars=c("S","Masker","Spatialization","chromophore"), na.rm=TRUE)
-stg_se_data_speech_all <- summarySE(stg_se_data_speech_all, measurevar="MeanHb", groupvars=c("Masker","Spatialization","chromophore"),  na.rm=TRUE)
-plotspeech <- ggplot(subset(stg_se_data_speech_all, chromophore == "HbO"), aes(x=factor(Spatialization, level=c('ITD50', 'ITD500', 'ILD70n', 'ILD10')), y=MeanHb, color = Spatialization)) + 
-  scale_shape_manual(values = c("ITD50"=21, "ITD500" = 21, "ILD70n" = 21, "ILD10" = 21)) +
-  scale_fill_manual(values = "black") +
-  scale_color_manual(values = "black") +
-  geom_errorbar(aes(ymin=MeanHb-se, ymax=MeanHb+se, color=Spatialization), width=.1, position=position_dodge(width=0.5)) +
-  geom_point(aes(color = Spatialization),size = 4, position=position_dodge(width=0.5)) +  
-  ggtitle("Speech Masker STG") +
-  labs(x="",y="Mean \u0394HbO (\u03BCM)", parse=TRUE) +
-  ylim(-0.025,0.12) +
-  theme_bw() +
-  theme(plot.title = element_text(size = 18), axis.title=element_text(size=18), axis.text.x= element_text(size=12), axis.text.y= element_text(size=12)) +
-  scale_x_discrete(labels=c("ITD50" = "Small\nITD", "ITD500" = "Large\nITD","ILD70n" = "Natural\nILD","ILD10" = "Broadband\nILD")) +
-  theme(legend.position="none")
-  #geom_signif(comparisons = list(c("ITD50","ILD10")), y_position = 0.090, tip_length = 0, color="black", annotation = c("**"), textsize = 5) +
-  #geom_signif(comparisons = list(c("ITD500","ILD10")), y_position = 0.080, tip_length = 0, color="black", annotation =c("*"), textsize = 5) +
-  #geom_signif(comparisons = list(c("ILD70n","ILD10")), y_position = 0.070, tip_length = 0, color="black", annotation =c("**"), textsize = 5) 
-
-
-stg_se_data_noise_all <- summarySE(all_data_stg_noise, measurevar="MeanHb", groupvars=c("S","Masker","Spatialization","chromophore"), na.rm=TRUE)
-stg_se_data_noise_all <- summarySE(stg_se_data_noise_all, measurevar="MeanHb", groupvars=c("Masker","Spatialization","chromophore"),  na.rm=TRUE)
-plotnoise <- ggplot(subset(stg_se_data_noise_all, chromophore == "HbO"), aes(x=factor(Spatialization, level=c('ITD50', 'ITD500', 'ILD70n', 'ILD10')), y=MeanHb, color = Spatialization)) + 
-  scale_shape_manual(values = c("ITD50"=21, "ITD500" = 21, "ILD70n" = 21, "ILD10" = 21)) +
-  scale_fill_manual(values = "black") +
-  scale_color_manual(values = "black") +
-  geom_errorbar(aes(ymin=MeanHb-se, ymax=MeanHb+se, color=Spatialization), width=.1, position=position_dodge(width=0.5)) +
-  geom_point(aes(color = Spatialization),size = 4, position=position_dodge(width=0.5)) +  
-  ggtitle("Noise Masker STG") +
-  labs(x="", y="") +
-  ylim(-0.025,0.12) +
-  theme_bw() +
-  theme(plot.title = element_text(size = 18), axis.title=element_text(size=18), axis.text.x= element_text(size=12), axis.text.y= element_blank()) +
-  scale_x_discrete(labels=c("ITD50" = "Small\nITD", "ITD500" = "Large\nITD","ILD70n" = "Natural\nILD","ILD10" = "Broadband\nILD")) +
-  theme(legend.position="none") 
-
-grid.arrange(plotspeech,plotnoise, ncol=2, widths = c(1,0.9))
 
 
 

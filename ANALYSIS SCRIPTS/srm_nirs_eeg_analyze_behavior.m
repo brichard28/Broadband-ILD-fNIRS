@@ -85,7 +85,7 @@ for isubject = 1:size(subject_ID,1) % For each subject...
         click_distances_to_remove = find(click_distances < 0.2);
         this_trial_click_times(click_distances_to_remove + 1) = [];
 
-        this_trial_click_times = this_trial_click_times + 0.702;
+        %this_trial_click_times = this_trial_click_times + 0.702;
 
         this_trial_target_all = WordTimesTable(string(WordTimesTable.Condition) == this_trial_masker & WordTimesTable.Run == this_trial_run & string(WordTimesTable.Type) == 'Target',4:end);
         this_trial_target_words = table2array(this_trial_target_all(:,1:2:end));
@@ -114,8 +114,8 @@ for isubject = 1:size(subject_ID,1) % For each subject...
 %         
        %% Hit and False Alarm Windows
 
-       threshold_window_start = 1.0; %0.2
-       threshold_window_end =  2.0; % 1.0
+       threshold_window_start = 0.3; %0.2
+       threshold_window_end =  1.5; % 1.0
        tVec = 0:1/44100:16;
        hit_windows = zeros(1,length(tVec)); % create an empty array to define hit windows
        FA_windows = zeros(1,length(tVec)); % create an empty array to define false alarm windows

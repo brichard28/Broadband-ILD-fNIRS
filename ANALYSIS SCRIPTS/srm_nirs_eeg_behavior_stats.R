@@ -86,7 +86,7 @@ hit_rates[, to.factor] <- lapply(hit_rates[, to.factor], as.factor)
 
 model_hitrate <- mixed(HitRate ~ Spatialization*Masker + (1|S),
                 data= hit_rates, 
-                control = lmerControl(optimizer = "bobyqa"))
+                control = lmerControl(optimizer = "bobyqa"), method = 'LRT')
 
 model_hitrate
 
@@ -179,7 +179,7 @@ to.factor <- c('S','Spatialization')
 FA_rates[, to.factor] <- lapply(FA_rates[, to.factor], as.factor)
 
 # LMEM
-model_farate <- mixed(FARate ~ Spatialization + (1|S),data= FA_rates,control = lmerControl(optimizer = "bobyqa"))
+model_farate <- mixed(FARate ~ Spatialization + (1|S),data= FA_rates,control = lmerControl(optimizer = "bobyqa"), method = 'LRT')
 
 model_farate
 

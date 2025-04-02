@@ -6,6 +6,7 @@ library(rstatix)
 library(afex)
 library(dplyr)
 library(car)
+library(emmans)
 
 # Data Preparation ####
 # Load in Data

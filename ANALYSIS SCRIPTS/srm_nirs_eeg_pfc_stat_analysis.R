@@ -240,7 +240,7 @@ plotspeechhbo <- ggplot(subset(stg_se_data_speech_all, chromophore == "HbO"), ae
   theme_bw() +
   theme(plot.title = element_text(size = 18), axis.title=element_text(size=18), axis.text.x= element_text(size=12), axis.text.y= element_text(size=12)) +
   scale_x_discrete(labels=c("ITD50" = "", "ITD500" = "","ILD70n" = "","ILD10" = "")) +
-  theme(legend.position="none") +
+  theme(legend.position="none")
   
   # Noise HbO
   
@@ -312,28 +312,28 @@ all_data_cleaned_pfc_speech_hbo$Spatialization <- relevel(all_data_cleaned_pfc_s
 pfc_speech_lmer_itd50 <- lmer(MeanHb ~ Spatialization + (1|S) + (1|Channel),
                               data= all_data_cleaned_pfc_speech_hbo,
                               control = lmerControl(optimizer = "bobyqa"))#
-#summary(pfc_speech_lmer_itd50)
+summary(pfc_speech_lmer_itd50)
 
 # ITD500 as reference
 all_data_cleaned_pfc_speech_hbo$Spatialization <- relevel(all_data_cleaned_pfc_speech_hbo$Spatialization, "ITD500")
 pfc_speech_lmer_itd500 <- lmer(MeanHb ~ Spatialization + (1|S) + (1|Channel),
                                data= all_data_cleaned_pfc_speech_hbo,
                                control = lmerControl(optimizer = "bobyqa"))#
-#summary(pfc_speech_lmer_itd500)
+summary(pfc_speech_lmer_itd500)
 
 # ILD70n as reference
 all_data_cleaned_pfc_speech_hbo$Spatialization <- relevel(all_data_cleaned_pfc_speech_hbo$Spatialization, "ILD70n")
 pfc_speech_lmer_ild70n <- lmer(MeanHb ~ Spatialization + (1|S) + (1|Channel),
                                data= all_data_cleaned_pfc_speech_hbo,
                                control = lmerControl(optimizer = "bobyqa"))#
-#summary(pfc_speech_lmer_ild70n)
+summary(pfc_speech_lmer_ild70n)
 
 # ILD10 as reference
 all_data_cleaned_pfc_speech_hbo$Spatialization <- relevel(all_data_cleaned_pfc_speech_hbo$Spatialization, "ILD10")
 pfc_speech_lmer_ild10 <- lmer(MeanHb ~ Spatialization + (1|S) + (1|Channel),
                               data= all_data_cleaned_pfc_speech_hbo,
                               control = lmerControl(optimizer = "bobyqa"))#
-#summary(pfc_speech_lmer_ild10)
+summary(pfc_speech_lmer_ild10)
 
 
 
@@ -445,4 +445,7 @@ model_stg_noise_hbr <- mixed(MeanHb ~ Spatialization + (1|S) + (1|Channel),
                              data= all_data_cleaned_stg_noise_hbr, 
                              control = lmerControl(optimizer = "bobyqa"), method = 'LRT')
 model_stg_noise_hbr
+
+
+
 

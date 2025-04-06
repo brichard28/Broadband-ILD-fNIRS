@@ -15,7 +15,6 @@ import os
 import pandas as pd
 from collections import defaultdict
 
-mne.set_config('MNE_BROWSER_BACKEND', 'qt')
 #from nirx_movement import mark_aux_movement_bad
 import mne_nirs
 from mne_nirs.experimental_design import make_first_level_design_matrix
@@ -44,7 +43,7 @@ from mpl_toolkits.mplot3d import Axes3D
 wdir = os.path.dirname(__file__)
 
 # Define Subject Files
-data_root = 'C:/Users/benri/Downloads/SRM-NIRS-EEG-RESULTS/' #'C:/Users/elibu/Documents/NIRx/Data/Ben_SvN/'
+data_root = '/home/ben/Downloads/' #'C:/Users/elibu/Documents/NIRx/Data/Ben_SvN/'
 
 all_fnirs_data_folders = [data_root + '2023-09-21/2023-09-21_001',
                           data_root + '2023-09-25/2023-09-25_001',
@@ -77,6 +76,8 @@ all_fnirs_data_folders = [data_root + '2023-09-21/2023-09-21_001',
                           data_root + '2024-07-02/2024-07-02_001',
                           data_root + '2024-07-02/2024-07-02_002']
 
+
+
 subject_ID = ['NDARVX753BR6','NDARZD647HJ1','NDARBL382XK5','NDARGF569BF3','NDARBA306US5',
                 'NDARFD284ZP3','NDARAS648DT4','NDARLM531OY3','NDARXL287BE1','NDARRF358KO3','NDARGT639XS6','NDARDC882NK4',
                 'NDARWB491KR3','NDARNL224RR9','NDARTT639AB1','NDARAZC45TW3',
@@ -85,7 +86,7 @@ subject_ID = ['NDARVX753BR6','NDARZD647HJ1','NDARBL382XK5','NDARGF569BF3','NDARB
                 'NDARHUG535MO',
                 'NDARFIN244AL','NDARKAI888JU','NDARBAA679HA',
                 'NDARUXL573SS',
-                'NDARMOL966PB','NDARGHM426BL','NDARSEW256ZA']  
+                'NDARMOL966PB','NDARGHM426BL','NDARSEW256ZA']
 
 masker_type = 'noise' # type of masker to analyze on this run
 glm_dur = 5
@@ -338,14 +339,14 @@ for ii, subject_num in enumerate(range(n_subjects)):
         events, event_dict = mne.events_from_annotations(data, verbose=False)
     
         raw_haemo_temp, null = preprocess_NIRX(data, data_snirf, event_dict,
-                                               save=True,
+                                               save=False,
                                                savename=save_dir + f'{subject}_{task_type}_preproc_nirs.fif',
-                                               plot_steps=True,
+                                               plot_steps=False,
                                                crop=False, crop_low=0, crop_high=0,
                                                events_modification=False, reject=True,
                                                short_regression=True, events_from_snirf=False,
                                                drop_short=False, negative_enhancement=False,
-                                               snr_thres=3, sci_thres=0.8, filter_type='iir', filter_limits=[0.01, 0.3])
+                                               snr_thres=1.5, sci_thres=0.6, filter_type='iir', filter_limits=[0.01, 0.3])
     
         raw_haemo_short = get_short_channels(raw_haemo_temp)
         raw_haemo_filt = get_long_channels(raw_haemo_temp)
@@ -405,15 +406,15 @@ for ii, subject_num in enumerate(range(n_subjects)):
     # ---------------------------------------------------------------
     # -------------               Epoching                  ---------
     # ---------------------------------------------------------------
-    reject_criteria = dict(hbo=5e-6)#5e-6
+    #reject_criteria = dict(hbo=5e-6)#5e-6
     #flat_criteria = dict(hbo=0.05e-6)
     tmin, tmax = -5, 20
 
     epochs = mne.Epochs(raw_haemo_filt, events,  # events_block,
                         event_id=event_dict,  # event_dict_total,
                         tmin=tmin, tmax=tmax,
-                        baseline= None, # (-5, 0)
-                        reject = reject_criteria,
+                        baseline= (tmin, 0),
+                       # reject = reject_criteria,
                        # flat = flat_criteria,
                         preload=True, detrend=None, verbose=True,
                         on_missing='warn')
@@ -471,19 +472,7 @@ for ii, subject_num in enumerate(range(n_subjects)):
         data_itd500_avg_hbr[ichannel,:] = np.nanmean(data_itd500_hbr[:,ichannel,:]  -  np.nanmean(data_itd500_hbr[:,ichannel,0:int(5*fs)], axis = (0,1)), axis=0)
         data_ild70n_avg_hbr[ichannel,:] = np.nanmean(data_ild70n_hbr[:,ichannel,:]  -  np.nanmean(data_ild70n_hbr[:,ichannel,0:int(5*fs)], axis = (0,1)), axis=0)
         data_ild10_avg_hbr[ichannel,:] = np.nanmean(data_ild10_hbr[:,ichannel,:]  -  np.nanmean(data_ild10_hbr[:,ichannel,0:int(5*fs)], axis = (0,1)), axis=0)
-    
-    # for ichannel in range(len(chan_indices_good)):
-        
-    #     data_itd50_avg[ichannel,:] = np.nanmean(data_itd50[:,ichannel,:], axis=0)
-    #     data_itd500_avg[ichannel,:] = np.nanmean(data_itd500[:,ichannel,:], axis=0)
-    #     data_ild70n_avg[ichannel,:] = np.nanmean(data_ild70n[:,ichannel,:], axis=0)
-    #     data_ild10_avg[ichannel,:] = np.nanmean(data_ild10[:,ichannel,:], axis=0)
-        
-    #     data_itd50_avg_hbr[ichannel,:] = np.nanmean(data_itd50_hbr[:,ichannel,:], axis=0)
-    #     data_itd500_avg_hbr[ichannel,:] = np.nanmean(data_itd500_hbr[:,ichannel,:], axis=0)
-    #     data_ild70n_avg_hbr[ichannel,:] = np.nanmean(data_ild70n_hbr[:,ichannel,:], axis=0)
-    #     data_ild10_avg_hbr[ichannel,:] = np.nanmean(data_ild10_hbr[:,ichannel,:], axis=0)
-    
+
     # need to mark the indices where the good channels are!
 
     # put into a larger array with all subjects data!
@@ -507,41 +496,6 @@ for ii, subject_num in enumerate(range(n_subjects)):
     subject_data_ild70n_hbr_baselined = subject_data_ild70n_hbr.copy()
     subject_data_ild10_hbr_baselined = subject_data_ild10_hbr.copy()
     
-
-    # for ichannel in range(n_long_channels):
-    #     subject_data_itd50_baselined[ii,ichannel,:] = (subject_data_itd50[ii,ichannel,:]  - np.nanmean(subject_data_itd50[:,ichannel,0:int(5*fs)], axis=(0,1)))#/np.nanstd(subject_data_itd50[:,:,0:int(5*fs)], axis=(0,1,2))
-    #     subject_data_itd500_baselined[ii,ichannel,:]  = (subject_data_itd500[ii,ichannel,:]  - np.nanmean(subject_data_itd500[:,ichannel,0:int(5*fs)], axis=(0,1)))#/np.nanstd(subject_data_itd500[:,:,0:int(5*fs)], axis=(0,1,2))
-    #     subject_data_ild70n_baselined[ii,ichannel,:]  = (subject_data_ild70n[ii,ichannel,:]  - np.nanmean(subject_data_ild70n[:,ichannel,0:int(5*fs)], axis=(0,1)))#/np.nanstd(subject_data_ild70n[:,:,0:int(5*fs)], axis=(0,1,2))
-    #     subject_data_ild10_baselined[ii,ichannel,:]  = (subject_data_ild10[ii,ichannel,:]  - np.nanmean(subject_data_ild10[:,ichannel,0:int(5*fs)], axis=(0,1)))#/np.nanstd(subject_data_ild10[:,:,0:int(5*fs)], axis=(0,1,2))
-        
-    #     subject_data_itd50_hbr_baselined[ii,ichannel,:]  = (subject_data_itd50_hbr[ii,ichannel,:]  - np.nanmean(subject_data_itd50_hbr[:,ichannel,0:int(5*fs)], axis=(0,1)))#/np.nanstd(subject_data_itd50_hbr[:,:,0:int(5*fs)], axis=(0,1,2))
-    #     subject_data_itd500_hbr_baselined[ii,ichannel,:]  = (subject_data_itd500_hbr[ii,ichannel,:]  - np.nanmean(subject_data_itd500_hbr[:,ichannel,0:int(5*fs)], axis=(0,1)))#/np.nanstd(subject_data_itd500_hbr[:,:,0:int(5*fs)], axis=(0,1,2))
-    #     subject_data_ild70n_hbr_baselined[ii,ichannel,:]  = (subject_data_ild70n_hbr[ii,ichannel,:]  - np.nanmean(subject_data_ild70n_hbr[:,ichannel,0:int(5*fs)], axis=(0,1)))#/np.nanstd(subject_data_ild70n_hbr[:,:,0:int(5*fs)], axis=(0,1,2))
-    #     subject_data_ild10_hbr_baselined[ii,ichannel,:]  = (subject_data_ild10_hbr[ii,ichannel,:]  - np.nanmean(subject_data_ild10_hbr[:,ichannel,0:int(5*fs)], axis=(0,1)))#/np.nanstd(subject_data_ild10_hbr[:,:,0:int(5*fs)], axis=(0,1,2))
-
-
-    #plot for this subject
-    # fig, axes = plt.subplots(4, 2)
-    # curr_ax = axes[0, 0]
-    # curr_ax.plot(np.transpose(subject_data_itd50_baselined[ii, :, :]), 'r')
-    # curr_ax = axes[1, 0]
-    # curr_ax.plot(np.transpose(subject_data_itd50_baselined[ii, :, :]), 'r')
-    # curr_ax = axes[2, 0]
-    # curr_ax.plot(np.transpose(subject_data_itd50_baselined[ii, :, :]), 'r')
-    # curr_ax = axes[3, 0]
-    # curr_ax.plot(np.transpose(subject_data_itd50_baselined[ii, :, :]), 'r')
-    
-    # curr_ax = axes[0, 1]
-    # curr_ax.plot(np.transpose(subject_data_itd50_hbr_baselined[ii, :, :]), 'b')
-    # curr_ax = axes[1, 1]
-    # curr_ax.plot(np.transpose(subject_data_itd50_hbr_baselined[ii, :, :]), 'b')
-    # curr_ax = axes[2, 1]
-    # curr_ax.plot(np.transpose(subject_data_itd50_hbr_baselined[ii, :, :]), 'b')
-    # curr_ax = axes[3, 1]
-    # curr_ax.plot(np.transpose(subject_data_itd50_hbr_baselined[ii, :, :]), 'b')
-    
-    # fig.suptitle(subject)
-    # run a GLM to extract beta values for each condition
 
     # ---------------------------------------------------------------
     # -----------------     GLM                             ---------

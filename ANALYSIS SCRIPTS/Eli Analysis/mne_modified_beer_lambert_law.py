@@ -125,7 +125,10 @@ def _load_absorption(freqs):
     from scipy.io import loadmat
     from scipy.interpolate import interp1d
 
-    extinction_fname = op.join(r'C:\Users\benri\Anaconda3\envs', 'spyder-env', 'Lib', 'site-packages',
+    # extinction_fname = op.join(r'C:\Users\benri\Anaconda3\envs', 'spyder-env', 'Lib', 'site-packages',
+    #                            'mne', 'data',
+    #                            'extinction_coef.mat')
+    extinction_fname = op.join(r'/home/ben/MILD-Master/lib/python3.13', 'site-packages',
                                'mne', 'data',
                                'extinction_coef.mat')
     a = loadmat(extinction_fname)['extinct_coef']

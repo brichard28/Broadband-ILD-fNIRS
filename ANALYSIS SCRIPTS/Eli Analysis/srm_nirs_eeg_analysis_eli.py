@@ -346,7 +346,7 @@ for ii, subject_num in enumerate(range(n_subjects)):
                                                events_modification=False, reject=True,
                                                short_regression=True, events_from_snirf=False,
                                                drop_short=False, negative_enhancement=False,
-                                               snr_thres=1.5, sci_thres=0.6, filter_type='iir', filter_limits=[0.01, 0.3])
+                                               snr_thres=1.5, sci_thres=0.8, filter_type='fir', filter_limits=[0.01, 0.5])
     
         raw_haemo_short = get_short_channels(raw_haemo_temp)
         raw_haemo_filt = get_long_channels(raw_haemo_temp)
@@ -358,49 +358,51 @@ for ii, subject_num in enumerate(range(n_subjects)):
         # filtered_signals = extra_regressors.iloc[:, 1:].apply(lambda col: signal.filtfilt(b, a, col), axis=0)
 
     elif preprocessing_type == "Ben":
-        events, event_dict = mne.events_from_annotations(data, verbose=False)
-        del event_dict['Hold']
-        del event_dict['Inhale']
-        del event_dict['Exhale']
-       # del event_dict['control']
-        # Convert to optical density
-        raw_od = optical_density(data_snirf)
-         
-        # Scalp Coupling Index, label bad channels
-        sci = scalp_coupling_index(raw_od)
-
-        # Add 'bads' to info
-         
-        raw_od.info['bads'] = list(compress(raw_od.ch_names,sci < 0.35))
-        
-        
-
-        # raw_od = short_channel_regression(raw_od, max_dist=0.01)
-        
-        # Apply TDDR
-        raw_od = temporal_derivative_distribution_repair(raw_od, verbose=False)
-         
-        # Resample to 3 Hz
-        #raw_od.resample(3) # 10
-         
-        # Create separate object for block averages (will run short channel on these, but use short channels as a regressor in the GLM for betas)
-        raw_od_regressed = short_channel_regression(raw_od.copy(), max_dist=0.01)
-         
-        #raw_haemo = beer_lambert_law(raw_od, ppf=0.1)
-        raw_haemo = mne_modified_beer_lambert_law(raw_od_regressed) # TRYING ELIS FUNCTION
-         
-        # Filter data
-        iir_params = dict({"order":3,"ftype":"butter","padlen":10000}) # 3
-        raw_haemo = raw_haemo.filter(0.01, 0.3, iir_params=iir_params, method='iir', verbose=False) #0.01,0.3
-        #raw_haemo.filter(0.01, 0.2, h_trans_bandwidth=0.2, l_trans_bandwidth=0.005) # 0.01, 0.3, 0.2, 0.005
-        
-        raw_haemo_short = get_short_channels(raw_haemo)
-        raw_haemo_filt = get_long_channels(raw_haemo)
-        
-        
-        num_channels_removed[ii] = len(list(raw_haemo_filt.info['bads']))/2
         age[ii] = 2024 - data.info['subject_info']['birthday'][0]
         sex[ii] = data.info['subject_info']['sex']
+       #  events, event_dict = mne.events_from_annotations(data, verbose=False)
+       #  del event_dict['Hold']
+       #  del event_dict['Inhale']
+       #  del event_dict['Exhale']
+       # # del event_dict['control']
+       #  # Convert to optical density
+       #  raw_od = optical_density(data_snirf)
+       #
+       #  # Scalp Coupling Index, label bad channels
+       #  sci = scalp_coupling_index(raw_od)
+       #
+       #  # Add 'bads' to info
+       #
+       #  raw_od.info['bads'] = list(compress(raw_od.ch_names,sci < 0.35))
+       #
+       #
+       #
+       #  # raw_od = short_channel_regression(raw_od, max_dist=0.01)
+       #
+       #  # Apply TDDR
+       #  raw_od = temporal_derivative_distribution_repair(raw_od, verbose=False)
+       #
+       #  # Resample to 3 Hz
+       #  #raw_od.resample(3) # 10
+       #
+       #  # Create separate object for block averages (will run short channel on these, but use short channels as a regressor in the GLM for betas)
+       #  raw_od_regressed = short_channel_regression(raw_od.copy(), max_dist=0.01)
+       #
+       #  #raw_haemo = beer_lambert_law(raw_od, ppf=0.1)
+       #  raw_haemo = mne_modified_beer_lambert_law(raw_od_regressed) # TRYING ELIS FUNCTION
+       #
+       #  # Filter data
+       #  iir_params = dict({"order":3,"ftype":"butter","padlen":10000}) # 3
+       #  raw_haemo = raw_haemo.filter(0.01, 0.3, iir_params=iir_params, method='iir', verbose=False) #0.01,0.3
+       #  #raw_haemo.filter(0.01, 0.2, h_trans_bandwidth=0.2, l_trans_bandwidth=0.005) # 0.01, 0.3, 0.2, 0.005
+       #
+       #  raw_haemo_short = get_short_channels(raw_haemo)
+       #  raw_haemo_filt = get_long_channels(raw_haemo)
+       #
+       #
+       #  num_channels_removed[ii] = len(list(raw_haemo_filt.info['bads']))/2
+       #  age[ii] = 2024 - data.info['subject_info']['birthday'][0]
+       #  sex[ii] = data.info['subject_info']['sex']
 
 
     # ---------------------------------------------------------------

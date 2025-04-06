@@ -161,14 +161,12 @@ def preprocess_NIRX(data, data_snirf=0, event_dict=0,
     if filter_limits[0] is not None:
         if filter_type == 'iir':
             raw_OD_filt = corrected_tddr.filter(l_freq=filter_limits[0], h_freq=filter_limits[1],
-                                                      l_trans_bandwidth=filter_limits[0],h_trans_bandwidth=filter_limits[1],
-                                                      method='iir', phase='zero',
-                                                      iir_params={'order': 1, 'ftype': 'butter', 'output': 'sos'})
+                                                      method='iir',iir_params={'order': 1, 'ftype': 'butter'})
 
         elif filter_type == 'fir':
-            raw_OD_filt = corrected_tddr.filter(l_freq=filter_limits[0], h_freq=None,
-                                                      l_trans_bandwidth=filter_limits[0],
-                                                      method='fir')
+            raw_OD_filt = corrected_tddr.filter(l_freq=filter_limits[0], h_freq= filter_limits[1],
+                                                      l_trans_bandwidth= filter_limits[0], h_trans_bandwidth = filter_limits[1]/2,
+                                                      method='fir', phase = 'zero')
     else:
         raw_OD_filt = corrected_tddr
     # ---------------------------------------------------------------

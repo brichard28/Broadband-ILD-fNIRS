@@ -449,3 +449,29 @@ model_stg_noise_hbr
 
 
 
+
+# COMPARE WITH BEHAVIOR
+hit_rates <- read.csv("C:\\Users\\benri\\Documents\\GitHub\\SRM-NIRS-EEG\\RESULTS DATA\\SRM-NIRS-EEG-1_Hit_Rates.csv")
+
+# Remove unneeded columns, put in long format
+hit_rates$OriginalVariableNames <- array(0:29)
+colnames(hit_rates) <- c("S","ITD50_Noise","ITD500_Noise","ILD70n_Noise","ILD10_Noise","ITD50_Speech","ITD500_Speech","ILD70n_Speech","ILD10_Speech")
+hit_rates <- pivot_longer(hit_rates, cols=c("ITD50_Noise","ITD500_Noise","ILD70n_Noise","ILD10_Noise","ITD50_Speech","ITD500_Speech","ILD70n_Speech","ILD10_Speech"),
+                          names_to = c("Spatialization","Masker"), names_sep = "_", values_to = "HitRate")
+
+# Organize Factors
+to.factor <- c('S','Masker','Spatialization')
+hit_rates[, to.factor] <- lapply(hit_rates[, to.factor], as.factor)
+
+mean_hbo_to_compare <- c()
+hit_rate_to_compare <- c()
+
+
+for (sub in unique(hit_rates$S)) {
+  
+  hit_rate_to_compare <- append(hit_rate_to_compare, hit_rates$HitRate[hit_rates$S == sub & hit_rates$Masker == "Speech" & hit_rates$Spatialization == "ITD50"])
+  mean_hbo_to_compare <- append(mean_hbo_to_compare, mean(all_data_cleaned_pfc_speech_hbo$MeanHb[all_data_cleaned_pfc_speech_hbo$S == sub & all_data_cleaned_pfc_speech_hbo$Masker == "speech" & all_data_cleaned_pfc_speech_hbo$Spatialization == "ITD50"]))
+}
+
+plot(hit_rate_to_compare,mean_hbo_to_compare)
+xlim(0,1)

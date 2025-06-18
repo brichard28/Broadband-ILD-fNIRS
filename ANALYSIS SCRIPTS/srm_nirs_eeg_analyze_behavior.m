@@ -114,8 +114,8 @@ for isubject = 1:size(subject_ID,1) % For each subject...
 %         
        %% Hit and False Alarm Windows
 
-       threshold_window_start = 0.3; %0.2
-       threshold_window_end =  1.5; % 1.0
+       threshold_window_start = 0.4; %0.2
+       threshold_window_end =  1.3; % 1.5
        tVec = 0:1/44100:16;
        hit_windows = zeros(1,length(tVec)); % create an empty array to define hit windows
        FA_windows = zeros(1,length(tVec)); % create an empty array to define false alarm windows
@@ -326,22 +326,22 @@ all_hit_rates = all_hits./all_num_hit_windows;
 all_hit_rates_collapsed = all_hits_collapsed_left_and_right./all_num_hit_windows_collapsed_left_and_right;
 all_hit_rates(all_hit_rates == 0) = 0.001;
 all_hit_rates(all_hit_rates >= 1) = 0.999;
-all_hit_rates_collapsed(all_hit_rates_collapsed == 0) = 0.001;
-all_hit_rates_collapsed(all_hit_rates_collapsed >= 1) = 0.999;
+all_hit_rates_collapsed(all_hit_rates_collapsed == 0) = 0.01;
+all_hit_rates_collapsed(all_hit_rates_collapsed >= 1) = 0.99;
 
 all_FA_rates = all_FAs./all_num_FA_windows;
 all_FA_rates_collapsed = all_FAs_collapsed_left_and_right./all_num_FA_windows_collapsed_left_and_right;
 all_FA_rates(all_FA_rates == 0) = 0.001;
 all_FA_rates(all_FA_rates >= 1) = 0.999;
-all_FA_rates_collapsed(all_FA_rates_collapsed >= 1) = 0.999;
-all_FA_rates_collapsed(all_FA_rates_collapsed == 0) = 0.001;
+all_FA_rates_collapsed(all_FA_rates_collapsed >= 1) = 0.99;
+all_FA_rates_collapsed(all_FA_rates_collapsed == 0) = 0.01;
 
 all_object_rates = all_objects./all_num_object_windows;
 all_object_rates_collapsed = all_objects_collapsed_left_and_right./all_num_object_windows_collapsed_left_and_right;
 all_object_rates(all_object_rates == 0) = 0.001;
 all_object_rates(all_object_rates >= 1) = 0.999;
-all_object_rates_collapsed(all_object_rates_collapsed == 0) = 0.001;
-all_object_rates_collapsed(all_object_rates_collapsed >= 1) = 0.999;
+all_object_rates_collapsed(all_object_rates_collapsed == 0) = 0.01;
+all_object_rates_collapsed(all_object_rates_collapsed >= 1) = 0.99;
 
 %% D-prime calculation
 d_primes_all = norminv(all_hit_rates) - norminv(all_FA_rates);

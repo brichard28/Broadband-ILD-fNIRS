@@ -485,6 +485,8 @@ df_list <- list(mean_hbo_to_compare, subset(hit_rates, Masker == "Speech"), FA_r
 all_to_compare_speech_masker <-  Reduce(function(x, y) merge(x, y, all=TRUE), df_list) 
 
 
-ggplot(data = all_to_compare_speech_masker,aes(x = d_prime,y = MeanHb,label = Spatialization)) +
-  geom_point(aes(color = Spatialization)) +
-  scale_color_identity(guide = "legend",labels = c("ITD50", "ITD500", "ILD70n","ILD10"))
+#ggplot(data = all_to_compare_speech_masker,aes(x = d_prime,y = MeanHb,label = Spatialization)) +
+#  geom_point(aes(color = Spatialization)) +
+#  scale_color_identity(guide = "legend",labels = c("ITD50", "ITD500", "ILD70n","ILD10"))
+
+plot(subset(all_to_compare_speech_masker, Spatialization == "ITD500")$HitRate, subset(all_to_compare_speech_masker, Spatialization == "ITD500")$MeanHb)

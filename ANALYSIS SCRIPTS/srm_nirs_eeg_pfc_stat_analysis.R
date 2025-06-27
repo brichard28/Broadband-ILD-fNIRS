@@ -25,10 +25,14 @@ all_data_hbo<-rbind(speech_masker_data_hbo,noise_masker_data_hbo)
 
 # Add ROI information
 all_data_hbo$Roi<- "NA"
-pfc_channels <- c(0,1,2,3,4,5)
-stg_channels <- c(6,7,8,9,10,11,12,13)
-all_data_hbo$Roi[which(all_data_hbo$Channel %in% pfc_channels)] <- "pfc"
-all_data_hbo$Roi[which(all_data_hbo$Channel %in% stg_channels)] <- "stg"
+right_pfc_channels <- c(0,1,2,3)
+left_pfc_channels <- c(4,5)
+right_stg_channels <- c(6,7,8,9)
+left_stg_channels <- c(10,11,12,13)
+all_data_hbo$Roi[which(all_data_hbo$Channel %in% right_pfc_channels)] <- "right_pfc"
+all_data_hbo$Roi[which(all_data_hbo$Channel %in% left_pfc_channels)] <- "left_pfc"
+all_data_hbo$Roi[which(all_data_hbo$Channel %in% right_stg_channels)] <- "right_stg"
+all_data_hbo$Roi[which(all_data_hbo$Channel %in% left_stg_channels)] <- "left_stg"
 
 # Organize Factors
 to.factor <- c('S', 'Roi','Spatialization')
@@ -38,10 +42,10 @@ all_data_hbo$Masker <- as.factor(all_data_hbo$Masker)
 all_data_cleaned_hbo <- na.omit(all_data_hbo)
 
 all_data_cleaned_hbo %>% group_by(Spatialization, Masker,Roi) %>% shapiro_test(MeanHb)
-all_data_cleaned_pfc_speech_hbo <- subset(all_data_cleaned_hbo, Roi == "pfc" & Masker == "speech")
-all_data_cleaned_pfc_noise_hbo <- subset(all_data_cleaned_hbo, Roi == "pfc" & Masker == "noise")
-all_data_cleaned_stg_speech_hbo <- subset(all_data_cleaned_hbo, Roi == "stg" & Masker == "speech")
-all_data_cleaned_stg_noise_hbo <- subset(all_data_cleaned_hbo, Roi == "stg" & Masker == "noise")
+all_data_cleaned_pfc_speech_hbo <- subset(all_data_cleaned_hbo, Roi %in% c("right_pfc","left_pfc") & Masker == "speech")
+all_data_cleaned_pfc_noise_hbo <- subset(all_data_cleaned_hbo, Roi %in% c("right_pfc","left_pfc") & Masker == "noise")
+all_data_cleaned_stg_speech_hbo <- subset(all_data_cleaned_hbo, Roi %in% c("right_stg","left_stg") & Masker == "speech")
+all_data_cleaned_stg_noise_hbo <- subset(all_data_cleaned_hbo, Roi %in% c("right_stg","left_stg") & Masker == "noise")
 
 #### Data Preparaion HBR #####
 # Load in Data
@@ -61,11 +65,10 @@ all_data_hbr<-rbind(speech_masker_data_hbr,noise_masker_data_hbr)
 
 # Add ROI information
 all_data_hbr$Roi<-NA
-pfc_channels <- c(0,1,2,3,4,5)
-stg_channels <- c(6,7,8,9,10,11,12,13)
-all_data_hbr$Roi[which(all_data_hbr$Channel %in% pfc_channels)] <- "pfc"
-all_data_hbr$Roi[which(all_data_hbr$Channel %in% stg_channels)] <- "stg"
-
+all_data_hbr$Roi[which(all_data_hbr$Channel %in% right_pfc_channels)] <- "right_pfc"
+all_data_hbr$Roi[which(all_data_hbr$Channel %in% left_pfc_channels)] <- "left_pfc"
+all_data_hbr$Roi[which(all_data_hbr$Channel %in% right_stg_channels)] <- "right_stg"
+all_data_hbr$Roi[which(all_data_hbr$Channel %in% left_stg_channels)] <- "left_stg"
 # Change ROI information
 
 #all_data$Roi[all_data$Roi == "0"] <- "pfc"
@@ -79,20 +82,20 @@ all_data_hbr$Masker <- as.factor(all_data_hbr$Masker)
 all_data_cleaned_hbr <- na.omit(all_data_hbr)
 
 all_data_cleaned_hbr %>% group_by(Spatialization, Masker,Roi) %>% shapiro_test(MeanHb)
-all_data_cleaned_pfc_speech_hbr <- subset(all_data_cleaned_hbr, Roi == "pfc" & Masker == "speech")
-all_data_cleaned_pfc_noise_hbr <- subset(all_data_cleaned_hbr, Roi == "pfc" & Masker == "noise")
-all_data_cleaned_stg_speech_hbr <- subset(all_data_cleaned_hbr, Roi == "stg" & Masker == "speech")
-all_data_cleaned_stg_noise_hbr <- subset(all_data_cleaned_hbr, Roi == "stg" & Masker == "noise")
+all_data_cleaned_pfc_speech_hbr <- subset(all_data_cleaned_hbr, Roi %in% c("right_pfc","left_pfc") & Masker == "speech")
+all_data_cleaned_pfc_noise_hbr <- subset(all_data_cleaned_hbr, Roi %in% c("right_pfc","left_pfc") & Masker == "noise")
+all_data_cleaned_stg_speech_hbr <- subset(all_data_cleaned_hbr, Roi %in% c("right_stg","left_stg") & Masker == "speech")
+all_data_cleaned_stg_noise_hbr <- subset(all_data_cleaned_hbr, Roi %in% c("right_stg","left_stg") & Masker == "noise")
 
 
 ##### Combining Data #####
 all_data_cleaned_hbo$chromophore <- "HbO"
 all_data_cleaned_hbr$chromophore <- "HbR"
 all_data <- rbind(all_data_cleaned_hbo,all_data_cleaned_hbr)
-all_data_pfc_speech <- subset(all_data, Roi == "pfc" & Masker == "speech")
-all_data_pfc_noise <- subset(all_data, Roi == "pfc" & Masker == "noise")
-all_data_stg_speech <- subset(all_data, Roi == "stg" & Masker == "speech")
-all_data_stg_noise <- subset(all_data, Roi == "stg" & Masker == "noise")
+all_data_pfc_speech <- subset(all_data, Roi %in% c("right_pfc","left_pfc") & Masker == "speech")
+all_data_pfc_noise <- subset(all_data, Roi %in% c("right_pfc","left_pfc") & Masker == "noise")
+all_data_stg_speech <- subset(all_data, Roi %in% c("right_stg","left_stg") & Masker == "speech")
+all_data_stg_noise <- subset(all_data, Roi %in% c("right_stg","left_stg") & Masker == "noise")
 
 ### Summary SE function ########
 ## Gives count, mean, standard deviation, standard error of the mean, and confidence interval (default 95%).
@@ -448,45 +451,3 @@ model_stg_noise_hbr
 
 
 
-
-
-# COMPARE WITH BEHAVIOR
-hit_rates <- read.csv("C:\\Users\\benri\\Documents\\GitHub\\SRM-NIRS-EEG\\RESULTS DATA\\SRM-NIRS-EEG-1_Hit_Rates.csv")
-FA_rates <- read.csv("C:\\Users\\benri\\Documents\\GitHub\\SRM-NIRS-EEG\\RESULTS DATA\\SRM-NIRS-EEG-1_FA_Rates.csv")
-d_primes <- read.csv("C:\\Users\\benri\\Documents\\GitHub\\SRM-NIRS-EEG\\RESULTS DATA\\SRM-NIRS-EEG-1_d_primes.csv")
-
-# Remove unneeded columns, put in long format
-hit_rates$OriginalVariableNames <- array(0:29)
-colnames(hit_rates) <- c("S","ITD50_Noise","ITD500_Noise","ILD70n_Noise","ILD10_Noise","ITD50_Speech","ITD500_Speech","ILD70n_Speech","ILD10_Speech")
-hit_rates <- pivot_longer(hit_rates, cols=c("ITD50_Noise","ITD500_Noise","ILD70n_Noise","ILD10_Noise","ITD50_Speech","ITD500_Speech","ILD70n_Speech","ILD10_Speech"),
-                          names_to = c("Spatialization","Masker"), names_sep = "_", values_to = "HitRate")
-
-FA_rates$OriginalVariableNames <- array(0:29)
-colnames(FA_rates) <- c("S","ITD50","ITD500","ILD70n","ILD10")
-FA_rates <- pivot_longer(FA_rates, cols=c("ITD50","ITD500","ILD70n","ILD10"),names_to = c("Spatialization"), values_to = "FARate")
-
-d_primes$OriginalVariableNames <- array(0:29)
-colnames(d_primes) <- c("S","ITD50","ITD500","ILD70n","ILD10")
-d_primes <- pivot_longer(d_primes, cols=c("ITD50","ITD500","ILD70n","ILD10"),names_to = c("Spatialization"), values_to = "d_prime")
-
-# Organize Factors
-to.factor <- c('S','Masker','Spatialization')
-hit_rates[, to.factor] <- lapply(hit_rates[, to.factor], as.factor)
-
-to.factor <- c('S','Spatialization')
-FA_rates[, to.factor] <- lapply(FA_rates[, to.factor], as.factor)
-d_primes[, to.factor] <- lapply(d_primes[, to.factor], as.factor)
-
-
-mean_hbo_to_compare <- aggregate(subset(all_data_cleaned_pfc_speech_hbo, Masker == "speech")$MeanHb, list(S = all_data_cleaned_pfc_speech_hbo$S, Roi = all_data_cleaned_pfc_speech_hbo$Roi, Spatialization = all_data_cleaned_pfc_speech_hbo$Spatialization), FUN = mean, na.omit = TRUE, names_to = MeanHb)
-names(mean_hbo_to_compare)[names(mean_hbo_to_compare) == "x"] <- "MeanHb"
-
-df_list <- list(mean_hbo_to_compare, subset(hit_rates, Masker == "Speech"), FA_rates, d_primes)
-all_to_compare_speech_masker <-  Reduce(function(x, y) merge(x, y, all=TRUE), df_list) 
-
-
-#ggplot(data = all_to_compare_speech_masker,aes(x = d_prime,y = MeanHb,label = Spatialization)) +
-#  geom_point(aes(color = Spatialization)) +
-#  scale_color_identity(guide = "legend",labels = c("ITD50", "ITD500", "ILD70n","ILD10"))
-
-plot(subset(all_to_compare_speech_masker, Spatialization == "ITD500")$HitRate, subset(all_to_compare_speech_masker, Spatialization == "ITD500")$MeanHb)

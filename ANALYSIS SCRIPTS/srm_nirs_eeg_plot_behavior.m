@@ -402,3 +402,92 @@ ylim([0,1])
 % 
 % end
 
+
+%% PLOT BROKEN UP BY LEAD LAG
+
+x_offset_lead = -0.1;
+x_offset_lag = 0.1;
+figure;
+% lead vs. lag hit rate speech masker
+subplot(2,3,1)
+hold on
+p1a = errorbar(1 + x_offset_lead,mean(all_lead_hit_rates_collapsed(5,:),2),std(all_lead_hit_rates_collapsed(5,:),[],2)/(sqrt(size(subject_ID,1))-1),'o','Color','c','MarkerFaceColor','c');
+p2 = errorbar(2 + x_offset_lead,mean(all_lead_hit_rates_collapsed(6,:),2),std(all_lead_hit_rates_collapsed(6,:),[],2)/(sqrt(size(subject_ID,1))-1),'o','Color','c','MarkerFaceColor','c');
+p3 = errorbar(3 + x_offset_lead,mean(all_lead_hit_rates_collapsed(7,:),2),std(all_lead_hit_rates_collapsed(7,:),[],2)/(sqrt(size(subject_ID,1))-1),'o','Color','c','MarkerFaceColor','c');
+p4 = errorbar(4 + x_offset_lead,mean(all_lead_hit_rates_collapsed(8,:),2),std(all_lead_hit_rates_collapsed(8,:),[],2)/(sqrt(size(subject_ID,1))-1),'o','Color','c','MarkerFaceColor','c');
+xticks(1:4)
+ylim([0 1])
+ylabel("Hit Rate",'FontSize',18)
+
+hold on
+p1b = errorbar(1 + x_offset_lead,mean(all_lag_hit_rates_collapsed(5,:),2),std(all_lag_hit_rates_collapsed(5,:),[],2)/(sqrt(size(subject_ID,1))-1),'o','Color','m','MarkerFaceColor','m');
+p2 = errorbar(2 + x_offset_lead,mean(all_lag_hit_rates_collapsed(6,:),2),std(all_lag_hit_rates_collapsed(6,:),[],2)/(sqrt(size(subject_ID,1))-1),'o','Color','m','MarkerFaceColor','m');
+p3 = errorbar(3 + x_offset_lead,mean(all_lag_hit_rates_collapsed(7,:),2),std(all_lag_hit_rates_collapsed(7,:),[],2)/(sqrt(size(subject_ID,1))-1),'o','Color','m','MarkerFaceColor','m');
+p4 = errorbar(4 + x_offset_lead,mean(all_lag_hit_rates_collapsed(8,:),2),std(all_lag_hit_rates_collapsed(8,:),[],2)/(sqrt(size(subject_ID,1))-1),'o','Color','m','MarkerFaceColor','m');
+xticks(1:4)
+ylim([0,1])
+xticklabels({'50 us ITDs','500 us ITDs','Natural ILDs','Broadband ILDs'})
+legend([p1a(1), p1b(1)],{'Lead','Lag'})
+
+% lead vs. lag FA rate speech masker
+subplot(2,3,2)
+hold on
+p11 = errorbar(1 + x_offset_lead,mean(all_lead_FA_rates_collapsed(5,:),2),std(all_lead_FA_rates_collapsed(5,:),[],2)/(sqrt(size(subject_ID,1))-1),'o','Color','c','MarkerFaceColor','c');
+p2 = errorbar(2 + x_offset_lead,mean(all_lead_FA_rates_collapsed(6,:),2),std(all_lead_FA_rates_collapsed(6,:),[],2)/(sqrt(size(subject_ID,1))-1),'o','Color','c','MarkerFaceColor','c');
+p3 = errorbar(3 + x_offset_lead,mean(all_lead_FA_rates_collapsed(7,:),2),std(all_lead_FA_rates_collapsed(7,:),[],2)/(sqrt(size(subject_ID,1))-1),'o','Color','c','MarkerFaceColor','c');
+p4 = errorbar(4 + x_offset_lead,mean(all_lead_FA_rates_collapsed(8,:),2),std(all_lead_FA_rates_collapsed(8,:),[],2)/(sqrt(size(subject_ID,1))-1),'o','Color','c','MarkerFaceColor','c');
+xticks(1:4)
+ylim([0 1])
+ylabel("FA Rate",'FontSize',18)
+
+hold on
+p1b = errorbar(1 + x_offset_lead,mean(all_lag_FA_rates_collapsed(5,:),2),std(all_lag_FA_rates_collapsed(5,:),[],2)/(sqrt(size(subject_ID,1))-1),'o','Color','m','MarkerFaceColor','m');
+p2 = errorbar(2 + x_offset_lead,mean(all_lag_FA_rates_collapsed(6,:),2),std(all_lag_FA_rates_collapsed(6,:),[],2)/(sqrt(size(subject_ID,1))-1),'o','Color','m','MarkerFaceColor','m');
+p3 = errorbar(3 + x_offset_lead,mean(all_lag_FA_rates_collapsed(7,:),2),std(all_lag_FA_rates_collapsed(7,:),[],2)/(sqrt(size(subject_ID,1))-1),'o','Color','m','MarkerFaceColor','m');
+p4 = errorbar(4 + x_offset_lead,mean(all_lag_FA_rates_collapsed(8,:),2),std(all_lag_FA_rates_collapsed(8,:),[],2)/(sqrt(size(subject_ID,1))-1),'o','Color','m','MarkerFaceColor','m');
+xticks(1:4)
+ylim([0,1])
+xticklabels({'50 us ITDs','500 us ITDs','Natural ILDs','Broadband ILDs'})
+legend([p1a(1), p1b(1)],{'Lead','Lag'})
+
+% Lead vs. lag d-prime speech masker
+subplot(2,3,3)
+hold on
+p1a = errorbar(1 + x_offset_lead,mean(lead_d_primes_collapsed(5,:),2),std(lead_d_primes_collapsed(5,:),[],2)/(sqrt(size(subject_ID,1))-1),'o','Color','c','MarkerFaceColor','c');
+p2 = errorbar(2 + x_offset_lead,mean(lead_d_primes_collapsed(6,:),2),std(lead_d_primes_collapsed(6,:),[],2)/(sqrt(size(subject_ID,1))-1),'o','Color','c','MarkerFaceColor','c');
+p3 = errorbar(3 + x_offset_lead,mean(lead_d_primes_collapsed(7,:),2),std(lead_d_primes_collapsed(7,:),[],2)/(sqrt(size(subject_ID,1))-1),'o','Color','c','MarkerFaceColor','c');
+p4 = errorbar(4 + x_offset_lead,mean(lead_d_primes_collapsed(8,:),2),std(lead_d_primes_collapsed(8,:),[],2)/(sqrt(size(subject_ID,1))-1),'o','Color','c','MarkerFaceColor','c');
+xticks(1:4)
+ylim([0 7])
+ylabel("d'",'FontSize',18)
+
+hold on
+p1b = errorbar(1 + x_offset_lead,mean(lag_d_primes_collapsed(5,:),2),std(lag_d_primes_collapsed(5,:),[],2)/(sqrt(size(subject_ID,1))-1),'o','Color','m','MarkerFaceColor','m');
+p2 = errorbar(2 + x_offset_lead,mean(lag_d_primes_collapsed(6,:),2),std(lag_d_primes_collapsed(6,:),[],2)/(sqrt(size(subject_ID,1))-1),'o','Color','m','MarkerFaceColor','m');
+p3 = errorbar(3 + x_offset_lead,mean(lag_d_primes_collapsed(7,:),2),std(lag_d_primes_collapsed(7,:),[],2)/(sqrt(size(subject_ID,1))-1),'o','Color','m','MarkerFaceColor','m');
+p4 = errorbar(4 + x_offset_lead,mean(lag_d_primes_collapsed(8,:),2),std(lag_d_primes_collapsed(8,:),[],2)/(sqrt(size(subject_ID,1))-1),'o','Color','m','MarkerFaceColor','m');
+xticks(1:4)
+ylim([0,7])
+xticklabels({'50 us ITDs','500 us ITDs','Natural ILDs','Broadband ILDs'})
+legend([p1a(1), p1b(1)],{'Lead','Lag'})
+
+% lead vs. lag hit rate Noise Masker
+subplot(2,3,4)
+hold on
+p1a = errorbar(1 + x_offset_lead,mean(all_lead_hit_rates_collapsed(1,:),2),std(all_lead_hit_rates_collapsed(1,:),[],2)/(sqrt(size(subject_ID,1))-1),'o','Color','c','MarkerFaceColor','c');
+p2 = errorbar(2 + x_offset_lead,mean(all_lead_hit_rates_collapsed(2,:),2),std(all_lead_hit_rates_collapsed(2,:),[],2)/(sqrt(size(subject_ID,1))-1),'o','Color','c','MarkerFaceColor','c');
+p3 = errorbar(3 + x_offset_lead,mean(all_lead_hit_rates_collapsed(3,:),2),std(all_lead_hit_rates_collapsed(3,:),[],2)/(sqrt(size(subject_ID,1))-1),'o','Color','c','MarkerFaceColor','c');
+p4 = errorbar(4 + x_offset_lead,mean(all_lead_hit_rates_collapsed(4,:),2),std(all_lead_hit_rates_collapsed(4,:),[],2)/(sqrt(size(subject_ID,1))-1),'o','Color','c','MarkerFaceColor','c');
+xticks(1:4)
+ylim([0 1])
+ylabel("Hit Rate",'FontSize',18)
+
+hold on
+p1b = errorbar(1 + x_offset_lead,mean(all_lag_hit_rates_collapsed(1,:),2),std(all_lag_hit_rates_collapsed(1,:),[],2)/(sqrt(size(subject_ID,1))-1),'o','Color','m','MarkerFaceColor','m');
+p2 = errorbar(2 + x_offset_lead,mean(all_lag_hit_rates_collapsed(2,:),2),std(all_lag_hit_rates_collapsed(2,:),[],2)/(sqrt(size(subject_ID,1))-1),'o','Color','m','MarkerFaceColor','m');
+p3 = errorbar(3 + x_offset_lead,mean(all_lag_hit_rates_collapsed(3,:),2),std(all_lag_hit_rates_collapsed(3,:),[],2)/(sqrt(size(subject_ID,1))-1),'o','Color','m','MarkerFaceColor','m');
+p4 = errorbar(4 + x_offset_lead,mean(all_lag_hit_rates_collapsed(4,:),2),std(all_lag_hit_rates_collapsed(4,:),[],2)/(sqrt(size(subject_ID,1))-1),'o','Color','m','MarkerFaceColor','m');
+xticks(1:4)
+ylim([0,1])
+xticklabels({'50 us ITDs','500 us ITDs','Natural ILDs','Broadband ILDs'})
+legend([p1a(1), p1b(1)],{'Lead','Lag'})

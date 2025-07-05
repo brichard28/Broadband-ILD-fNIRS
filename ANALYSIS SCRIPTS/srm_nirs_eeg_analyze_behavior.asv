@@ -114,7 +114,7 @@ for isubject = 1:size(subject_ID,1) % For each subject...
 
 
         target_color_lead = this_trial_whether_target_lead(ismember(this_trial_target_words,color_words)); % 0 when color lags (second position within pair), 1 when color leads (first position within pair)
-        masker_color_lead = 1 - ismember(this_trial_masker_words,color_words) &  ~;
+        masker_color_lead = 1 - this_trial_whether_target_lead(ismember(this_trial_masker_words,color_words));
 
 
         % Store number of color words in the target and masker
@@ -158,6 +158,7 @@ for isubject = 1:size(subject_ID,1) % For each subject...
             [~,end_index_hit_window] = min(abs(tVec - (this_trial_target_color_times(i)+threshold_window_end))); % ...the hit window will end threshold_window_end seconds after the word onset
 
             hit_windows(start_index_hit_window:end_index_hit_window) = 1; % a value of 1 in the vector hit_windows indicate an area where, if a click falls, it will be counted as a hit
+             all_num_hit_windows(isubject,string(all_maskers) == string(this_trial_masker)) = all_num_hit_windows(isubject,string(all_maskers) == string(this_trial_masker)) + 1;
             if target_color_lead(i) == 0 % then target LAGs on this color word
                 lag_hit_windows(start_index_hit_window:end_index_hit_window) = 1;
             elseif target_color_lead(i) == 1 % then target LEADS on this trial
@@ -175,9 +176,10 @@ for isubject = 1:size(subject_ID,1) % For each subject...
                 continue
             else
                 FA_windows(start_index_FA_window:end_index_FA_window) = 1;
-                if masker_color_lead(i) == 0 % then target LAGs on this trial
+                all_num_FA_windows(isubject,string(all_maskers) == string(this_trial_masker)) = all_num_FA_windows(isubject,string(all_maskers) == string(this_trial_masker)) + 1;
+                if masker_color_lead(i) == 0 % then masker LAGs on this trial
                     lag_FA_windows(start_index_FA_window:end_index_FA_window) = 1;
-                elseif masker_color_lead(i) == 1 % then target LEADS on this trial
+                elseif masker_color_lead(i) == 1 % then masker LEADS on this trial
                     lead_FA_windows(start_index_FA_window:end_index_FA_window) = 1;
                 end
             end
@@ -469,8 +471,17 @@ all_lag_hit_rates_collapsed = all_lag_hits_collapsed_left_and_right./all_num_lag
 
 all_hit_rates(all_hit_rates == 0) = 0.001;
 all_hit_rates(all_hit_rates >= 1) = 0.999;
+all_lead_hit_rates(all_lead_hit_rates == 0) = 0.001;
+all_lead_hit_rates(all_lead_hit_rates >= 1) = 0.999;
+all_lag_hit_rates(all_lag_hit_rates == 0) = 0.001;
+all_lag_hit_rates(all_lag_hit_rates >= 1) = 0.999;
+
 all_hit_rates_collapsed(all_hit_rates_collapsed == 0) = 0.01;
 all_hit_rates_collapsed(all_hit_rates_collapsed >= 1) = 0.99;
+all_lead_hit_rates_collapsed(all_lead_hit_rates_collapsed == 0) = 0.01;
+all_lead_hit_rates_collapsed(all_lead_hit_rates_collapsed >= 1) = 0.99;
+all_lag_hit_rates_collapsed(all_lag_hit_rates_collapsed == 0) = 0.01;
+all_lag_hit_rates_collapsed(all_lag_hit_rates_collapsed >= 1) = 0.99;
 
 all_FA_rates = all_FAs./all_num_FA_windows;
 all_lead_FA_rates = all_lead_FAs./all_num_lead_masker_color;
@@ -483,8 +494,17 @@ all_lag_FA_rates_collapsed = all_lag_FAs_collapsed_left_and_right./all_num_lag_t
 
 all_FA_rates(all_FA_rates == 0) = 0.001;
 all_FA_rates(all_FA_rates >= 1) = 0.999;
-all_FA_rates_collapsed(all_FA_rates_collapsed >= 1) = 0.99;
+all_lead_FA_rates(all_lead_FA_rates == 0) = 0.001;
+all_lead_FA_rates(all_lead_FA_rates >= 1) = 0.999;
+all_lag_FA_rates(all_lag_FA_rates == 0) = 0.001;
+all_lag_FA_rates(all_lag_FA_rates >= 1) = 0.999;
+
 all_FA_rates_collapsed(all_FA_rates_collapsed == 0) = 0.01;
+all_FA_rates_collapsed(all_FA_rates_collapsed >= 1) = 0.99;
+all_lead_FA_rates_collapsed(all_lead_FA_rates_collapsed == 0) = 0.01;
+all_lead_FA_rates_collapsed(all_lead_FA_rates_collapsed >= 1) = 0.99;
+all_lag_FA_rates_collapsed(all_lag_FA_rates_collapsed == 0) = 0.01;
+all_lag_FA_rates_collapsed(all_lag_FA_rates_collapsed >= 1) = 0.99;
 
 all_object_rates = all_objects./all_num_object_windows;
 all_object_rates_collapsed = all_objects_collapsed_left_and_right./all_num_object_windows_collapsed_left_and_right;
@@ -515,3 +535,15 @@ writetable(rows2vars(object_rate_table),'C:\Users\benri\Documents\GitHub\SRM-NIR
 
 d_prime_table = array2table(d_primes_collapsed(5:end,:));
 writetable(rows2vars(d_prime_table),'C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\SRM-NIRS-EEG-1_d_primes.csv')
+
+lead_hit_rate_table = array2table(all_lead_hit_rates_collapsed);
+writetable(rows2vars(lead_hit_rate_table),'C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\SRM-NIRS-EEG-1_Lead_Hit_Rates.csv')
+
+lag_hit_rate_table = array2table(all_lag_hit_rates_collapsed);
+writetable(rows2vars(lag_hit_rate_table),'C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\SRM-NIRS-EEG-1_Lag_Hit_Rates.csv')
+
+lead_FA_rate_table = array2table(all_lead_FA_rates_collapsed);
+writetable(rows2vars(lead_FA_rate_table),'C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\SRM-NIRS-EEG-1_Lead_Hit_Rates.csv')
+
+lag_hit_rate_table = array2table(all_lag_hit_rates_collapsed);
+writetable(rows2vars(lag_hit_rate_table),'C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\SRM-NIRS-EEG-1_Lag_Hit_Rates.csv')

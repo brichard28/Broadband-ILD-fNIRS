@@ -29,14 +29,14 @@
      inkscape:document-units="mm"
      showgrid="false"
      inkscape:zoom="1.404682"
-     inkscape:cx="362.35959"
-     inkscape:cy="150.56789"
+     inkscape:cx="317.86554"
+     inkscape:cy="151.27979"
      inkscape:window-width="1920"
      inkscape:window-height="991"
      inkscape:window-x="-9"
      inkscape:window-y="-9"
      inkscape:window-maximized="1"
-     inkscape:current-layer="g9301" />
+     inkscape:current-layer="g14522-4" />
   <defs
      id="defs318">
     <marker
@@ -265,6 +265,25 @@
          y="50.054104"
          ry="1.4399403" />
     </clipPath>
+    <marker
+       style="overflow:visible"
+       id="marker3178-52"
+       refX="0"
+       refY="0"
+       orient="auto-start-reverse"
+       inkscape:stockid="TriangleStart"
+       markerWidth="5.3244081"
+       markerHeight="6.155385"
+       viewBox="0 0 5.3244081 6.1553851"
+       inkscape:isstock="true"
+       inkscape:collect="always"
+       preserveAspectRatio="xMidYMid">
+      <path
+         transform="scale(0.5)"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="M 5.77,0 -2.88,5 V -5 Z"
+         id="path3176-8" />
+    </marker>
   </defs>
   <g
      inkscape:label="Layer 1"
@@ -307,7 +326,7 @@
          xml:space="preserve"><tspan
            x="78.523438"
            y="25.53152"
-           id="tspan9526">blue</tspan></text>
+           id="tspan14807">blue</tspan></text>
       <path
          style="fill:#ff5c00;fill-opacity:0;stroke:#ff5c00;stroke-width:1;stroke-dasharray:none;stroke-opacity:1"
          sodipodi:type="inkscape:offset"
@@ -318,6 +337,57 @@
          d="m 119.94141,69.005859 v 10.876953 h 30.98828 V 69.005859 Z"
          transform="matrix(0.41976251,0,0,0.83750576,27.727041,-37.793849)"
          inkscape:href="#rect457" />
+      <g
+         id="g14522">
+        <text
+           xml:space="preserve"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.93889px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:center;text-anchor:middle;fill:#000000;stroke:#000000;stroke-width:0;stroke-miterlimit:4.1"
+           x="74.093842"
+           y="60.264061"
+           id="text13495"
+           transform="rotate(-35)"><tspan
+             sodipodi:role="line"
+             id="tspan13493"
+             style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.93889px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0"
+             x="74.093842"
+             y="60.264061">Lead</tspan><tspan
+             sodipodi:role="line"
+             style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.93889px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0"
+             x="74.093842"
+             y="66.437675"
+             id="tspan13689">syllable</tspan></text>
+        <path
+           style="fill:#000000;stroke:#000000;stroke-width:0.5;stroke-miterlimit:4.1;stroke-dasharray:none;marker-end:url(#marker3178)"
+           d="m 89.281771,11.489848 -3.423106,5.543706"
+           id="path13745"
+           sodipodi:nodetypes="cc" />
+      </g>
+      <g
+         id="g14522-4"
+         transform="translate(4.8139051,17.321228)">
+        <text
+           xml:space="preserve"
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.93889px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:center;text-anchor:middle;fill:#000000;stroke:#000000;stroke-width:0;stroke-miterlimit:4.1"
+           x="74.093842"
+           y="60.264061"
+           id="text13495-1"
+           transform="rotate(-35)"><tspan
+             sodipodi:role="line"
+             id="tspan13493-6"
+             style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.93889px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0"
+             x="74.093842"
+             y="60.264061">Lag</tspan><tspan
+             sodipodi:role="line"
+             style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.93889px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0"
+             x="74.093842"
+             y="66.437675"
+             id="tspan13689-4">syllable</tspan></text>
+        <path
+           style="fill:#000000;stroke:#000000;stroke-width:0.5;stroke-miterlimit:4.1;stroke-dasharray:none;marker-end:url(#marker3178-52)"
+           d="m 89.281771,11.489848 -3.423106,5.543706"
+           id="path13745-8"
+           sodipodi:nodetypes="cc" />
+      </g>
     </g>
     <text
        xml:space="preserve"
@@ -339,7 +409,7 @@
        transform="translate(-0.18835818,2.6370145)"><tspan
          x="168.8321"
          y="35.717067"
-         id="tspan9528">Rest</tspan></text>
+         id="tspan14809">Rest</tspan></text>
     <image
        y="46.789608"
        x="44.448105"
@@ -554,7 +624,7 @@
          xml:space="preserve"><tspan
            x="0"
            y="0"
-           id="tspan9530">bag</tspan></text>
+           id="tspan14811">bag</tspan></text>
       <path
          style="fill:#ff5c00;fill-opacity:0;stroke:#ff5c00;stroke-width:1;stroke-dasharray:none;stroke-opacity:1"
          sodipodi:type="inkscape:offset"
@@ -581,7 +651,7 @@
          xml:space="preserve"><tspan
            x="0"
            y="0"
-           id="tspan9532">box</tspan></text>
+           id="tspan14813">box</tspan></text>
       <path
          style="fill:#ff5c00;fill-opacity:0;stroke:#ff5c00;stroke-width:1;stroke-dasharray:none;stroke-opacity:1"
          sodipodi:type="inkscape:offset"
@@ -608,7 +678,7 @@
          xml:space="preserve"><tspan
            x="0"
            y="0"
-           id="tspan9534">pen</tspan></text>
+           id="tspan14815">pen</tspan></text>
       <path
          style="fill:#ff5c00;fill-opacity:0;stroke:#ff5c00;stroke-width:1;stroke-dasharray:none;stroke-opacity:1"
          sodipodi:type="inkscape:offset"
@@ -635,7 +705,7 @@
          xml:space="preserve"><tspan
            x="0"
            y="0"
-           id="tspan9536">box</tspan></text>
+           id="tspan14817">box</tspan></text>
       <path
          style="fill:#0076ff;fill-opacity:0;stroke:#0076ff;stroke-width:1;stroke-dasharray:none;stroke-opacity:1"
          sodipodi:type="inkscape:offset"
@@ -662,7 +732,7 @@
          xml:space="preserve"><tspan
            x="0"
            y="0"
-           id="tspan9538">card</tspan></text>
+           id="tspan14819">card</tspan></text>
       <path
          style="fill:#0076ff;fill-opacity:0;stroke:#0076ff;stroke-width:1;stroke-dasharray:none;stroke-opacity:1"
          sodipodi:type="inkscape:offset"
@@ -689,7 +759,7 @@
          xml:space="preserve"><tspan
            x="0"
            y="0"
-           id="tspan9540">shoe</tspan></text>
+           id="tspan14821">shoe</tspan></text>
       <path
          style="fill:#0076ff;fill-opacity:0;stroke:#0076ff;stroke-width:1;stroke-dasharray:none;stroke-opacity:1"
          sodipodi:type="inkscape:offset"
@@ -716,7 +786,7 @@
          xml:space="preserve"><tspan
            x="0"
            y="0"
-           id="tspan9542">toy</tspan></text>
+           id="tspan14823">toy</tspan></text>
       <path
          style="fill:#ff5c00;fill-opacity:0;stroke:#ff5c00;stroke-width:1;stroke-dasharray:none;stroke-opacity:1"
          sodipodi:type="inkscape:offset"
@@ -743,7 +813,7 @@
          xml:space="preserve"><tspan
            x="0"
            y="0"
-           id="tspan9544">white</tspan></text>
+           id="tspan14825">white</tspan></text>
       <path
          style="fill:#0076ff;fill-opacity:0;stroke:#0076ff;stroke-width:1;stroke-dasharray:none;stroke-opacity:1"
          sodipodi:type="inkscape:offset"

@@ -535,3 +535,21 @@ writetable(rows2vars(object_rate_table),'C:\Users\benri\Documents\GitHub\SRM-NIR
 
 d_prime_table = array2table(d_primes_collapsed(5:end,:));
 writetable(rows2vars(d_prime_table),'C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\SRM-NIRS-EEG-1_d_primes.csv')
+
+lead_hit_rate_table = array2table(all_lead_hit_rates_collapsed);
+writetable(rows2vars(lead_hit_rate_table),'C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\SRM-NIRS-EEG-1_Lead_Hit_Rates.csv')
+
+lag_hit_rate_table = array2table(all_lag_hit_rates_collapsed);
+writetable(rows2vars(lag_hit_rate_table),'C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\SRM-NIRS-EEG-1_Lag_Hit_Rates.csv')
+
+lead_FA_rate_table = array2table(all_lead_FA_rates_collapsed(5:end,:));
+writetable(rows2vars(lead_FA_rate_table),'C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\SRM-NIRS-EEG-1_Lead_FA_Rates.csv')
+
+lag_FA_rate_table = array2table(all_lag_FA_rates_collapsed(5:end,:));
+writetable(rows2vars(lag_FA_rate_table),'C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\SRM-NIRS-EEG-1_Lag_FA_Rates.csv')
+
+lead_d_prime_table = array2table(lead_d_primes_collapsed(5:end,:));
+writetable(rows2vars(lead_d_prime_table),'C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\SRM-NIRS-EEG-1_Lead_d_primes.csv')
+
+lag_d_prime_table = array2table(lag_d_primes_collapsed(5:end,:));
+writetable(rows2vars(lag_d_prime_table),'C:\Users\benri\Documents\GitHub\SRM-NIRS-EEG\RESULTS DATA\SRM-NIRS-EEG-1_Lag_d_primes.csv')

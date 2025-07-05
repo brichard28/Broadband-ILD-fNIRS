@@ -51,16 +51,31 @@ summarySE <- function(data=NULL, measurevar, groupvars=NULL, na.rm=FALSE,
 ##    Hit Rates    ##
 ####################################################
 
-hit_rates <- read.csv("C:\\Users\\benri\\Documents\\GitHub\\SRM-NIRS-EEG\\RESULTS DATA\\SRM-NIRS-EEG-1_Hit_Rates.csv")
+lead_hit_rates <- read.csv("C:\\Users\\benri\\Documents\\GitHub\\SRM-NIRS-EEG\\RESULTS DATA\\SRM-NIRS-EEG-1_Lead_Hit_Rates.csv")
+lag_hit_rates  <- read.csv("C:\\Users\\benri\\Documents\\GitHub\\SRM-NIRS-EEG\\RESULTS DATA\\SRM-NIRS-EEG-1_Lag_Hit_Rates.csv")
+
+
 
 # Remove unneeded columns, put in long format
-hit_rates$OriginalVariableNames <- array(0:29)
-colnames(hit_rates) <- c("S","ITD50_Noise","ITD500_Noise","ILD70n_Noise","ILD10_Noise","ITD50_Speech","ITD500_Speech","ILD70n_Speech","ILD10_Speech")
-hit_rates <- pivot_longer(hit_rates, cols=c("ITD50_Noise","ITD500_Noise","ILD70n_Noise","ILD10_Noise","ITD50_Speech","ITD500_Speech","ILD70n_Speech","ILD10_Speech"),
+lead_hit_rates$OriginalVariableNames <- array(0:29)
+colnames(lead_hit_rates) <- c("S","ITD50_Noise","ITD500_Noise","ILD70n_Noise","ILD10_Noise","ITD50_Speech","ITD500_Speech","ILD70n_Speech","ILD10_Speech")
+lead_hit_rates <- pivot_longer(lead_hit_rates, cols=c("ITD50_Noise","ITD500_Noise","ILD70n_Noise","ILD10_Noise","ITD50_Speech","ITD500_Speech","ILD70n_Speech","ILD10_Speech"),
                           names_to = c("Spatialization","Masker"), names_sep = "_", values_to = "HitRate")
 
+lag_hit_rates$OriginalVariableNames <- array(0:29)
+colnames(lag_hit_rates) <- c("S","ITD50_Noise","ITD500_Noise","ILD70n_Noise","ILD10_Noise","ITD50_Speech","ITD500_Speech","ILD70n_Speech","ILD10_Speech")
+lag_hit_rates <- pivot_longer(lag_hit_rates, cols=c("ITD50_Noise","ITD500_Noise","ILD70n_Noise","ILD10_Noise","ITD50_Speech","ITD500_Speech","ILD70n_Speech","ILD10_Speech"),
+                               names_to = c("Spatialization","Masker"), names_sep = "_", values_to = "HitRate")
+
+
+lead_hit_rates$position <- "lead"
+lag_hit_rates$position <- "lag"
+
+hit_rates<-rbind(lead_hit_rates,lag_hit_rates)
+
+
 # Organize Factors
-to.factor <- c('S','Masker','Spatialization')
+to.factor <- c('S','Masker','Spatialization','position')
 hit_rates[, to.factor] <- lapply(hit_rates[, to.factor], as.factor)
 
 # Summary Statistics
@@ -84,7 +99,7 @@ hit_rates[, to.factor] <- lapply(hit_rates[, to.factor], as.factor)
 # ggqqplot(hit_rates, "HitRate", ggtheme = theme_bw()) + facet_grid(Condition ~ Masker, labeller = "label_both")
 
 
-model_hitrate <- mixed(HitRate ~ Spatialization*Masker + (1|S),
+model_hitrate <- mixed(HitRate ~ Spatialization*Masker*position + (1|S),
                 data= hit_rates, 
                 control = lmerControl(optimizer = "bobyqa"), method = 'LRT')
 
@@ -99,6 +114,14 @@ posthoc_hitrate_speech_v_noise <- lmer(HitRate ~ Masker + (1|S),
                                 control = lmerControl(optimizer = "bobyqa"))
 
 summary(posthoc_hitrate_speech_v_noise)
+
+# Compare lead versus lag
+hit_rates$position <- relevel(hit_rates$position, "lead")
+posthoc_hitrate_lead_v_lag <- lmer(HitRate ~ position + (1|S),
+                                   data = hit_rates,
+                                   control = lmerControl(optimizer = "bobyqa"))
+
+summary(posthoc_hitrate_lead_v_lag)
 
 # Compare All spatializations to each other within speech masker
 # ITD50 as reference
@@ -166,75 +189,127 @@ summary(posthoc_hitrate_ild10_noise)
 ##    FA Rates    ##
 ####################################################
 
-FA_rates <- read.csv("C:\\Users\\benri\\Documents\\GitHub\\SRM-NIRS-EEG\\RESULTS DATA\\SRM-NIRS-EEG-1_FA_Rates.csv")
+lead_FA_rates <- read.csv("C:\\Users\\benri\\Documents\\GitHub\\SRM-NIRS-EEG\\RESULTS DATA\\SRM-NIRS-EEG-1_Lead_FA_Rates.csv")
+lag_FA_rates <- read.csv("C:\\Users\\benri\\Documents\\GitHub\\SRM-NIRS-EEG\\RESULTS DATA\\SRM-NIRS-EEG-1_Lag_FA_Rates.csv")
 
 # Remove unneeded columns, put in long format
-FA_rates$OriginalVariableNames <- array(1:30)
-colnames(FA_rates) <- c("S","ITD50","ITD500","ILD70n","ILD10")
-FA_rates <- pivot_longer(FA_rates, cols=c("ITD50","ITD500","ILD70n","ILD10"),
+lead_FA_rates$OriginalVariableNames <- array(0:29)
+colnames(lead_FA_rates) <- c("S","ITD50","ITD500","ILD70n","ILD10")
+lead_FA_rates <- pivot_longer(lead_FA_rates, cols=c("ITD50","ITD500","ILD70n","ILD10"),
                           names_to = c("Spatialization"), values_to = "FARate")
+lag_FA_rates$OriginalVariableNames <- array(0:29)
+colnames(lag_FA_rates) <- c("S","ITD50","ITD500","ILD70n","ILD10")
+lag_FA_rates <- pivot_longer(lag_FA_rates, cols=c("ITD50","ITD500","ILD70n","ILD10"),
+                              names_to = c("Spatialization"), values_to = "FARate")
+
+lead_FA_rates$position <- "lead"
+lag_FA_rates$position <- "lag"
+
+FA_rates <- rbind(lead_FA_rates,lag_FA_rates)
+
 
 # Organize Factors
-to.factor <- c('S','Spatialization')
+to.factor <- c('S','Spatialization','position')
 FA_rates[, to.factor] <- lapply(FA_rates[, to.factor], as.factor)
 
 # LMEM
-model_farate <- mixed(FARate ~ Spatialization + (1|S),data= FA_rates,control = lmerControl(optimizer = "bobyqa"), method = 'LRT')
+model_farate <- mixed(FARate ~ Spatialization*position + (1|S),data= FA_rates,control = lmerControl(optimizer = "bobyqa"), method = 'LRT')
 
 model_farate
 
-# Post hocs
+# Post hocs within leading position 
 # ITD50 as reference
 FA_rates$Spatialization <- relevel(FA_rates$Spatialization, "ITD50")
-posthoc_farate_itd50 <- lmer(FARate ~ Spatialization + (1|S),
-                        data= FA_rates, 
+posthoc_farate_itd50_lead <- lmer(FARate ~ Spatialization + (1|S),
+                        data= subset(FA_rates, position == "lead"), 
                         control = lmerControl(optimizer = "bobyqa"))
 
-summary(posthoc_farate_itd50)
+summary(posthoc_farate_itd50_lead)
 
 # ITD500 as reference
 FA_rates$Spatialization <- relevel(FA_rates$Spatialization, "ITD500")
-posthoc_farate_itd500 <- lmer(FARate ~ Spatialization + (1|S),
-                             data= FA_rates, 
+posthoc_farate_itd500_lead <- lmer(FARate ~ Spatialization + (1|S),
+                              data= subset(FA_rates, position == "lead"), 
                              control = lmerControl(optimizer = "bobyqa"))
 
-summary(posthoc_farate_itd500)
+summary(posthoc_farate_itd500_lead)
 
 # ILD70n as reference
 FA_rates$Spatialization <- relevel(FA_rates$Spatialization, "ILD70n")
-posthoc_farate_ild70n <- lmer(FARate ~ Spatialization + (1|S),
-                              data= FA_rates, 
+posthoc_farate_ild70n_lead <- lmer(FARate ~ Spatialization + (1|S),
+                              data= subset(FA_rates, position == "lead"), 
                               control = lmerControl(optimizer = "bobyqa"))
 
-summary(posthoc_farate_ild70n)
+summary(posthoc_farate_ild70n_lead)
 
 # ILD10 as reference
 FA_rates$Spatialization <- relevel(FA_rates$Spatialization, "ILD10")
-posthoc_farate_ild10 <- lmer(FARate ~ Spatialization + (1|S),
-                              data= FA_rates, 
+posthoc_farate_ild10_lead <- lmer(FARate ~ Spatialization + (1|S),
+                             data= subset(FA_rates, position == "lead"), 
                               control = lmerControl(optimizer = "bobyqa"))
 
-summary(posthoc_farate_ild10)
+summary(posthoc_farate_ild10_lead)
 
 
+FA_rates$Spatialization <- relevel(FA_rates$Spatialization, "ITD50")
+posthoc_farate_itd50_lag <- lmer(FARate ~ Spatialization + (1|S),
+                                  data= subset(FA_rates, position == "lag"), 
+                                  control = lmerControl(optimizer = "bobyqa"))
+
+summary(posthoc_farate_itd50_lag)
+
+# ITD500 as reference
+FA_rates$Spatialization <- relevel(FA_rates$Spatialization, "ITD500")
+posthoc_farate_itd500_lag <- lmer(FARate ~ Spatialization + (1|S),
+                                   data= subset(FA_rates, position == "lag"), 
+                                   control = lmerControl(optimizer = "bobyqa"))
+
+summary(posthoc_farate_itd500_lag)
+
+# ILD70n as reference
+FA_rates$Spatialization <- relevel(FA_rates$Spatialization, "ILD70n")
+posthoc_farate_ild70n_lag <- lmer(FARate ~ Spatialization + (1|S),
+                                   data= subset(FA_rates, position == "lag"), 
+                                   control = lmerControl(optimizer = "bobyqa"))
+
+summary(posthoc_farate_ild70n_lag)
+
+# ILD10 as reference
+FA_rates$Spatialization <- relevel(FA_rates$Spatialization, "ILD10")
+posthoc_farate_ild10_lag <- lmer(FARate ~ Spatialization + (1|S),
+                                  data= subset(FA_rates, position == "lag"), 
+                                  control = lmerControl(optimizer = "bobyqa"))
+
+summary(posthoc_farate_ild10_lag)
 ####################################################
 ##    D primes    ##
 ####################################################
 
-d_primes <- read.csv("C:\\Users\\benri\\Documents\\GitHub\\SRM-NIRS-EEG\\RESULTS DATA\\SRM-NIRS-EEG-1_d_primes.csv")
+lead_d_primes <- read.csv("C:\\Users\\benri\\Documents\\GitHub\\SRM-NIRS-EEG\\RESULTS DATA\\SRM-NIRS-EEG-1_Lead_d_primes.csv")
+lag_d_primes <- read.csv("C:\\Users\\benri\\Documents\\GitHub\\SRM-NIRS-EEG\\RESULTS DATA\\SRM-NIRS-EEG-1_Lag_d_primes.csv")
 
 # Remove unneeded columns, put in long format
-d_primes$OriginalVariableNames <- array(1:30)
-colnames(d_primes) <- c("S","ITD50","ITD500","ILD70n","ILD10")
-d_primes <- pivot_longer(d_primes, cols=c("ITD50","ITD500","ILD70n","ILD10"),
+lead_d_primes$OriginalVariableNames <- array(0:29)
+colnames(lead_d_primes) <- c("S","ITD50","ITD500","ILD70n","ILD10")
+lead_d_primes <- pivot_longer(lead_d_primes, cols=c("ITD50","ITD500","ILD70n","ILD10"),
                          names_to = c("Spatialization"), values_to = "DPrime")
 
+lag_d_primes$OriginalVariableNames <- array(0:29)
+colnames(lag_d_primes) <- c("S","ITD50","ITD500","ILD70n","ILD10")
+lag_d_primes <- pivot_longer(lag_d_primes, cols=c("ITD50","ITD500","ILD70n","ILD10"),
+                              names_to = c("Spatialization"), values_to = "DPrime")
+
+
+lead_d_primes$position <- "lead"
+lag_d_primes$position <- "lag"
+
+d_primes <- rbind(lead_d_primes,lag_d_primes)
 # Organize Factors
 to.factor <- c('S','Spatialization')
 d_primes[, to.factor] <- lapply(d_primes[, to.factor], as.factor)
 
 # LMEM
-model_dprime <- mixed(DPrime ~ Spatialization + (1|S),data= d_primes,control = lmerControl(optimizer = "bobyqa"))
+model_dprime <- mixed(DPrime ~ Spatialization*position + (1|S),data= d_primes,control = lmerControl(optimizer = "bobyqa"))
 
 model_dprime
 

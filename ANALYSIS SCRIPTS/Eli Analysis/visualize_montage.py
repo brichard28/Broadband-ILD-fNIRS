@@ -116,7 +116,13 @@ ch_names_dict = {'S1_D1': '1',
  'S8_D7': '14',
  'S8_D15': ''}
 
-fig_montage = mne_nirs.visualisation.plot_3d_montage(
-    data.info, view_map=view_map, subjects_dir=subjects_dir, src_det_names=defaultdict(lambda: ''), ch_names=ch_names_dict)
+#fig_montage = mne_nirs.visualisation.plot_3d_montage(
+#    data.info, view_map=view_map, subjects_dir=subjects_dir, src_det_names=defaultdict(lambda: ''), ch_names=ch_names_dict)
 
-fig_montage.set_tight_layout(tight=True)
+#fig_montage.set_tight_layout(tight=True)
+picks = mne.pick_types(data.info, meg=False, fnirs=True)
+dists = mne.preprocessing.nirs.source_detector_distances(data.info,picks=picks)
+raw_filtered = data.pick(picks[dists >= 0.01])
+info_filtered = raw_filtered.info
+brain = mne.viz.Brain("fsaverage", subjects_dir=subjects_dir, background="w", cortex="0.5")
+brain.add_sensors(info_filtered, trans="fsaverage", fnirs=["channels","pairs"])

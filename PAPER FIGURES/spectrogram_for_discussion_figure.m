@@ -1,12 +1,12 @@
 
-[blue,~] = audioread('C:\Users\benri\Documents\GitHub\Broadband-ILD-fNIRS\unprocessed stim\unprocessed stim\bob_all\blue_short.wav');
-[shoe,fs] = audioread('C:\Users\benri\Documents\GitHub\Broadband-ILD-fNIRS\unprocessed stim\unprocessed stim\bob_all\shoe_short.wav');
+[blue,~] = audioread('/Users/benrichardson/Documents/GitHub/Broadband-ILD-fNIRS/unprocessed stim/unprocessed stim/bob_all/shoe_short.wav');
+[shoe,fs] = audioread('/Users/benrichardson/Documents/GitHub/Broadband-ILD-fNIRS/unprocessed stim/unprocessed stim/bob_all/blue_short.wav');
 
 blue_lead = [blue; zeros(1,fs*0.15)'];
 blue_lag = [zeros(1,fs*0.15)'; blue];
 shoe_lead = [shoe; zeros(1,fs*0.15)'];
 shoe_lag = [zeros(1,fs*0.15)'; shoe];
-mask_thresh = -10;
+mask_thresh = -20;
 
 win = round(fs/70);
 noverlap = round(fs/140);
@@ -62,9 +62,9 @@ blue_powerNorm = (s_blue_power - pmin) / (pmax - pmin);
 target_R = 255/255; target_G = 255/255; target_B = 98/255;
 
 % --- Just a little color (fades toward target color)
-R = 0.3*blue_powerNorm*(target_R);
-G = 0.3*blue_powerNorm*(target_G);
-B = 0.3*blue_powerNorm*(target_B);
+R = 0.1*blue_powerNorm*(target_R);
+G = 0.1*blue_powerNorm*(target_G);
+B = 0.1*blue_powerNorm*(target_B);
 blue_Image_little_color = cat(3, R, G, B);
 
 % --- Full vivid color (saturates to target color)
@@ -89,9 +89,9 @@ shoe_powerNorm = (s_shoe_power - pmin) / (pmax - pmin);
 target_R = 211/255; target_G = 95/255; target_B = 183/255;
 
 % --- Just a little color (fades toward target color)
-R = 0.4*shoe_powerNorm*(target_R);
-G = 0.4*shoe_powerNorm*(target_G);
-B = 0.4*shoe_powerNorm*(target_B);
+R = 0.1*shoe_powerNorm*(target_R);
+G = 0.1*shoe_powerNorm*(target_G);
+B = 0.1*shoe_powerNorm*(target_B);
 shoe_Image_little_color = cat(3, R, G, B);
 
 % --- Full vivid color

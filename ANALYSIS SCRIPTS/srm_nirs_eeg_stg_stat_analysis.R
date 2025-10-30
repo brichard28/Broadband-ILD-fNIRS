@@ -7,18 +7,19 @@ library(afex)
 library(dplyr)
 library(car)
 library(emmeans)
+library(gridExtra)
 
 # Data Preparation ####
 # Load in Data
-attend_right_speech_data_hbo <- read.csv("C:\\Users\\benri\\Documents\\GitHub\\SRM-NIRS-EEG\\ANALYSIS SCRIPTS\\Eli Analysis\\all_subjects_mean_during_stim_lateralization_target_right_speech_masker.csv")
-attend_left_speech_data_hbo <- read.csv("C:\\Users\\benri\\Documents\\GitHub\\SRM-NIRS-EEG\\ANALYSIS SCRIPTS\\Eli Analysis\\all_subjects_mean_during_stim_lateralization_target_left_speech_masker.csv")
-attend_right_noise_data_hbo <- read.csv("C:\\Users\\benri\\Documents\\GitHub\\SRM-NIRS-EEG\\ANALYSIS SCRIPTS\\Eli Analysis\\all_subjects_mean_during_stim_lateralization_target_right_noise_masker.csv")
-attend_left_noise_data_hbo <- read.csv("C:\\Users\\benri\\Documents\\GitHub\\SRM-NIRS-EEG\\ANALYSIS SCRIPTS\\Eli Analysis\\all_subjects_mean_during_stim_lateralization_target_left_noise_masker.csv")
+attend_right_speech_data_hbo <- read.csv("C:\\Users\\benri\\Documents\\GitHub\\Broadband-ILD-fNIRS\\ANALYSIS SCRIPTS\\Eli Analysis\\all_subjects_mean_during_stim_lateralization_target_right_speech_masker.csv")
+attend_left_speech_data_hbo <- read.csv("C:\\Users\\benri\\Documents\\GitHub\\Broadband-ILD-fNIRS\\ANALYSIS SCRIPTS\\Eli Analysis\\all_subjects_mean_during_stim_lateralization_target_left_speech_masker.csv")
+attend_right_noise_data_hbo <- read.csv("C:\\Users\\benri\\Documents\\GitHub\\Broadband-ILD-fNIRS\\ANALYSIS SCRIPTS\\Eli Analysis\\all_subjects_mean_during_stim_lateralization_target_right_noise_masker.csv")
+attend_left_noise_data_hbo <- read.csv("C:\\Users\\benri\\Documents\\GitHub\\Broadband-ILD-fNIRS\\ANALYSIS SCRIPTS\\Eli Analysis\\all_subjects_mean_during_stim_lateralization_target_left_noise_masker.csv")
 
-attend_right_speech_data_hbr <- read.csv("C:\\Users\\benri\\Documents\\GitHub\\SRM-NIRS-EEG\\ANALYSIS SCRIPTS\\Eli Analysis\\all_subjects_mean_during_stim_lateralization_target_right_speech_masker_hbr.csv")
-attend_left_speech_data_hbr <- read.csv("C:\\Users\\benri\\Documents\\GitHub\\SRM-NIRS-EEG\\ANALYSIS SCRIPTS\\Eli Analysis\\all_subjects_mean_during_stim_lateralization_target_left_speech_masker_hbr.csv")
-attend_right_noise_data_hbr <- read.csv("C:\\Users\\benri\\Documents\\GitHub\\SRM-NIRS-EEG\\ANALYSIS SCRIPTS\\Eli Analysis\\all_subjects_mean_during_stim_lateralization_target_right_noise_masker_hbr.csv")
-attend_left_noise_data_hbr <- read.csv("C:\\Users\\benri\\Documents\\GitHub\\SRM-NIRS-EEG\\ANALYSIS SCRIPTS\\Eli Analysis\\all_subjects_mean_during_stim_lateralization_target_left_noise_masker_hbr.csv")
+attend_right_speech_data_hbr <- read.csv("C:\\Users\\benri\\Documents\\GitHub\\Broadband-ILD-fNIRS\\ANALYSIS SCRIPTS\\Eli Analysis\\all_subjects_mean_during_stim_lateralization_target_right_speech_masker_hbr.csv")
+attend_left_speech_data_hbr <- read.csv("C:\\Users\\benri\\Documents\\GitHub\\Broadband-ILD-fNIRS\\ANALYSIS SCRIPTS\\Eli Analysis\\all_subjects_mean_during_stim_lateralization_target_left_speech_masker_hbr.csv")
+attend_right_noise_data_hbr <- read.csv("C:\\Users\\benri\\Documents\\GitHub\\Broadband-ILD-fNIRS\\ANALYSIS SCRIPTS\\Eli Analysis\\all_subjects_mean_during_stim_lateralization_target_right_noise_masker_hbr.csv")
+attend_left_noise_data_hbr <- read.csv("C:\\Users\\benri\\Documents\\GitHub\\Broadband-ILD-fNIRS\\ANALYSIS SCRIPTS\\Eli Analysis\\all_subjects_mean_during_stim_lateralization_target_left_noise_masker_hbr.csv")
 
 colnames(attend_right_speech_data_hbo) <- c("S","Channel","ITD50","ITD500","ILD70n","ILD10")
 colnames(attend_right_noise_data_hbo) <- c("S","Channel","ITD50","ITD500","ILD70n","ILD10")
@@ -225,9 +226,7 @@ plotspeechhbo <- ggplot(stg_se_data_speechhbo, aes(x=factor(Spatialization, leve
   scale_x_discrete(labels=c("ITD50" = "", "ITD500" = "","ILD70n" = "","ILD10" = "")) +
   theme_bw() +
   theme(plot.title = element_text(size = 18), axis.title=element_text(size=18), axis.text.x= element_text(size=12), axis.text.y= element_text(size=12)) +
-  theme(legend.position="none") +
-  geom_signif(xmin = c(0.9,1.9,2.9,3.9), xmax = c(1.1,2.1,3.1,4.1), y_position = c(0.11, 0.11, 0.11, 0.11), tip_length = 0.06, color="black", annotation = c("*","ns","ns","ns"), textsize = 5) +
-  geom_signif(xmin = c(1,2,3), xmax = c(4,4,4), y_position = c(0.13, 0.15, 0.17), tip_length = 0.06, color="black", annotation = c("*","ns","p = 0.0624"), textsize = 5)
+  theme(legend.position="none")
 
 stg_se_data_noisehbo <- summarySE(all_data_cleaned_stg_noisehbo, measurevar="MeanHb", groupvars=c("S","Hemisphere","Spatialization"), na.rm = TRUE)
 stg_se_data_noisehbo <- summarySE(stg_se_data_noisehbo, measurevar="MeanHb", groupvars=c("Hemisphere","Spatialization"), na.rm = TRUE)
@@ -241,7 +240,6 @@ plotnoisehbo <- ggplot(stg_se_data_noisehbo, aes(x=factor(Spatialization, level=
   scale_x_discrete(labels=c("ITD50" = "", "ITD500" = "","ILD70n" = "","ILD10" = "")) + 
   theme_bw() + 
   theme(plot.title = element_text(size = 18), axis.title=element_text(size=18), axis.text.x= element_text(size=12), axis.text.y= element_blank()) +
-  geom_signif(xmin = c(0.9,1.9,2.9,3.9), xmax = c(1.1,2.1,3.1,4.1), y_position = c(0.11, 0.11, 0.11, 0.11), tip_length = 0.06, color="black", annotation = c("**","ns","ns","p = 0.077"), textsize = 5) +
   theme(legend.position="none")
 
 
@@ -275,5 +273,5 @@ plotnoisehbr <- ggplot(stg_se_data_noisehbr, aes(x=factor(Spatialization, level=
   theme(legend.position="none")
 
 
-grid.arrange(plotspeechhbo, plotnoisehbo, plotspeechhbr, plotnoisehbr, ncol=2,  widths = c(0.75,1), heights = c(4,2))
+grid.arrange(plotspeechhbo, plotnoisehbo, plotspeechhbr, plotnoisehbr, ncol=2,  widths = c(1,1), heights = c(4,2))
 

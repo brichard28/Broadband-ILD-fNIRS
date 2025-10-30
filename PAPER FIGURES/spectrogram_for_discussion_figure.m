@@ -1,15 +1,15 @@
 
-[blue,~] = audioread('/Users/benrichardson/Documents/GitHub/Broadband-ILD-fNIRS/unprocessed stim/unprocessed stim/bob_all/shoe_short.wav');
-[shoe,fs] = audioread('/Users/benrichardson/Documents/GitHub/Broadband-ILD-fNIRS/unprocessed stim/unprocessed stim/bob_all/blue_short.wav');
+[blue,~] = audioread('/Users/benri/Documents/GitHub/Broadband-ILD-fNIRS/unprocessed stim/unprocessed stim/bob_all/shoe_short.wav');
+[shoe,fs] = audioread('/Users/benri/Documents/GitHub/Broadband-ILD-fNIRS/unprocessed stim/unprocessed stim/bob_all/blue_short.wav');
 
 blue_lead = [blue; zeros(1,fs*0.15)'];
 blue_lag = [zeros(1,fs*0.15)'; blue];
 shoe_lead = [shoe; zeros(1,fs*0.15)'];
 shoe_lag = [zeros(1,fs*0.15)'; shoe];
-mask_thresh = -20;
+mask_thresh = -15; % -15
 
-win = round(fs/70);
-noverlap = round(fs/140);
+win = round(fs/50); % fs/70
+noverlap = round(fs/100); % fs/140
 hop = win - noverlap;
 L = length(blue);
 
@@ -17,12 +17,12 @@ nframes = floor((L - win)/hop) + 1;             % full frames only
 L_trim = (nframes-1)*hop + win;                 % length that gives exact frames
 x_trim = blue(1:L_trim);
 
-[s_blue,f,t_blue] = spectrogram(x_trim,fs/70,round(fs/140),fs*10,fs,'onesided');
+[s_blue,f,t_blue] = spectrogram(x_trim,win,noverlap,fs*10,fs,'onesided');
 s_blue_mag = abs(s_blue);
 s_blue_power = 10*log10(abs(s_blue_mag).^2);
 s_blue_power(s_blue_power < mask_thresh) = min(s_blue_power,[],'all');
 
-[s_shoe,f,t_shoe] = spectrogram(shoe,fs/70,round(fs/140),fs*10,fs,'onesided');
+[s_shoe,f,t_shoe] = spectrogram(shoe,win,noverlap,fs*10,fs,'onesided');
 s_shoe_mag = abs(s_shoe);
 s_shoe_power = 20*log10(s_shoe_mag);
 s_shoe_power(s_shoe_power < mask_thresh) = min(s_shoe_power,[],'all');
@@ -62,9 +62,9 @@ blue_powerNorm = (s_blue_power - pmin) / (pmax - pmin);
 target_R = 255/255; target_G = 255/255; target_B = 98/255;
 
 % --- Just a little color (fades toward target color)
-R = 0.1*blue_powerNorm*(target_R);
-G = 0.1*blue_powerNorm*(target_G);
-B = 0.1*blue_powerNorm*(target_B);
+R = 0.15*blue_powerNorm*(target_R);
+G = 0.15*blue_powerNorm*(target_G);
+B = 0.15*blue_powerNorm*(target_B);
 blue_Image_little_color = cat(3, R, G, B);
 
 % --- Full vivid color (saturates to target color)
@@ -89,9 +89,9 @@ shoe_powerNorm = (s_shoe_power - pmin) / (pmax - pmin);
 target_R = 211/255; target_G = 95/255; target_B = 183/255;
 
 % --- Just a little color (fades toward target color)
-R = 0.1*shoe_powerNorm*(target_R);
-G = 0.1*shoe_powerNorm*(target_G);
-B = 0.1*shoe_powerNorm*(target_B);
+R = 0.15*shoe_powerNorm*(target_R);
+G = 0.15*shoe_powerNorm*(target_G);
+B = 0.15*shoe_powerNorm*(target_B);
 shoe_Image_little_color = cat(3, R, G, B);
 
 % --- Full vivid color
@@ -101,42 +101,53 @@ B = 1 - shoe_powerNorm*(1 - target_B);
 shoe_Image_full_color = cat(3, R, G, B);
 
 % --- Natural ILDs (higher freq coloration)
-natural_ilds = [linspace(0,1,find(f == 5000)),ones(1,length(f)-find(f==5000))];
+natural_ilds = [linspace(0,1,find(f == 8000)),ones(1,length(f)-find(f==8000))];
 R = (1 - shoe_powerNorm) + natural_ilds' * (target_R);
 G = (1 - shoe_powerNorm) + natural_ilds' * (target_G);
 B = (1 - shoe_powerNorm) + natural_ilds' * (target_B);
 shoe_Image_high_freq = cat(3, R, G, B);
 
 
+%% Define where overlap exists
+dt = t_blue(2) - t_blue(1);          % time step
+t_delayed = t_blue + 0.15;
+t_new = t_blue(1) : dt : t_delayed(end); % new time vector from start of t1 to end of t2
 
-% Plot each black on its own
-fig = figure;
-h1 = imagesc(t_blue,f,blue_powerNorm);
-colormap(gray)
-c = colormap(gray);
-c_flipped = flipud(c);
-colormap(c_flipped)
-ax = gca;
-ax.YDir = 'normal';
-n = 256;
-ylim([0,8000])
-xlim([0,0.300])
-set(h1, 'AlphaData', blue_powerNorm);
-title('blue')
+combined_spect = zeros(2,size(blue_powerNorm,1),length(t_new));
 
-fig = figure;
-h1 = imagesc(t_shoe,f,shoe_powerNorm);
-colormap(gray)
-c = colormap(gray);
-c_flipped = flipud(c);
-colormap(c_flipped)
-ax = gca;
-ax.YDir = 'normal';
-n = 256;
-ylim([0,8000])
-xlim([0,0.300])
-set(h1, 'AlphaData', shoe_powerNorm);
-title('shoe')
+combined_spect(1,:,1:length(t_blue)) = blue_powerNorm;
+combined_spect(2,:,end-length(t_blue)+1:end) = shoe_powerNorm;
+
+threshold = 0.5;  % adjust as needed
+
+%% Preallocate masks for each condition
+mask_little_color = zeros(size(combined_spect,2),size(combined_spect,3),3);
+mask_high_freq = zeros(size(combined_spect,2),size(combined_spect,3),3);
+mask_full_color = zeros(size(combined_spect,2),size(combined_spect,3),3);
+mask_alpha = zeros(size(combined_spect,2),size(combined_spect,3));
+
+% Compare row 1 and row 2 along 2nd and 3rd dimensions
+yellow_rgb = [211,95,183]/255;
+magenta_rgb = [255,255,98]/255;
+midRGB = (yellow_rgb + magenta_rgb)/2;
+for i = 1:size(combined_spect,2)      % second dimension
+    for j = 1:size(combined_spect,3)  % third dimension
+        if abs(combined_spect(1,i,j) - combined_spect(2,i,j)) <= threshold && abs(combined_spect(1,i,j) - combined_spect(2,i,j)) ~= 0
+            [~,index_for_blue] = min(abs(t_new(j) - t_blue));
+            [~,index_for_shoe] = min(abs(t_new(j) - (t_shoe + 0.150)));
+
+            mask_little_color(i,j,:) = mean([squeeze(blue_Image_little_color(i,index_for_blue,:)),squeeze(shoe_Image_little_color(i,index_for_shoe,:))],2);          % set both rows to 1 (or just one row if needed)
+            mask_high_freq(i,j,:) = mean([squeeze(blue_Image_high_freq(i,index_for_blue,:)),squeeze(shoe_Image_high_freq(i,index_for_shoe,:))],2);
+            mask_full_color(i,j,:) = mean([squeeze(blue_Image_full_color(i,index_for_blue,:)),squeeze(shoe_Image_full_color(i,index_for_shoe,:))],2);   
+            mask_alpha(i,j) = 1;
+        else
+            mask_little_color(i,j,:) = [0,0,0];          % set both rows to 0
+            mask_high_freq(i,j,:) = [0,0,0];          % set both rows to 0
+            mask_full_color(i,j,:) = [0,0,0];          % set both rows to 0
+            mask_alpha(i,j) = 0;
+        end
+    end
+end
 
 % Plot both with JUST A LITTLE BIT COLOR 
 fig = figure;
@@ -144,6 +155,8 @@ h1 = imagesc(t_blue,f,blue_Image_little_color);
 colormap(gray)
 hold on
 h2 = imagesc(t_blue + 0.150,f,shoe_Image_little_color);
+hold on
+h3 = imagesc(t_new,f,mask_little_color);
 c = colormap(gray);
 c_flipped = flipud(c);
 colormap(c_flipped)
@@ -154,13 +167,18 @@ ylim([0,8000])
 xlim([0,0.450])
 set(h1, 'AlphaData', blue_powerNorm);
 set(h2, 'AlphaData', shoe_powerNorm);
+set(h3, 'AlphaData', mask_alpha);
 
 
 % Plot where color is greater with frequency (natural ILDs)
 fig = figure;
 h1 = imagesc(t_blue,f,blue_Image_high_freq);
+colormap(gray)
 hold on
 h2 = imagesc(t_blue + 0.150,f,shoe_Image_high_freq);
+colormap(gray)
+hold on
+h3 = imagesc(t_new,f,mask_high_freq);
 ax = gca;
 ax.YDir = 'normal';
 n = 256;
@@ -168,12 +186,17 @@ ylim([0,8000])
 xlim([0,0.450])
 set(h1, 'AlphaData', blue_powerNorm);
 set(h2, 'AlphaData', shoe_powerNorm);
+set(h3, 'AlphaData', mask_alpha);
 
 % Plot one word blue and one red (Large ITDs/Broadband ILDs)
 fig = figure;
 h1 = imagesc(t_blue,f,blue_Image_full_color);
+colormap(gray)
 hold on
 h2 = imagesc(t_blue + 0.150,f,shoe_Image_full_color);
+colormap(gray)
+hold on
+h3 = imagesc(t_new,f,mask_full_color);
 ax = gca;
 ax.YDir = 'normal';
 n = 256;
@@ -181,5 +204,10 @@ ylim([0,8000])
 xlim([0,0.450])
 set(h1, 'AlphaData', blue_powerNorm);
 set(h2, 'AlphaData', shoe_powerNorm);
+set(h3, 'AlphaData', mask_alpha);
+
 % alpha('scaled')
 % alphamap(linspace(0,1,n)); % transparency ramp
+
+
+
